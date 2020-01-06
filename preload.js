@@ -83,7 +83,7 @@ const cacheURLs = async (urls) => {
             end: () => 0
         }, {
             end: () => 0
-        })
+        }, true)
     })
 }
 

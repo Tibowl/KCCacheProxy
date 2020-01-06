@@ -56,7 +56,7 @@ const cache = async (cacheFile, file, url, version) => {
     return 200
 }
 
-const handleCaching = async (req, res) =>{
+const handleCaching = async (req, res, disableLoading = false) =>{
     const {url} = req
     const server = req.headers.host
 
@@ -66,7 +66,9 @@ const handleCaching = async (req, res) =>{
     const cachedFile = cached[file]
     if(cachedFile && existsSync(cacheFile)) {
         if(cachedFile.version == version) {
-            return res.end(readFileSync(cacheFile))
+            if(!disableLoading)
+                return res.end(readFileSync(cacheFile))
+            return
         }
 
         // Version changed
@@ -83,7 +85,8 @@ const handleCaching = async (req, res) =>{
                     cached[file].version = version
                     writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
 
-                    res.end(readFileSync(cacheFile))
+                    if(!disableLoading)
+                        res.end(readFileSync(cacheFile))
                     reslove()
                 } else {
                     console.log("Version & last modified changed!")
@@ -102,8 +105,8 @@ const handleCaching = async (req, res) =>{
         res.statusCode = result
         return res.end()
     }
-
-    return res.end(readFileSync(cacheFile))
+    if(!disableLoading)
+        return res.end(readFileSync(cacheFile))
 }
 const extractURL = (url) => {
     let version = ""
