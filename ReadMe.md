@@ -6,18 +6,20 @@ Installation
 ======
 0. This bot requires [Node](https://nodejs.org/en/)
 1. Install dependencies with `npm i`
-2. You can start the proxy server with `npm start`
-    Optionally you can preload assets at this point, see "Preloading" for more information. 
+2. You can start the proxy server with `npm start`. Optionally you can preload assets at this point, see "Preloading" for more information. 
 3. To use this in your browser, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
 4. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081`
+
 ![preview](https://i.imgur.com/w6wHZeM.png)
 5. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or checking the output of the preloader.
+
 ![preview](https://i.imgur.com/cwBrda5.png)
 6. Save your changes and enable the `Auto Switch` profile.
 
 ![preview](https://i.imgur.com/Z32Ga5J.png)
 
 Don't forget to start the proxy server each time you want to use it.
+
 **NOTE**: You can **NOT** run both the preloader and proxy server at the same time.
 
 Preloading
