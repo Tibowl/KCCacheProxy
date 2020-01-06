@@ -1,0 +1,53 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+        "no-trailing-spaces": "error",
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1,
+                "VariableDeclarator": "first",
+                "FunctionExpression": {"parameters": "first"},
+                "CallExpression": {"arguments": "first"},
+                "ArrayExpression": "first",
+                "ObjectExpression": "first",
+                "ImportDeclaration": "first"
+            }
+        ],
+        "linebreak-style": [
+            "error",
+            "windows"
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "never"
+        ],
+        "no-multiple-empty-lines": [
+            "error",
+            {
+                "max": 2,
+                "maxBOF": 0,
+                "maxEOF": 0
+            }
+        ],
+        "eol-last": "error",
+        "no-unused-vars": "warn",
+        "no-console": "off"
+    }
+}

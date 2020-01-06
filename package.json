@@ -1,0 +1,16 @@
+{
+  "name": "kccacheproxy",
+  "version": "1.0.0",
+  "description": "KanColle caching proxy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tibi",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^8.1.0",
+    "http-proxy": "^1.18.0",
+    "node-fetch": "^2.6.0"
+  }
+}
