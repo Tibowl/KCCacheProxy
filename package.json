@@ -4,13 +4,16 @@
   "description": "KanColle caching proxy",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node proxy",
+    "preload": "node preload"
   },
   "author": "Tibi",
   "license": "ISC",
   "dependencies": {
+    "async": "^3.1.0",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "readline-sync": "^1.4.10"
   }
 }

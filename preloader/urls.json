@@ -1,0 +1,38 @@
+[
+    "kcs2/css/fonts.css",
+    "kcs2/resources/font/A-OTF-UDShinGoPro-Light.woff2",
+    "kcs2/resources/font/A-OTF-UDShinGoPro-Regular.woff2",
+    
+    "kcs2/img/common/bg/g1.png",
+    "kcs2/img/common/bg/g2.png",
+
+    "kcs2/img/common/ship_bg/card/c1.png",
+    "kcs2/img/common/ship_bg/card/c2.png",
+    "kcs2/img/common/ship_bg/card/c3.png",
+    "kcs2/img/common/ship_bg/card/r1.png",
+    "kcs2/img/common/ship_bg/card/r2.png",
+    "kcs2/img/common/ship_bg/card/sr1.png",
+    "kcs2/img/common/ship_bg/card/sr2.png",
+    "kcs2/img/common/ship_bg/card/sr3.png",
+    
+    "kcs2/img/common/ship_bg/screen/c1.png",
+    "kcs2/img/common/ship_bg/screen/c2.png",
+    "kcs2/img/common/ship_bg/screen/c3.png",
+    "kcs2/img/common/ship_bg/screen/r1.png",
+    "kcs2/img/common/ship_bg/screen/r2.png",
+    "kcs2/img/common/ship_bg/screen/sr1.png",
+    "kcs2/img/common/ship_bg/screen/sr2.png",
+    "kcs2/img/common/ship_bg/screen/sr3.png",
+    
+    "kcs2/img/common/ship_bg/screen/item_c1.png",
+    "kcs2/img/common/ship_bg/screen/item_r1.png",
+
+    "kcs2/img/common/bg/011.png",
+    "kcs2/img/common/bg/012.png",
+    "kcs2/img/common/bg/013.png",
+    "kcs2/img/common/bg/014.png",
+    "kcs2/img/common/bg/015.png",
+    "kcs2/img/common/bg/016.png",
+    "kcs2/img/common/bg/023.png",
+    "kcs2/img/common/bg/031.png"
+]

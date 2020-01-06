@@ -1,0 +1,337 @@
+const { eachLimit } = require("async")
+const read = require("readline-sync")
+const fetch = require("node-fetch")
+
+const cacher = require("./cacher.js")
+const config = require("./config.json")
+
+const GADGET = "http://203.104.209.7/"
+const MAX_SIMUL = 8
+
+let SERVER = ""
+let GAME_VERSION = ""
+let VERSIONS = {}
+let START2 = {}
+
+const main = async () => {
+    console.log("Select your server:")
+
+    const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
+    const serverID = read.keyInSelect(en_names) + 1
+    if(serverID == 0) return
+
+    const kcs_const = await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
+    GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
+
+    console.log("Game version: " + GAME_VERSION)
+    console.log(`${en_names[serverID-1]}: ${SERVER.split("/")[2]}`)
+    console.log("Loading api_start2...")
+    START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
+
+    await cacheURLs([
+        `kcs2/version.json?${GAME_VERSION}`,
+        `kcs2/js/main.js?version=${GAME_VERSION}`
+    ])
+    VERSIONS = require("./cache/kcs2/version.json")
+
+    // Recommendend to keep
+    if(config.preloader.recommended.static)
+        await cacheStatic()
+    if(config.preloader.recommended.assets)
+        await cacheAssets()
+    if(config.preloader.recommended.static)
+        await cacheServerName()
+    if(config.preloader.recommended.maps)
+        await cacheMaps()
+    if(config.preloader.recommended.useitem)
+        await cacheUseItem()
+
+    // When game not muted
+    if(config.preloader.sounds.titlecalls)
+        await cacheTitleCalls()
+    if(config.preloader.sounds.se)
+        await cacheSE()
+    if(config.preloader.sounds.bgm)
+        await cacheBGM()
+
+    // For less loading
+    if(config.preloader.extra.equips)
+        await cacheEquips()
+    if(config.preloader.extra.furniture)
+        await cacheFurniture()
+    if(config.preloader.extra.ships)
+        await cacheShips()
+
+    // Does not cache:
+    // event_maesetsu: too hard to get keys easily
+    // gauges
+    // voice lines
+    // purchase_items
+    // other assets with as "key" START_TIME
+}
+
+const cacheURLs = async (urls) => {
+    await eachLimit(urls, MAX_SIMUL, async (url) => {
+        const full = SERVER + url
+        console.log(full)
+        await cacher.handleCaching({
+            url: full,
+            headers: {
+                host: SERVER.split("/")[2]
+            },
+            end: () => 0
+        }, {
+            end: () => 0
+        })
+    })
+}
+
+const cacheStatic = async () => {
+    const urls = require("./preloader/urls.json")
+    console.log(`Caching ${urls.length} URLs`)
+    await cacheURLs(urls)
+}
+
+const cacheAssets = async () => {
+    const assets = require("./preloader/assets.json")
+    for(const type of Object.keys(assets)) {
+        const urls = assets[type].map(k => `kcs2/img/${type}/${k}?version=${VERSIONS[type]}`)
+        console.log(`Caching ${urls.length} of assets type ${type}`)
+        await cacheURLs(urls)
+    }
+
+    const urls = [
+        `kcs2/img/common/bg_map/bg_h.png${VERSIONS.map ? `?version=${VERSIONS.map}`:""}`,
+        `kcs2/img/common/bg_map/bg_y.png${VERSIONS.map ? `?version=${VERSIONS.map}`:""}`
+    ]
+    await cacheURLs(urls)
+}
+
+const cacheTitleCalls = async () => {
+    // kcs2/resources/voice/titlecall_1/019.mp3
+    const urls = []
+    for(let i = 1; i <= 86; i++)
+        urls.push(`kcs2/resources/voice/titlecall_1/${(i+"").padStart(3, "0")}.mp3`)
+    for(let i = 1; i <= 49; i++)
+        urls.push(`kcs2/resources/voice/titlecall_2/${(i+"").padStart(3, "0")}.mp3`)
+
+    console.log(`Caching ${urls.length} title calls`)
+    await cacheURLs(urls)
+}
+
+const cacheSE = async () => {
+    const urls = []
+    const missing = [119, 232, 233, 234, 236, 251, 259, 260, 261, 262, 263]
+    for(let i = 101; i <= 120; i++)
+        if(!missing.includes(i))
+            urls.push(`kcs2/resources/se/${i}.mp3`)
+    for(let i = 201; i <= 264; i++)
+        if(!missing.includes(i))
+            urls.push(`kcs2/resources/se/${i}.mp3`)
+    for(let i = 301; i <= 327; i++)
+        urls.push(`kcs2/resources/se/${i}.mp3`)
+
+    console.log(`Caching ${urls.length} SE`)
+    await cacheURLs(urls)
+}
+
+const cacheMaps = async () => {
+    const urls = []
+
+    const getVersion = (map) => {
+        if(VERSIONS.resources && VERSIONS.resources.map && VERSIONS.resources.map[map])
+            return `?version=${VERSIONS.resources.map[map]}`
+        return ""
+    }
+    for (const map of START2.api_mst_mapinfo) {
+        const {api_maparea_id, api_no} = map
+        urls.push(
+            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}.png${getVersion(api_maparea_id*10+api_no)}`,
+            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_info.json${getVersion(api_maparea_id*10+api_no)}`,
+            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.json${getVersion(api_maparea_id*10+api_no)}`,
+            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.png${getVersion(api_maparea_id*10+api_no)}`
+        )
+    }
+    console.log(`Caching ${urls.length} map assets`)
+    await cacheURLs(urls)
+}
+
+const cacheShips = async () => {
+    const urls = []
+    const typesNoKeyFriendly = [
+        "card", "card_dmg",
+        "banner", "banner_dmg", "banner_g_dmg",
+        "banner2", "banner2_dmg", "banner2_g_dmg",
+        "character_full", "character_full_dmg",
+        "character_up", "character_up_dmg",
+        "remodel", "remodel_dmg",
+        "supply_character", "supply_character_dmg",
+        "album_status"
+    ]
+    const typesNoKeyAbyssal = [
+        "banner", "banner_dmg", "banner_g_dmg",
+        "banner3", "banner3_g_dmg"
+    ]
+    for (const ship of START2.api_mst_shipgraph) {
+        if(ship.api_sortno == 0 && ship.api_boko_d) continue
+        // ship.api_boko_d exists for friendly
+        // ship.api_sortno == 0 for unused friendly
+
+        const {api_id, api_filename, api_version} = ship
+        const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
+        for(const type of ship.api_boko_d ? typesNoKeyFriendly : typesNoKeyAbyssal)
+            urls.push(getPath(api_id, "ship", type, "png") + version)
+        for(const type of ["full", "full_dmg"])
+            urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+    }
+
+    console.log(`Caching ${urls.length} ship assets`)
+    await cacheURLs(urls)
+}
+
+const cacheEquips = async () => {
+    const urls = []
+    const typesNoKeyFriendly = [
+        "card", "card_t",
+        "item_character", "item_on", "item_up",
+        "btxt_flat",
+        "remodel",
+        "statustop_item"
+    ]
+    const typesNoKeyAbyssal = [
+        "item_up", "btxt_flat"
+    ]
+    for (const equip of START2.api_mst_slotitem) {
+        const {api_id, api_version} = equip
+        const version = api_version ? "?version=" + api_version : ""
+        for(const type of api_id < 500 ? typesNoKeyFriendly : typesNoKeyAbyssal)
+            urls.push(getPath(api_id, "slot", type, "png") + version)
+
+        // Airplanes
+        if(equip.api_type[4] != 0  && api_id < 500) {
+            for(const type of ["airunit_fairy", "airunit_banner", "airunit_name"])
+                urls.push(getPath(api_id, "slot", type, "png") + version)
+            if(api_id < 30) {
+                urls.push(`kcs2/resources/plane/${(api_id+"").padStart(3, "0")}.png`)
+                urls.push(`kcs2/resources/plane/r${(api_id+"").padStart(3, "0")}.png`)
+            }
+        }
+    }
+
+    console.log(`Caching ${urls.length} equip assets`)
+    await cacheURLs(urls)
+}
+
+const cacheBGM = async () => {
+    const urls = []
+    let bgm = []
+
+    // Battle BGMs
+    const missing_battle = [24]
+    for(let i = 1; i <= 144; i++)
+        if(!missing_battle.includes(i))
+            bgm.push(i)
+
+    // In case there are still some missing (new events)
+    for (const map of START2.api_mst_mapbgm) {
+        const {api_boss_bgm, api_map_bgm, api_moving_bgm} = map
+
+        if(!bgm.includes(api_moving_bgm))
+            bgm.push(api_moving_bgm)
+
+        if(!bgm.includes(api_map_bgm[0]))
+            bgm.push(api_map_bgm[0])
+        if(!bgm.includes(api_map_bgm[1]))
+            bgm.push(api_map_bgm[1])
+
+        if(!bgm.includes(api_boss_bgm[0]))
+            bgm.push(api_boss_bgm[0])
+        if(!bgm.includes(api_boss_bgm[1]))
+            bgm.push(api_boss_bgm[1])
+    }
+    urls.push(...bgm.sort().map(id => getPath(id, "bgm", "battle", "mp3")))
+    bgm = []
+
+    // Port BGMs
+    for(let i = 101; i <= 140; i++)
+        bgm.push(i)
+    for(let i = 201; i <= 249; i++)
+        bgm.push(i)
+    // Add missing ones
+    for (const mst_bgm of START2.api_mst_bgm) {
+        const {api_id} = mst_bgm
+
+        if(!bgm.includes(api_id))
+            bgm.push(api_id)
+    }
+    urls.push(...bgm.sort().map(id => getPath(id, "bgm", "port", "mp3")))
+
+    console.log(`Caching ${urls.length} BGM assets`)
+    await cacheURLs(urls)
+}
+
+const cacheFurniture = async () => {
+    const urls = []
+    for(let i = 0; i <= 7; i++)
+        for(let j = 1; j <= 5; j++)
+            urls.push(`kcs2/resources/furniture/outside/window_bg_${i}-${j}.png`)
+
+    for (const mst_bgm of START2.api_mst_furniture) {
+        const {api_id, api_active_flag, api_version} = mst_bgm
+        const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
+        if(api_active_flag == 1) {
+            urls.push(getPath(api_id, "furniture", "scripts", "json") + version)
+            urls.push(getPath(api_id, "furniture", "movable", "json") + version)
+            urls.push(getPath(api_id, "furniture", "movable", "png") + version)
+            urls.push(getPath(api_id, "furniture", "thumbnail", "png") + version)
+        } else {
+            urls.push(getPath(api_id, "furniture", "normal", "png") + version)
+        }
+    }
+
+    console.log(`Caching ${urls.length} furniture assets`)
+    await cacheURLs(urls)
+}
+
+const cacheServerName = async () => {
+    console.log("Caching 3 server name assets")
+    await cacheURLs([
+        `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_t.png`,
+        `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_s.png`,
+        `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_l.png`,
+    ])
+}
+const cacheUseItem = async () => {
+    const urls = []
+    for (const useitem of START2.api_mst_useitem) {
+        const {api_id, api_name} = useitem
+        if(api_name == "") continue
+
+        if(![2, 10, 31, 32, 33, 34, 44, 49, 50, 51, 53, 76].includes(api_id))
+            urls.push(`kcs2/resources/useitem/card/${(api_id+"").padStart(3, "0")}.png`)
+
+        if(api_id < 49 && api_id != 10)
+            urls.push(`kcs2/resources/useitem/card_/${(api_id+"").padStart(3, "0")}.png`)
+    }
+    console.log(`Caching ${urls.length} furniture assets`)
+    await cacheURLs(urls)
+}
+
+var resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409, 5509, 1517, 9695, 9255, 5325, 3691, 5519, 6949, 5607, 9539, 4133, 7795, 5465, 2659, 6381, 6875, 4019, 9195, 5645, 2887, 1213, 1815, 8671, 3015, 3147, 2991, 7977, 7045, 1619, 7909, 4451, 6573, 4545, 8251, 5983, 2849, 7249, 7449, 9477, 5963, 2711, 9019, 7375, 2201, 5631, 4893, 7653, 3719, 8819, 5839, 1853, 9843, 9119, 7023, 5681, 2345, 9873, 6349, 9315, 3795, 9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815, 6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243]
+const key = s => s.split("").reduce((a, e) => a + e.charCodeAt(0), 0)
+const create = (id, type) =>
+    (17 * (id + 7) * resource[(key(type) + id * type.length) % 100] % 8973 + 1000).toString()
+const pad = (id, eors) => eors == "ship" ? (id < 10 ? `000${id}` : id < 100 ? `00${id}` : id < 1000 ? `0${id}` : id.toString()) : (id < 10 ? `00${id}` : id < 100 ? `0${id}` : id.toString())
+const getPath = (id, eors, type, ext, filename) => {
+    let suffix = ""
+    if(type.indexOf("_d") > 0 && type.indexOf("_dmg") < 0) {
+        suffix = "_d"
+        type = type.replace("_d", "")
+    }
+    let uniqueKey = filename ? "_" + filename : ""
+
+    return `kcs2/resources/${eors}/${type}/${pad(id, eors)}${suffix}_${create(id, `${eors}_${type}`)}${uniqueKey}.${ext}`
+}
+
+main()

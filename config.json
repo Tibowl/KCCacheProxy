@@ -1,0 +1,22 @@
+{
+    "port": 8081,
+    "preloader": {
+        "recommended": {
+            "static": true,
+            "assets": true,
+            "servername": true,
+            "maps": true,
+            "useitem": true
+        },
+        "sounds": {
+            "titlecalls": false,
+            "se": false,
+            "bgm": false
+        },
+        "extra": {
+            "equips": false,
+            "furniture": false,
+            "ships": false
+        }
+    }
+}
