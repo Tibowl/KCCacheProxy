@@ -26,6 +26,6 @@ Preloading
 ======
 You can preload most assets by using the preloader. This might take a while. 
 
-You can enable/disable certain sections by editing `config.json`. By default, only the recommended ones are enabled. If you have sound enabled, it's recommended to enable BGM, SE and titlecalls. Enabling the extras will take a long time to finish (especially the ships one).
+You can enable/disable certain sections by editing `config.json`. By default, only the recommended ones are enabled. If you have sound enabled, it's recommended to enable BGM, SE and titlecalls. Enabling the extras will take a long time to finish (especially the ships one since it also does abyssals and old seasonals in `Assets` menu).
 
 You can start the preloader by running `node preload`. Then, select your server by entering the letter before your server name. 

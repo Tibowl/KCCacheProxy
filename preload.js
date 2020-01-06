@@ -170,20 +170,35 @@ const cacheShips = async () => {
         "album_status"
     ]
     const typesNoKeyAbyssal = [
-        "banner", "banner_dmg", "banner_g_dmg",
+        "banner", "banner_g_dmg",
         "banner3", "banner3_g_dmg"
     ]
     for (const ship of START2.api_mst_shipgraph) {
         if(ship.api_sortno == 0 && ship.api_boko_d) continue
         // ship.api_boko_d exists for friendly
         // ship.api_sortno == 0 for unused friendly
+        // ship.api_battle_n exists for friendly/abyssal, not old seasonal
 
         const {api_id, api_filename, api_version} = ship
         const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
-        for(const type of ship.api_boko_d ? typesNoKeyFriendly : typesNoKeyAbyssal)
-            urls.push(getPath(api_id, "ship", type, "png") + version)
-        for(const type of ["full", "full_dmg"])
-            urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+        if(!ship.api_battle_n) {
+            // Seasonal
+            for(const type of ["card", "character_full", "character_full_dmg", "character_up", "character_up_dmg"])
+                urls.push(getPath(api_id, "ship", type, "png") + version)
+
+        } else if(ship.api_boko_d) {
+            // Friendly
+            for(const type of typesNoKeyFriendly)
+                urls.push(getPath(api_id, "ship", type, "png") + version)
+            for(const type of ["full", "full_dmg"])
+                urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+        } else {
+            // Abyssal
+            for(const type of typesNoKeyAbyssal)
+                urls.push(getPath(api_id, "ship", type, "png") + version)
+            for(const type of  ["full"])
+                urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+        }
     }
 
     console.log(`Caching ${urls.length} ship assets`)
