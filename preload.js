@@ -236,7 +236,7 @@ const cacheEquips = async () => {
     const typesNoKeyFriendly = [
         "card", "card_t",
         "item_character", "item_on", "item_up",
-        "btxt_flat",
+        //"btxt_flat",
         "remodel",
         "statustop_item"
     ]
@@ -253,10 +253,10 @@ const cacheEquips = async () => {
         if(equip.api_type[4] != 0  && api_id < 500) {
             for(const type of ["airunit_fairy", "airunit_banner", "airunit_name"])
                 urls.push(getPath(api_id, "slot", type, "png") + version)
-            if(api_id < 30) {
-                urls.push(`kcs2/resources/plane/${(api_id+"").padStart(3, "0")}.png`)
-                urls.push(`kcs2/resources/plane/r${(api_id+"").padStart(3, "0")}.png`)
-            }
+        }
+        if(api_id < 5 || (api_id > 10 && api_id < 38)) {
+            urls.push(`kcs2/resources/plane/${(api_id+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/plane/r${(api_id+"").padStart(3, "0")}.png`)
         }
     }
 
