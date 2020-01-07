@@ -272,7 +272,7 @@ const cacheBGM = async () => {
 
     // Battle BGMs
     const missing_battle = [24]
-    for(let i = 1; i <= 144; i++)
+    for(let i = 1; i <= 151; i++)
         if(!missing_battle.includes(i))
             bgm.push(i)
 
@@ -297,7 +297,7 @@ const cacheBGM = async () => {
     bgm = []
 
     // Port BGMs
-    for(let i = 101; i <= 140; i++)
+    for(let i = 101; i <= 143; i++)
         bgm.push(i)
     for(let i = 201; i <= 249; i++)
         bgm.push(i)
@@ -348,6 +348,7 @@ const cacheServerName = async () => {
         `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_l.png`,
     ])
 }
+
 const cacheUseItem = async () => {
     const urls = []
     for (const useitem of START2.api_mst_useitem) {
@@ -363,6 +364,7 @@ const cacheUseItem = async () => {
     console.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
 }
+
 const cacheNPCVoices = async () => {
     const urls = []
 
@@ -375,6 +377,23 @@ const cacheNPCVoices = async () => {
 
     console.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
+}
+
+// https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Meta.js#L903
+const workingDiffs = [
+    2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
+    9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
+    1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
+    3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
+    3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
+    5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
+]
+const specialReairVoiceShips = [
+    56, 160, 224, 65, 194, 268, 114, 200, 290, 123, 142,
+    295, 126, 398, 127, 399, 135, 304, 136, 418, 496
+]
+const getFilenameByVoiceLine = (ship_id, lineNum) => {
+    return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum
 }
 const cacheVoices = async () => {
     const urls = []
@@ -390,8 +409,8 @@ const cacheVoices = async () => {
         const version = api_version[1] != "1" ? "?version=" + api_version[1] : ""
 
         const vnums = [
-            1,25,2,3,4,28,24,8,13,9,10,26,27,11,
-            12,5,7,14,15,16,18,17,23,19,20,21,22,
+            1, 25, 2, 3, 4, 28, 24, 8, 13, 9, 10, 26, 27, 11,
+            12, 5, 7, 14, 15, 16, 18, 17, 23, 19, 20, 21, 22,
         ]
 
         if ((1 & api_voicef) !== 0)
@@ -400,8 +419,8 @@ const cacheVoices = async () => {
             vnums.push(129)
         if ((2 & api_voicef) !== 0)
             vnums.push(
-                30,31,32,33,34,35,36,37,38,39,40,41,
-                42,43,44,45,46,47,48,49,50,51,52,53
+                30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+                42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
             )
         if(SPECIAL_CG.includes(api_id))
             vnums.push(900, 901, 902, 903)
@@ -421,7 +440,7 @@ const resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 31
 const key = s => s.split("").reduce((a, e) => a + e.charCodeAt(0), 0)
 const create = (id, type) =>
     (17 * (id + 7) * resource[(key(type) + id * type.length) % 100] % 8973 + 1000).toString()
-const pad = (id, eors) => eors == "ship" ? (id < 10 ? `000${id}` : id < 100 ? `00${id}` : id < 1000 ? `0${id}` : id.toString()) : (id < 10 ? `00${id}` : id < 100 ? `0${id}` : id.toString())
+const pad = (id, eors) => eors == "ship" ? id.toString().padStart(4, "0") : id.toString().padStart(3, "0")
 const getPath = (id, eors, type, ext, filename) => {
     let suffix = ""
     if(type.indexOf("_d") > 0 && type.indexOf("_dmg") < 0) {
@@ -432,31 +451,4 @@ const getPath = (id, eors, type, ext, filename) => {
 
     return `kcs2/resources/${eors}/${type}/${pad(id, eors)}${suffix}_${create(id, `${eors}_${type}`)}${uniqueKey}.${ext}`
 }
-// https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Meta.js#L903
-const workingDiffs = [
-    2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
-    9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
-    1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
-    3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
-    3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
-    5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
-]
-const getFilenameByVoiceLine = (ship_id, lineNum) => {
-    return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum
-}
-
-const specialReairVoiceShips = [
-    // These ships got special (unused?) voice line (6, aka. Repair) implemented,
-    // tested by trying and succeeding to http fetch mp3 from kc server
-    56, 160, 224,  // Naka
-    65, 194, 268,  // Haguro
-    114, 200, 290, // Abukuma
-    123, 142, 295, // Kinukasa
-    126, 398,      // I-168
-    127, 399,      // I-58
-    135, 304,      // Naganami
-    136,           // Yamato Kai
-    418,           // Satsuki Kai Ni
-    496,           // Zara due
-]
 main()
