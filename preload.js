@@ -309,6 +309,7 @@ const cacheBGM = async () => {
             bgm.push(api_id)
     }
     urls.push(...bgm.sort().map(id => getPath(id, "bgm", "port", "mp3")))
+    urls.push(...[1, 2, 3, 4, 5].map(id => getPath(id, "bgm", "fanfare", "mp3")))
 
     console.log(`Caching ${urls.length} BGM assets`)
     await cacheURLs(urls)
