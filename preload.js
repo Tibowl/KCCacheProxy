@@ -8,6 +8,8 @@ const config = require("./config.json")
 const GADGET = "http://203.104.209.7/"
 const MAX_SIMUL = 8
 
+const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
+
 let SERVER = ""
 let GAME_VERSION = ""
 let VERSIONS = {}
@@ -216,6 +218,8 @@ const cacheShips = async () => {
                 urls.push(getPath(api_id, "ship", type, "png") + version)
             for(const type of ["full", "full_dmg"])
                 urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+            if(SPECIAL_CG.includes(api_id))
+                urls.push(getPath(api_id, "ship", "special", "png") + version)
         } else {
             // Abyssal
             for(const type of typesNoKeyAbyssal)
@@ -396,7 +400,12 @@ const cacheVoices = async () => {
                 30,31,32,33,34,35,36,37,38,39,40,41,
                 42,43,44,45,46,47,48,49,50,51,52,53
             )
-
+        if(SPECIAL_CG.includes(api_id))
+            vnums.push(900, 901, 902, 903)
+        if([432, 353].includes(api_id))
+            vnums.push(917, 918)
+        if(specialReairVoiceShips.includes(api_id))
+            vnums.push(6)
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${version}`))
     }
 
@@ -433,4 +442,18 @@ const getFilenameByVoiceLine = (ship_id, lineNum) => {
     return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum
 }
 
+const specialReairVoiceShips = [
+    // These ships got special (unused?) voice line (6, aka. Repair) implemented,
+    // tested by trying and succeeding to http fetch mp3 from kc server
+    56, 160, 224,  // Naka
+    65, 194, 268,  // Haguro
+    114, 200, 290, // Abukuma
+    123, 142, 295, // Kinukasa
+    126, 398,      // I-168
+    127, 399,      // I-58
+    135, 304,      // Naganami
+    136,           // Yamato Kai
+    418,           // Satsuki Kai Ni
+    496,           // Zara due
+]
 main()
