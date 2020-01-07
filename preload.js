@@ -54,6 +54,10 @@ const main = async () => {
         await cacheSE()
     if(config.preloader.sounds.bgm)
         await cacheBGM()
+    if(config.preloader.sounds.npcvoices)
+        await cacheNPCVoices()
+    if(config.preloader.sounds.voices)
+        await cacheVoices()
 
     // For less loading
     if(config.preloader.extra.equips)
@@ -65,8 +69,7 @@ const main = async () => {
 
     // Does not cache:
     // event_maesetsu: too hard to get keys easily
-    // gauges
-    // voice lines
+    // gauges beyond first one
     // purchase_items
     // other assets with as "key" START_TIME
 }
@@ -137,7 +140,7 @@ const cacheSE = async () => {
 }
 
 const cacheMaps = async () => {
-    const urls = []
+    let urls = []
 
     const getVersion = (map) => {
         if(VERSIONS.resources && VERSIONS.resources.map && VERSIONS.resources.map[map])
@@ -158,6 +161,7 @@ const cacheMaps = async () => {
 
     console.log(`Caching ${urls.length} map assets`)
     await cacheURLs(urls)
+    urls = []
 
     for (const map of START2.api_mst_mapinfo) {
         const {api_maparea_id, api_no} = map
@@ -349,11 +353,59 @@ const cacheUseItem = async () => {
         if(api_id < 49 && api_id != 10)
             urls.push(`kcs2/resources/useitem/card_/${(api_id+"").padStart(3, "0")}.png`)
     }
-    console.log(`Caching ${urls.length} furniture assets`)
+    console.log(`Caching ${urls.length} use item assets`)
+    await cacheURLs(urls)
+}
+const cacheNPCVoices = async () => {
+    const urls = []
+
+    const quotes = await (await fetch("https://raw.githubusercontent.com/KC3Kai/kc3-translations/master/data/en/quotes.json")).json()
+
+    if(quotes && quotes.npc)
+        urls.push(...Object.keys(quotes.npc).filter(k => quotes.npc[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9999/${id}.mp3`))
+    if(quotes && quotes.abyssal)
+        urls.push(...Object.keys(quotes.abyssal).filter(k => quotes.abyssal[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9998/${id}.mp3`))
+
+    console.log(`Caching ${urls.length} use item assets`)
+    await cacheURLs(urls)
+}
+const cacheVoices = async () => {
+    const urls = []
+
+    for (const ship of START2.api_mst_shipgraph) {
+        if(ship.api_sortno == 0 || !ship.api_battle_n || !ship.api_boko_d) continue
+
+        const {api_id, api_filename, api_version} = ship
+        const mstship = START2.api_mst_ship.find(k => k.api_id == api_id)
+        if(!mstship) continue
+
+        const api_voicef = mstship.api_voicef || 0
+        const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
+
+        const vnums = [
+            1,25,2,3,4,28,24,8,13,9,10,26,27,11,
+            12,5,7,14,15,16,18,17,23,19,20,21,22,
+        ]
+
+        if ((1 & api_voicef) !== 0)
+            vnums.push(29)
+        if ((4 & api_voicef) !== 0)
+            vnums.push(129)
+        if ((2 & api_voicef) !== 0)
+            vnums.push(
+                30,31,32,33,34,35,36,37,38,39,40,41,
+                42,43,44,45,46,47,48,49,50,51,52,53
+            )
+
+        urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${version}`))
+    }
+
+
+    console.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
 }
 
-var resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409, 5509, 1517, 9695, 9255, 5325, 3691, 5519, 6949, 5607, 9539, 4133, 7795, 5465, 2659, 6381, 6875, 4019, 9195, 5645, 2887, 1213, 1815, 8671, 3015, 3147, 2991, 7977, 7045, 1619, 7909, 4451, 6573, 4545, 8251, 5983, 2849, 7249, 7449, 9477, 5963, 2711, 9019, 7375, 2201, 5631, 4893, 7653, 3719, 8819, 5839, 1853, 9843, 9119, 7023, 5681, 2345, 9873, 6349, 9315, 3795, 9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815, 6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243]
+const resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409, 5509, 1517, 9695, 9255, 5325, 3691, 5519, 6949, 5607, 9539, 4133, 7795, 5465, 2659, 6381, 6875, 4019, 9195, 5645, 2887, 1213, 1815, 8671, 3015, 3147, 2991, 7977, 7045, 1619, 7909, 4451, 6573, 4545, 8251, 5983, 2849, 7249, 7449, 9477, 5963, 2711, 9019, 7375, 2201, 5631, 4893, 7653, 3719, 8819, 5839, 1853, 9843, 9119, 7023, 5681, 2345, 9873, 6349, 9315, 3795, 9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815, 6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243]
 const key = s => s.split("").reduce((a, e) => a + e.charCodeAt(0), 0)
 const create = (id, type) =>
     (17 * (id + 7) * resource[(key(type) + id * type.length) % 100] % 8973 + 1000).toString()
@@ -367,6 +419,18 @@ const getPath = (id, eors, type, ext, filename) => {
     let uniqueKey = filename ? "_" + filename : ""
 
     return `kcs2/resources/${eors}/${type}/${pad(id, eors)}${suffix}_${create(id, `${eors}_${type}`)}${uniqueKey}.${ext}`
+}
+// https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Meta.js#L903
+const workingDiffs = [
+    2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
+    9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
+    1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
+    3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
+    3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
+    5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
+]
+const getFilenameByVoiceLine = (ship_id, lineNum) => {
+    return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum
 }
 
 main()

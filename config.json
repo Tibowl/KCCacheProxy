@@ -11,7 +11,9 @@
         "sounds": {
             "titlecalls": false,
             "se": false,
-            "bgm": false
+            "bgm": false,
+            "npcvoices": false,
+            "voices": false
         },
         "extra": {
             "equips": false,
