@@ -56,6 +56,11 @@ const cache = async (cacheFile, file, url, version) => {
     return 200
 }
 
+const setHeaders = (res) => {
+    res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+    res.setHeader("Pragma", "public")
+}
+
 const handleCaching = async (req, res, disableLoading = false) =>{
     const {url} = req
     const server = req.headers.host
@@ -66,8 +71,10 @@ const handleCaching = async (req, res, disableLoading = false) =>{
     const cachedFile = cached[file]
     if(cachedFile && existsSync(cacheFile)) {
         if(cachedFile.version == version) {
-            if(!disableLoading)
+            if(!disableLoading) {
+                setHeaders(res)
                 return res.end(readFileSync(cacheFile))
+            }
             return
         }
 
@@ -85,8 +92,10 @@ const handleCaching = async (req, res, disableLoading = false) =>{
                     cached[file].version = version
                     writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
 
-                    if(!disableLoading)
+                    if(!disableLoading) {
+                        setHeaders(res)
                         res.end(readFileSync(cacheFile))
+                    }
                     reslove()
                 } else {
                     console.log("Version & last modified changed!")
@@ -105,8 +114,10 @@ const handleCaching = async (req, res, disableLoading = false) =>{
         res.statusCode = result
         return res.end()
     }
-    if(!disableLoading)
+    if(!disableLoading) {
+        setHeaders(res)
         return res.end(readFileSync(cacheFile))
+    }
 }
 const extractURL = (url) => {
     let version = ""
