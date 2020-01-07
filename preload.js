@@ -380,7 +380,7 @@ const cacheVoices = async () => {
         if(!mstship) continue
 
         const api_voicef = mstship.api_voicef || 0
-        const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
+        const version = api_version[1] != "1" ? "?version=" + api_version[1] : ""
 
         const vnums = [
             1,25,2,3,4,28,24,8,13,9,10,26,27,11,
