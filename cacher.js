@@ -56,9 +56,12 @@ const cache = async (cacheFile, file, url, version) => {
     return 200
 }
 
-const setHeaders = (res) => {
-    res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-    res.setHeader("Pragma", "public")
+const send = (res, cacheFile, disableLoading = false) => {
+    if (!disableLoading) {
+        res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+        res.setHeader("Pragma", "public")
+        res.end(readFileSync(cacheFile))
+    }
 }
 
 const handleCaching = async (req, res, disableLoading = false) =>{
@@ -70,13 +73,8 @@ const handleCaching = async (req, res, disableLoading = false) =>{
     // Return cached if version matches
     const cachedFile = cached[file]
     if(cachedFile && existsSync(cacheFile)) {
-        if(cachedFile.version == version) {
-            if(!disableLoading) {
-                setHeaders(res)
-                return res.end(readFileSync(cacheFile))
-            }
-            return
-        }
+        if(cachedFile.version == version)
+            return send(res, cacheFile, disableLoading)
 
         // Version changed
         return await new Promise((reslove) => {
@@ -92,10 +90,7 @@ const handleCaching = async (req, res, disableLoading = false) =>{
                     cached[file].version = version
                     writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
 
-                    if(!disableLoading) {
-                        setHeaders(res)
-                        res.end(readFileSync(cacheFile))
-                    }
+                    send(res, cacheFile, disableLoading)
                     reslove()
                 } else {
                     console.log("Version & last modified changed!")
@@ -114,10 +109,8 @@ const handleCaching = async (req, res, disableLoading = false) =>{
         res.statusCode = result
         return res.end()
     }
-    if(!disableLoading) {
-        setHeaders(res)
-        return res.end(readFileSync(cacheFile))
-    }
+
+    return send(res, cacheFile, disableLoading)
 }
 const extractURL = (url) => {
     let version = ""
@@ -131,6 +124,7 @@ const extractURL = (url) => {
 }
 
 module.exports = { cache, handleCaching , extractURL}
+
 function saveCached() {
     renameSync(CACHE_LOCATION, CACHE_LOCATION + ".bak")
     writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
