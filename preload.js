@@ -152,8 +152,29 @@ const cacheMaps = async () => {
             `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.json${getVersion(api_maparea_id*10+api_no)}`,
             `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.png${getVersion(api_maparea_id*10+api_no)}`
         )
+        if(map.api_required_defeat_count != null || map.api_max_maphp != null)
+            urls.push(`kcs2/resources/gauge/${(""+api_maparea_id).padStart(3, "0")}${(""+api_no).padStart(2, "0")}.json${getVersion(api_maparea_id*10+api_no)}`)
     }
+
     console.log(`Caching ${urls.length} map assets`)
+    await cacheURLs(urls)
+
+    for (const map of START2.api_mst_mapinfo) {
+        const {api_maparea_id, api_no} = map
+        if(map.api_required_defeat_count != null || map.api_max_maphp != null) {
+            const gaugeFile = require(`./cache/kcs2/resources/gauge/${(""+api_maparea_id).padStart(3, "0")}${(""+api_no).padStart(2, "0")}.json`)
+            if(gaugeFile.img) {
+                urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
+                urls.push(`kcs2/resources/gauge/${gaugeFile.img}_light.png`)
+            }
+            if(gaugeFile.vertical && gaugeFile.vertical.img) {
+                urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}.png`)
+                urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}_light.png`)
+            }
+        }
+    }
+
+    console.log(`Caching ${urls.length} map gauge assets`)
     await cacheURLs(urls)
 }
 
@@ -185,7 +206,6 @@ const cacheShips = async () => {
             // Seasonal
             for(const type of ["card", "character_full", "character_full_dmg", "character_up", "character_up_dmg"])
                 urls.push(getPath(api_id, "ship", type, "png") + version)
-
         } else if(ship.api_boko_d) {
             // Friendly
             for(const type of typesNoKeyFriendly)
