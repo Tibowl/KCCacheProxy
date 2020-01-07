@@ -1,6 +1,7 @@
 const { eachLimit } = require("async")
 const read = require("readline-sync")
 const fetch = require("node-fetch")
+const { readdirSync } = require("fs-extra")
 
 const cacher = require("./cacher.js")
 const config = require("./config.json")
@@ -165,18 +166,17 @@ const cacheMaps = async () => {
     await cacheURLs(urls)
     urls = []
 
-    for (const map of START2.api_mst_mapinfo) {
-        const {api_maparea_id, api_no} = map
-        if(map.api_required_defeat_count != null || map.api_max_maphp != null) {
-            const gaugeFile = require(`./cache/kcs2/resources/gauge/${(""+api_maparea_id).padStart(3, "0")}${(""+api_no).padStart(2, "0")}.json`)
-            if(gaugeFile.img) {
-                urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
-                urls.push(`kcs2/resources/gauge/${gaugeFile.img}_light.png`)
-            }
-            if(gaugeFile.vertical && gaugeFile.vertical.img) {
-                urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}.png`)
-                urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}_light.png`)
-            }
+    for (const map of readdirSync("./cache/kcs2/resources/gauge")) {
+        if(!map.endsWith(".json")) continue
+
+        const gaugeFile = require(`./cache/kcs2/resources/gauge/${map}`)
+        if(gaugeFile.img) {
+            urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
+            urls.push(`kcs2/resources/gauge/${gaugeFile.img}_light.png`)
+        }
+        if(gaugeFile.vertical && gaugeFile.vertical.img) {
+            urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}.png`)
+            urls.push(`kcs2/resources/gauge/${gaugeFile.vertical.img}_light.png`)
         }
     }
 

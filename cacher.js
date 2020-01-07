@@ -96,6 +96,7 @@ const handleCaching = async (req, res, disableLoading = false) =>{
                     console.log("Version & last modified changed!")
                     await cache(cacheFile, file, url, version)
                     reslove()
+                    send(res, cacheFile, disableLoading)
                 }
             })
             req.end()
