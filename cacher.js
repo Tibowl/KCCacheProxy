@@ -73,7 +73,7 @@ const handleCaching = async (req, res, disableLoading = false) =>{
     // Return cached if version matches
     const cachedFile = cached[file]
     if(cachedFile && existsSync(cacheFile)) {
-        if(cachedFile.version == version)
+        if(cachedFile.version == version || version == "")
             return send(res, cacheFile, disableLoading)
 
         // Version changed
