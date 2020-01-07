@@ -24,7 +24,9 @@ Don't forget to start the proxy server each time you want to use it.
 
 Preloading
 ======
-You can preload most assets by using the preloader. This might take a while. 
+You can preload most assets by using the preloader. This might take a while to run. 
+
+It's recommended that you start out from a cache dump. You can download one from [MEGA](https://mega.nz/#!Ufh1hCIS!ioZECeNeQrmuDdzBHC0DjCyaqfSTaTg4mtYb5GxgLI4) (Made on 2020-01-07)
 
 You can enable/disable certain sections by editing `config.json`. By default, only the recommended ones are enabled. If you have sound enabled, it's recommended to enable BGM, SE and titlecalls. Enabling the extras will take a long time to finish (especially the ships one since it also does abyssals and old seasonals in `Assets` menu).
 
