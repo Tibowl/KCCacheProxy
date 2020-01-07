@@ -447,11 +447,15 @@ const cacheVoices = async () => {
                 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
             )
         if(SPECIAL_CG.includes(api_id))
-            vnums.push(900, 901, 902, 903)
+            vnums.push(900)//, 901, 902, 903)
         if([432, 353].includes(api_id))
             vnums.push(917, 918)
         if(specialReairVoiceShips.includes(api_id))
             vnums.push(6)
+
+        // Friend fleet lines
+        // vnums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246])
+
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${version}`))
     }
 
