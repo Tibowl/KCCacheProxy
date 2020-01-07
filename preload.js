@@ -316,7 +316,7 @@ const cacheBGM = async () => {
 }
 
 const cacheFurniture = async () => {
-    const urls = []
+    let urls = []
     for(let i = 0; i <= 7; i++)
         for(let j = 1; j <= 5; j++)
             urls.push(`kcs2/resources/furniture/outside/window_bg_${i}-${j}.png`)
@@ -332,9 +332,35 @@ const cacheFurniture = async () => {
         } else {
             urls.push(getPath(api_id, "furniture", "normal", "png") + version)
         }
+        // urls.push(getPath(api_id, "furniture", "reward", "png") + version)
     }
 
     console.log(`Caching ${urls.length} furniture assets`)
+    await cacheURLs(urls)
+    urls = []
+
+    for (const mst_bgm of START2.api_mst_furniture) {
+        const {api_id, api_active_flag, api_version} = mst_bgm
+        const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
+        if(api_active_flag != 1) continue
+        const script = require("./cache/" + getPath(api_id, "furniture", "scripts", "json"))
+
+        const standard = script.standard
+        if(!standard.hitarea) continue
+        const action = standard.hitarea.state
+        if(!action) continue
+        if(!script[action]) continue
+        if(!script[action].data) continue
+        if(!Array.isArray(script[action].data)) continue
+        for (const data of script[action].data) {
+            if(!Array.isArray(data)) continue
+            for (const action of data)
+                if(action.popup && action.popup.src)
+                    urls.push(getPath(+action.popup.src, "furniture", "picture", "png") + version)
+        }
+    }
+
+    console.log(`Caching ${urls.length} furniture pictures`)
     await cacheURLs(urls)
 }
 

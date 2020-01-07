@@ -106,7 +106,7 @@ const handleCaching = async (req, res) =>{
     // Not in cache
     const result = await cache(cacheFile, file, url, version)
 
-    if(!result.contents) {
+    if(!result.contents && res) {
         res.statusCode = result.status
         return res.end()
     }
@@ -134,7 +134,7 @@ function queueCacheSave() {
             saveCachedTimeout = undefined
             saveCached()
             saveCachedCount = 0
-        }, 1000)
+        }, 5000)
     }
 }
 
