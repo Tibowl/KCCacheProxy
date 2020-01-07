@@ -87,9 +87,7 @@ const cacheURLs = async (urls) => {
                 host: SERVER.split("/")[2]
             },
             end: () => 0
-        }, {
-            end: () => 0
-        }, true)
+        }, undefined)
     })
 }
 

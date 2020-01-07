@@ -22,7 +22,7 @@ const cache = async (cacheFile, file, url, version) => {
     const data = await fetch(url)
     if(data.status >= 400) {
         console.log("Didn't find ", url)
-        return data.status
+        return data
     }
 
     const contents = await data.buffer()
@@ -41,30 +41,27 @@ const cache = async (cacheFile, file, url, version) => {
         "lastmodified": data.headers.get("last-modified")
     }
 
-    if(++saveCachedCount < 25) {
-        if(saveCachedTimeout)
-            clearTimeout(saveCachedTimeout)
-
-        saveCachedTimeout = setTimeout(() => {
-            saveCachedTimeout = undefined
-            saveCached()
-            saveCachedCount = 0
-        }, 10000)
-    }
+    queueCacheSave()
 
     console.log("Cached!", url)
-    return 200
-}
-
-const send = (res, cacheFile, disableLoading = false) => {
-    if (!disableLoading) {
-        res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-        res.setHeader("Pragma", "public")
-        res.end(readFileSync(cacheFile))
+    return {
+        "status": data.status,
+        "contents": contents
     }
 }
 
-const handleCaching = async (req, res, disableLoading = false) =>{
+const send = (res, cacheFile, contents) => {
+    if (res) {
+        if(contents == undefined)
+            contents = readFileSync(cacheFile)
+
+        res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+        res.setHeader("Pragma", "public")
+        res.end(contents)
+    }
+}
+
+const handleCaching = async (req, res) =>{
     const {url} = req
     const server = req.headers.host
 
@@ -74,29 +71,32 @@ const handleCaching = async (req, res, disableLoading = false) =>{
     const cachedFile = cached[file]
     if(cachedFile && existsSync(cacheFile)) {
         if(cachedFile.version == version || version == "")
-            return send(res, cacheFile, disableLoading)
+            return send(res, cacheFile)
 
         // Version changed
         return await new Promise((reslove) => {
             const options = {method: "HEAD", host: server, port: 80, path: file}
             const req = http.request(options, async function(head) {
                 if (head.statusCode != 200) {
-                    res.statusCode = head.statusCode
-                    res.end()
+                    if(res) {
+                        res.statusCode = head.statusCode
+                        res.end()
+                    }
+
                     reslove()
                 } else if (head.headers["last-modified"] == cachedFile.lastmodified) {
                     console.log("Version changed, but not last modified")
 
                     cached[file].version = version
-                    writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
+                    queueCacheSave()
 
-                    send(res, cacheFile, disableLoading)
+                    send(res, cacheFile)
                     reslove()
                 } else {
                     console.log("Version & last modified changed!")
-                    await cache(cacheFile, file, url, version)
+                    const result = await cache(cacheFile, file, url, version)
+                    send(res, cacheFile, result.contents)
                     reslove()
-                    send(res, cacheFile, disableLoading)
                 }
             })
             req.end()
@@ -106,12 +106,12 @@ const handleCaching = async (req, res, disableLoading = false) =>{
     // Not in cache
     const result = await cache(cacheFile, file, url, version)
 
-    if(result >= 400) {
-        res.statusCode = result
+    if(!result.contents) {
+        res.statusCode = result.status
         return res.end()
     }
 
-    return send(res, cacheFile, disableLoading)
+    return send(res, cacheFile, result.contents)
 }
 const extractURL = (url) => {
     let version = ""
@@ -125,6 +125,18 @@ const extractURL = (url) => {
 }
 
 module.exports = { cache, handleCaching , extractURL}
+
+function queueCacheSave() {
+    if (++saveCachedCount < 25) {
+        if (saveCachedTimeout)
+            clearTimeout(saveCachedTimeout)
+        saveCachedTimeout = setTimeout(() => {
+            saveCachedTimeout = undefined
+            saveCached()
+            saveCachedCount = 0
+        }, 1000)
+    }
+}
 
 function saveCached() {
     renameSync(CACHE_LOCATION, CACHE_LOCATION + ".bak")
