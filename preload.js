@@ -93,6 +93,16 @@ const cacheURLs = async (urls) => {
 
 const cacheStatic = async () => {
     const urls = require("./preloader/urls.json")
+
+    /*for(let i = 0; i < 50; i++) {
+        urls.push(`kcs2/resources/stype/etext/${(i+"").padStart(3, "0")}.png`)
+        urls.push(`kcs2/resources/stype/etext/sp${(i+"").padStart(3, "0")}.png`)
+        urls.push(`kcs2/resources/area/airunit/${(i+"").padStart(3, "0")}.png`)
+        urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}_.png`)
+        urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}.png`)
+        urls.push(`kcs2/resources/area/sally/${(i+"").padStart(3, "0")}.png`)
+    }*/
+
     console.log(`Caching ${urls.length} URLs`)
     await cacheURLs(urls)
 }
@@ -192,6 +202,9 @@ const cacheShips = async () => {
         "character_up", "character_up_dmg",
         "remodel", "remodel_dmg",
         "supply_character", "supply_character_dmg",
+        // "card_round", "icon_box",
+        // "reward_card", "reward_icon",
+        // "text_remodel_mes", "full_x2", "text_class", "text_name",
         "album_status"
     ]
     const typesNoKeyAbyssal = [
