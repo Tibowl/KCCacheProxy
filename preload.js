@@ -7,7 +7,6 @@ const cacher = require("./cacher.js")
 const config = require("./config.json")
 
 const GADGET = "http://203.104.209.7/"
-const MAX_SIMUL = 8
 
 const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
 
@@ -20,7 +19,7 @@ const main = async () => {
     console.log("Select your server:")
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
-    const serverID = read.keyInSelect(en_names) + 1
+    const serverID = config.serverID || (read.keyInSelect(en_names) + 1)
     if(serverID == 0) return
 
     const kcs_const = await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
@@ -78,7 +77,7 @@ const main = async () => {
 }
 
 const cacheURLs = async (urls) => {
-    await eachLimit(urls, MAX_SIMUL, async (url) => {
+    await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
         const full = SERVER + url
         console.log(full)
         await cacher.handleCaching({

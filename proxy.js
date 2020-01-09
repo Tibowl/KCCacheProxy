@@ -3,7 +3,7 @@ const httpProxy = require("http-proxy")
 
 const cacher = require("./cacher.js")
 const config = require("./config.json")
-const { port } = config
+const { port, preloadOnStart } = config
 
 const proxy = httpProxy.createProxyServer({})
 const server = http.createServer(async (req, res) => {
@@ -19,3 +19,5 @@ const server = http.createServer(async (req, res) => {
 
 console.log(`listening on port ${port}`)
 server.listen(port)
+if(preloadOnStart)
+    require("./preload")
