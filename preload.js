@@ -7,6 +7,7 @@ const cacher = require("./cacher.js")
 const config = require("./config.json")
 
 const GADGET = "http://203.104.209.7/"
+const INCLUDE_RARE = false
 
 const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
 
@@ -93,14 +94,15 @@ const cacheURLs = async (urls) => {
 const cacheStatic = async () => {
     const urls = require("./preloader/urls.json")
 
-    /*for(let i = 0; i < 50; i++) {
-        urls.push(`kcs2/resources/stype/etext/${(i+"").padStart(3, "0")}.png`)
-        urls.push(`kcs2/resources/stype/etext/sp${(i+"").padStart(3, "0")}.png`)
-        urls.push(`kcs2/resources/area/airunit/${(i+"").padStart(3, "0")}.png`)
-        urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}_.png`)
-        urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}.png`)
-        urls.push(`kcs2/resources/area/sally/${(i+"").padStart(3, "0")}.png`)
-    }*/
+    if(INCLUDE_RARE)
+        for(let i = 0; i < 50; i++) {
+            urls.push(`kcs2/resources/stype/etext/${(i+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/stype/etext/sp${(i+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/airunit/${(i+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}_.png`)
+            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/sally/${(i+"").padStart(3, "0")}.png`)
+        }
 
     console.log(`Caching ${urls.length} URLs`)
     await cacheURLs(urls)
@@ -193,24 +195,6 @@ const cacheMaps = async () => {
 
 const cacheShips = async () => {
     const urls = []
-    const typesNoKeyFriendly = [
-        "card", "card_dmg",
-        "banner", "banner_dmg", "banner_g_dmg",
-        "banner2", "banner2_dmg", "banner2_g_dmg",
-        "character_full", "character_full_dmg",
-        "character_up", "character_up_dmg",
-        "remodel", "remodel_dmg",
-        "supply_character", "supply_character_dmg",
-        // "card_round", "icon_box",
-        // "reward_card", "reward_icon",
-        // "text_remodel_mes", "full_x2", "text_class", "text_name",
-        "album_status"
-    ]
-    const typesNoKeyAbyssal = [
-        "banner", "banner_g_dmg",
-        "banner3", "banner3_g_dmg"
-        //, "banner_d", "banner_dmg"
-    ]
     for (const ship of START2.api_mst_shipgraph) {
         if(ship.api_sortno == 0 && ship.api_boko_d) continue
         // ship.api_boko_d exists for friendly
@@ -219,25 +203,51 @@ const cacheShips = async () => {
 
         const { api_id, api_filename, api_version } = ship
         const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
+        const types = [], typesKey = []
         if(!ship.api_battle_n) {
             // Seasonal
-            for(const type of ["card", "character_full", "character_full_dmg", "character_up", "character_up_dmg"])
-                urls.push(getPath(api_id, "ship", type, "png") + version)
+            types.push("character_full", "character_up")
+            if(INCLUDE_RARE)
+                types.push("card", "character_full_dmg", "character_up_dmg")
         } else if(ship.api_boko_d) {
             // Friendly
-            for(const type of typesNoKeyFriendly)
-                urls.push(getPath(api_id, "ship", type, "png") + version)
-            for(const type of ["full", "full_dmg"])
-                urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+            types.push(
+                "card", "card_dmg",
+                "banner", "banner_dmg", "banner_g_dmg",
+                "banner2", "banner2_dmg", "banner2_g_dmg",
+                "character_full", "character_full_dmg",
+                "character_up", "character_up_dmg",
+                "remodel", "remodel_dmg",
+                "supply_character", "supply_character_dmg",
+                "album_status"
+            )
+            typesKey.push("full", "full_dmg")
             if(SPECIAL_CG.includes(api_id))
-                urls.push(getPath(api_id, "ship", "special", "png") + version)
+                types.push("special")
+
+            if (INCLUDE_RARE) {
+                types.push(
+                    "card_round", "icon_box",
+                    "reward_card", "reward_icon",
+                    "text_remodel_mes", "full_x2", "text_class", "text_name",
+                )
+            }
         } else {
             // Abyssal
-            for(const type of typesNoKeyAbyssal)
-                urls.push(getPath(api_id, "ship", type, "png") + version)
-            for(const type of  ["full"/*, "full_dmg", "full_d", "full_d_dmg"*/])
-                urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
+            types.push(
+                "banner", "banner_g_dmg",
+                "banner3", "banner3_g_dmg"
+            )
+            typesKey.push("full")
+
+            if(INCLUDE_RARE) {
+                types.push("banner_d", "banner_dmg")
+                typesKey.push("full_dmg", "full_d", "full_d_dmg")
+            }
         }
+
+        types.forEach((type) => urls.push(getPath(api_id, "ship", type, "png") + version))
+        typesKey.forEach((type) => urls.push(getPath(api_id, "ship", type, "png", api_filename) + version))
     }
 
     console.log(`Caching ${urls.length} ship assets`)
@@ -249,13 +259,15 @@ const cacheEquips = async () => {
     const typesNoKeyFriendly = [
         "card", "card_t",
         "item_character", "item_on", "item_up",
-        //"btxt_flat",
         "remodel",
         "statustop_item"
     ]
-    const typesNoKeyAbyssal = [
-        "item_up", "btxt_flat"
-    ]
+    const typesNoKeyAbyssal = []
+    if(INCLUDE_RARE) {
+        typesNoKeyFriendly.push("btxt_flat")
+        typesNoKeyAbyssal.push("item_up", "btxt_flat")
+    }
+
     for (const equip of START2.api_mst_slotitem) {
         const {api_id, api_version} = equip
         const version = api_version ? "?version=" + api_version : ""
@@ -345,7 +357,8 @@ const cacheFurniture = async () => {
         } else {
             urls.push(getPath(api_id, "furniture", "normal", "png") + version)
         }
-        // urls.push(getPath(api_id, "furniture", "reward", "png") + version)
+        if(INCLUDE_RARE)
+            urls.push(getPath(api_id, "furniture", "reward", "png") + version)
     }
 
     console.log(`Caching ${urls.length} furniture assets`)
@@ -474,7 +487,8 @@ const cacheVoices = async () => {
             vnums.push(6)
 
         // Friend fleet lines
-        // vnums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246])
+        if(INCLUDE_RARE)
+            vnums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246])
 
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
