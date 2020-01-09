@@ -1,7 +1,7 @@
-const http = require("http")
 const fetch = require("node-fetch")
 const path = require("path")
 const { ensureDirSync, existsSync, renameSync, removeSync, readFileSync, writeFileSync } = require("fs-extra")
+const config = require("./config.json")
 
 const CACHE_LOCATION = "./cache/cached.json"
 
@@ -17,9 +17,27 @@ if(!existsSync(CACHE_LOCATION))
 const cached = require(CACHE_LOCATION)
 
 let saveCachedTimeout = undefined, saveCachedCount = 0
-const cache = async (cacheFile, file, url, version) => {
-    console.log("Caching...", file)
-    const data = await fetch(url)
+const cache = async (cacheFile, file, url, version, lastmodified) => {
+    console.log("Loading...", file)
+    const options = { method: "GET" }
+    if(lastmodified)
+        options.headers = {
+            "If-Modified-Since": lastmodified
+        }
+
+    const data = await fetch(url, options)
+    if(data.status == 304) {
+        console.log("Not modified", file)
+
+        cached[file].version = version
+        queueCacheSave()
+
+        return {
+            "status": 200,
+            "contents": readFileSync(cacheFile)
+        }
+    }
+
     if(data.status >= 400) {
         console.log("Didn't find ", url)
         return data
@@ -43,7 +61,7 @@ const cache = async (cacheFile, file, url, version) => {
 
     queueCacheSave()
 
-    console.log("Cached!", url)
+    console.log("Saved", url)
     return {
         "status": data.status,
         "contents": contents
@@ -55,56 +73,34 @@ const send = (res, cacheFile, contents) => {
         if(contents == undefined)
             contents = readFileSync(cacheFile)
 
-        res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-        res.setHeader("Pragma", "public")
+        if(config.disableBrowserCache) {
+            res.setHeader("Cache-Control", "no-store")
+            res.setHeader("Pragma", "no-cache")
+        } else {
+            res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+            res.setHeader("Pragma", "public")
+        }
         res.end(contents)
     }
 }
 
 const handleCaching = async (req, res) =>{
-    const {url} = req
-    const server = req.headers.host
-
+    const { url } = req
     const { file, cacheFile, version } = extractURL(url)
 
     // Return cached if version matches
     const cachedFile = cached[file]
+    let lastmodified = undefined
     if(cachedFile && existsSync(cacheFile)) {
         if(cachedFile.version == version || version == "")
             return send(res, cacheFile)
 
-        // Version changed
-        return await new Promise((reslove) => {
-            const options = {method: "HEAD", host: server, port: 80, path: file}
-            const req = http.request(options, async function(head) {
-                if (head.statusCode != 200) {
-                    if(res) {
-                        res.statusCode = head.statusCode
-                        res.end()
-                    }
-
-                    reslove()
-                } else if (head.headers["last-modified"] == cachedFile.lastmodified) {
-                    console.log("Version changed, but not last modified")
-
-                    cached[file].version = version
-                    queueCacheSave()
-
-                    send(res, cacheFile)
-                    reslove()
-                } else {
-                    console.log("Version & last modified changed!")
-                    const result = await cache(cacheFile, file, url, version)
-                    send(res, cacheFile, result.contents)
-                    reslove()
-                }
-            })
-            req.end()
-        })
+        // Version doesn't match, lastmodified set
+        lastmodified = cachedFile.lastmodified
     }
 
-    // Not in cache
-    const result = await cache(cacheFile, file, url, version)
+    // Not in cache or version mismatch, need to check with server
+    const result = await cache(cacheFile, file, url, version, lastmodified)
 
     if(!result.contents && res) {
         res.statusCode = result.status

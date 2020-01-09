@@ -1,5 +1,6 @@
 {
     "port": 8081,
+    "disableBrowserCache": false,
     "preloader": {
         "recommended": {
             "static": true,
