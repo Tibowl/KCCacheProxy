@@ -209,6 +209,7 @@ const cacheShips = async () => {
     const typesNoKeyAbyssal = [
         "banner", "banner_g_dmg",
         "banner3", "banner3_g_dmg"
+        //, "banner_d", "banner_dmg"
     ]
     for (const ship of START2.api_mst_shipgraph) {
         if(ship.api_sortno == 0 && ship.api_boko_d) continue
@@ -216,7 +217,7 @@ const cacheShips = async () => {
         // ship.api_sortno == 0 for unused friendly
         // ship.api_battle_n exists for friendly/abyssal, not old seasonal
 
-        const {api_id, api_filename, api_version} = ship
+        const { api_id, api_filename, api_version } = ship
         const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
         if(!ship.api_battle_n) {
             // Seasonal
@@ -234,7 +235,7 @@ const cacheShips = async () => {
             // Abyssal
             for(const type of typesNoKeyAbyssal)
                 urls.push(getPath(api_id, "ship", type, "png") + version)
-            for(const type of  ["full"])
+            for(const type of  ["full"/*, "full_dmg", "full_d", "full_d_dmg"*/])
                 urls.push(getPath(api_id, "ship", type, "png", api_filename) + version)
         }
     }
