@@ -80,6 +80,18 @@ const send = (res, cacheFile, contents) => {
             res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
             res.setHeader("Pragma", "public")
         }
+
+        if(cacheFile.endsWith(".php"))
+            res.setHeader("Content-Type", "html")
+        else if(cacheFile.endsWith(".png"))
+            res.setHeader("Content-Type", "image/png")
+        else if(cacheFile.endsWith(".json"))
+            res.setHeader("Content-Type", "application/json")
+        else if(cacheFile.endsWith(".css"))
+            res.setHeader("Content-Type", "text/css")
+        else if(cacheFile.endsWith(".mp3"))
+            res.setHeader("Content-Type", "audio/mpeg")
+
         res.end(contents)
     }
 }

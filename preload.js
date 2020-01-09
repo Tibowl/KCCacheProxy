@@ -409,6 +409,10 @@ const cacheNPCVoices = async () => {
 
     if(quotes && quotes.npc)
         urls.push(...Object.keys(quotes.npc).filter(k => quotes.npc[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9999/${id}.mp3`))
+
+    if(quotes && quotes.event)
+        urls.push(...Object.keys(quotes.event).filter(k => quotes.event[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9997/${id}.mp3`))
+
     if(quotes && quotes.abyssal)
         urls.push(...Object.keys(quotes.abyssal).filter(k => quotes.abyssal[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9998/${id}.mp3`))
 
@@ -443,7 +447,10 @@ const cacheVoices = async () => {
         if(!mstship) continue
 
         const api_voicef = mstship.api_voicef || 0
-        const version = api_version[1] != "1" ? "?version=" + api_version[1] : ""
+        const getVersion = (id) => {
+            const ind = (id == 2 || id == 3) ? 2 : 1
+            return (api_version.length > ind && api_version[ind] != "1") ? "?version=" + api_version[ind] : ""
+        }
 
         const vnums = [
             1, 25, 2, 3, 4, 28, 24, 8, 13, 9, 10, 26, 27, 11,
@@ -469,7 +476,7 @@ const cacheVoices = async () => {
         // Friend fleet lines
         // vnums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246])
 
-        urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${version}`))
+        urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
 
 
