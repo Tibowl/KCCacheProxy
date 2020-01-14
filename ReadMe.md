@@ -1,32 +1,31 @@
 KanColle Cache Proxy
 =======
-This is a WIP proxy meant to cache local KC assets.
+This is a local proxy meant to cache KC assets. It can be preloaded from a cache dump (linked below). This will improve loading of assets on top of browser built-in cache.
 
 Installation
 ======
-0. This bot requires [Node](https://nodejs.org/en/)
-1. Install dependencies with `npm i`
-2. You can start the proxy server with `npm start`. Optionally you can preload assets at this point, see "Preloading" for more information. 
-3. To use this in your browser, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
-4. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081`
-
-![preview](https://i.imgur.com/w6wHZeM.png)
-5. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or checking the output of the preloader.
-
-![preview](https://i.imgur.com/cwBrda5.png)
-6. Save your changes and enable the `Auto Switch` profile.
-
-![preview](https://i.imgur.com/Z32Ga5J.png)
+0. This bot requires [Node](https://nodejs.org/en/), and optionally git to clone this repository (or download zip at top right).
+1. Install dependencies with by running `npm i` in the folder. Optionally you can preload assets at this point or use a cache dump, see "Preloading" for more information.
+2. You can start the proxy server with `node proxy`. (Cannot be run while preloading)
+3. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. Below are details on how to set up in Chrome with extra safety that it doesn't redirect game api requests through the proxy.
 
 Don't forget to start the proxy server each time you want to use it.
 
 **NOTE**: You can **NOT** run both the preloader and proxy server at the same time.
 
+Chrome proxy setup
+====
+1. To use this in chrome, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
+2. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081` (this can be changed in the `config.json`) [Preview](https://i.imgur.com/w6wHZeM.png).
+3. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or checking the output of the preloader. [Preview](https://i.imgur.com/cwBrda5.png)
+4. Save your changes and enable the `Auto Switch` profile. [Preview](https://i.imgur.com/Z32Ga5J.png)
+
+
 Preloading
 ======
 You can preload most assets by using the preloader. This might take a while to run. 
 
-It's recommended that you start out from a cache dump. These also contains files which the preloader won't download. You can download the latest one (made on 2020-01-14 (Setsubun/Yuubari Kai Ni)) from [MEGA](https://mega.nz/#!pKZVmQpa!EiSElmwTvCobOOeIYlK4KMdJaH1Ej7Ry7UVxBoPjLws).
+It's recommended that you start out from a cache dump. These also contains files which the preloader won't download. You can download the latest one (made on 2020-01-14 (Setsubun/Yuubari Kai Ni)) from [MEGA](https://mega.nz/#!pKZVmQpa!EiSElmwTvCobOOeIYlK4KMdJaH1Ej7Ry7UVxBoPjLws). Extract the zip so you'll have a folder `cache` with `cached.json` in it respectivelly to where you unzipped/cloned the repository (if there's a file `./proxy.js` then there should be `./cache/cached.json`)
 
 You can enable/disable certain sections by editing `config.json`. By default, only the recommended ones are enabled. If you have sound enabled, it's recommended to enable BGM, SE and titlecalls. Enabling the extras will take a long time to finish (especially the ships one since it also does abyssals and old seasonals in `Assets` menu).
 
