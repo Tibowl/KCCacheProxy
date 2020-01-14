@@ -7,6 +7,7 @@ Setup
 It's recommended that you start out from a cache dump. You can download the latest one (made on 2020-01-14 (Setsubun start/Yuubari Kai Ni added)) from [MEGA](https://mega.nz/#!pKZVmQpa!EiSElmwTvCobOOeIYlK4KMdJaH1Ej7Ry7UVxBoPjLws). 
 
 [More detailed explanation](https://cdn.discordapp.com/attachments/425302689887289344/666769181609295887/unknown.png)
+
 0. This bot requires [Node](https://nodejs.org/en/), and optionally git to clone this repository (or download zip at top right, unzip it somewhere).
 1. Install dependencies with npm by running `npm i` in the folder with `package.json`. 
 2. (Optional) Extract the downloaded cache dump, so you'll have a folder `cache` with `cached.json` in it respectively to where you unzipped/cloned the repository (if there's a file `./proxy.js` then there should be `./cache/cached.json`).
