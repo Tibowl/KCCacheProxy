@@ -4,8 +4,8 @@ This is a local proxy meant to cache KC assets. It can be preloaded from a cache
 
 Installation
 ======
-0. This bot requires [Node](https://nodejs.org/en/), and optionally git to clone this repository (or download zip at top right).
-1. Install dependencies with by running `npm i` in the folder. Optionally you can preload assets at this point or use a cache dump, see "Preloading" for more information.
+0. This bot requires [Node](https://nodejs.org/en/), and optionally git to clone this repository (or download zip at top right, unzip it somewhere).
+1. Install dependencies with npm by running `npm i` in the folder with `package.json`. Optionally you can preload assets at this point or use a cache dump, see "Preloading" for more information.
 2. You can start the proxy server with `node proxy`. (Cannot be run while preloading)
 3. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. Below are details on how to set up in Chrome with extra safety that it doesn't redirect game api requests through the proxy.
 
@@ -13,13 +13,16 @@ Don't forget to start the proxy server each time you want to use it.
 
 **NOTE**: You can **NOT** run both the preloader and proxy server at the same time.
 
-Chrome proxy setup
-====
+## Chrome proxy setup
 1. To use this in chrome, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
-2. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081` (this can be changed in the `config.json`) [Preview](https://i.imgur.com/w6wHZeM.png).
+2. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081` (this can be changed in the `config.json`). [Preview](https://i.imgur.com/w6wHZeM.png).
 3. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or checking the output of the preloader. [Preview](https://i.imgur.com/cwBrda5.png)
 4. Save your changes and enable the `Auto Switch` profile. [Preview](https://i.imgur.com/Z32Ga5J.png)
 
+## Auto start on system startup (Windows)
+1. Open the your startup folder by opening run (windows key + R) and running `shell:startup`
+2. Drag and drop the `start.bat` file while holding down alt while releasing, this will create a shortcut.
+3. The proxy can be shut down by pressing control+c, you can close the proxy created in "Installation" step 2 in this way. You can start it up again by double clicking the shortcut you just created.
 
 Preloading
 ======
