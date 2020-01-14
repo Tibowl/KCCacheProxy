@@ -26,7 +26,7 @@ Preloading
 ======
 You can preload most assets by using the preloader. This might take a while to run. 
 
-It's recommended that you start out from a cache dump. These also contains files which the preloader won't download. You can download the latest one (made on 2020-01-08) from [MEGA](https://mega.nz/#!NbBjSAbA!LcLI49rIDRQ-GtusY3MdVkYIiYSESLVDyzuTYTwa8yQ).
+It's recommended that you start out from a cache dump. These also contains files which the preloader won't download. You can download the latest one (made on 2020-01-14 (Setsubun/Yuubari Kai Ni)) from [MEGA](https://mega.nz/#!pKZVmQpa!EiSElmwTvCobOOeIYlK4KMdJaH1Ej7Ry7UVxBoPjLws).
 
 You can enable/disable certain sections by editing `config.json`. By default, only the recommended ones are enabled. If you have sound enabled, it's recommended to enable BGM, SE and titlecalls. Enabling the extras will take a long time to finish (especially the ships one since it also does abyssals and old seasonals in `Assets` menu).
 

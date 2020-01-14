@@ -32,6 +32,7 @@ const main = async () => {
     console.log("Loading api_start2...")
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
+    // await cacheURLs(Object.entries(require("./cache/cached.json")).map(k => k[0].substring(1) + k[1].version))
     await cacheURLs([
         `kcs2/version.json?${GAME_VERSION}`,
         `kcs2/js/main.js?version=${GAME_VERSION}`
@@ -229,8 +230,9 @@ const cacheShips = async () => {
                 types.push(
                     "card_round", "icon_box",
                     "reward_card", "reward_icon",
-                    "text_remodel_mes", "full_x2", "text_class", "text_name",
+                    "sp_remodel/text_remodel_mes", "sp_remodel/full_x2", "sp_remodel/text_class", "sp_remodel/text_name",
                 )
+                urls.push(`kcs2/resources/ship/sp_remodel/animation_key/${api_id.toString().padStart(4, "0")}_remodel.json${version}`)
             }
         } else {
             // Abyssal

@@ -246,6 +246,12 @@
         "item_ilist_presentbox.png",
         "item_ilist_hishimochi.json",
         "item_ilist_hishimochi.png",
+        "item_ilist_iwashi.json",
+        "item_ilist_iwashi.png",
+        "item_ilist_sanma.json",
+        "item_ilist_sanma.png",
+        "item_ilist_setsubun.json",
+        "item_ilist_setsubun.png",
         "item_menu_1.json",
         "item_menu_1.png",
         "item_menu_2.json",
@@ -370,7 +376,9 @@
         "battle_result_main.json",
         "battle_result_main.png",
         "battle_result_event_base.json",
-        "battle_result_event_base.png"
+        "battle_result_event_base.png",
+        "battle_result_sanma_fes.json",
+        "battle_result_sanma_fes.png"
     ],
     "jukebox": [
         "jukebox_common.json",
