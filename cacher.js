@@ -81,7 +81,12 @@ const send = (res, cacheFile, contents) => {
             res.setHeader("Pragma", "public")
         }
 
-        if(cacheFile.endsWith(".php"))
+        // Copy KC server headers
+        res.setHeader("Server", "nginx")
+        res.setHeader("X-DNS-Prefetch-Control", "off")
+
+        // TODO switch or some table
+        if (cacheFile.endsWith(".php"))
             res.setHeader("Content-Type", "html")
         else if(cacheFile.endsWith(".png"))
             res.setHeader("Content-Type", "image/png")
@@ -91,6 +96,8 @@ const send = (res, cacheFile, contents) => {
             res.setHeader("Content-Type", "text/css")
         else if(cacheFile.endsWith(".mp3"))
             res.setHeader("Content-Type", "audio/mpeg")
+        else if(cacheFile.endsWith(".js"))
+            res.setHeader("Content-Type", "application/javascript")
 
         res.end(contents)
     }
