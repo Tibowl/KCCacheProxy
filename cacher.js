@@ -17,13 +17,13 @@ if(!existsSync(CACHE_LOCATION))
 const cached = require(CACHE_LOCATION)
 
 let saveCachedTimeout = undefined, saveCachedCount = 0
-const cache = async (cacheFile, file, url, version, lastmodified) => {
+const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) => {
     console.log("Loading...", file)
-    const options = { method: "GET" }
+    const options = { method: "GET", headers }
     if(lastmodified)
-        options.headers = {
-            "If-Modified-Since": lastmodified
-        }
+        options.headers["If-Modified-Since"] = lastmodified
+    else
+        delete options.headers["If-Modified-Since"]
 
     const data = await fetch(url, options)
     if(data.status == 304) {
@@ -96,8 +96,8 @@ const send = (res, cacheFile, contents) => {
     }
 }
 
-const handleCaching = async (req, res) =>{
-    const { url } = req
+const handleCaching = async (req, res) => {
+    const { url, headers } = req
     const { file, cacheFile, version } = extractURL(url)
 
     // Return cached if version matches
@@ -112,7 +112,7 @@ const handleCaching = async (req, res) =>{
     }
 
     // Not in cache or version mismatch, need to check with server
-    const result = await cache(cacheFile, file, url, version, lastmodified)
+    const result = await cache(cacheFile, file, url, version, lastmodified, headers)
 
     if(!result.contents && res) {
         res.statusCode = result.status
