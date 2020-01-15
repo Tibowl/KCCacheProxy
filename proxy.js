@@ -24,8 +24,8 @@ server.on("connect", (req, socket) => {
     console.log(`${req.method}: ${req.url}`)
     const serverUrl = url.parse("https://" + req.url)
     const srvSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
-        socket.on("error", (...a) => console.log(...a))
-        srvSocket.on("error", (...a) => console.log(...a))
+        socket.on("error", (...a) => console.log("socket error", ...a))
+        srvSocket.on("error", (...a) => console.log("srvsocket error", ...a))
 
         socket.write("HTTP/1.1 200 Connection Established\r\n" +
             "Proxy-agent: Node-Proxy\r\n" +
@@ -35,7 +35,8 @@ server.on("connect", (req, socket) => {
         socket.pipe(srvSocket)
     })
 })
-server.on("error", (...a) => console.log(...a))
+server.on("error", (...a) => console.log("server error", ...a))
+proxy.on("error", (...a) => console.log("proxy error", ...a))
 
 console.log(`listening on port ${port}`)
 server.listen(port)
