@@ -1,5 +1,7 @@
 const http = require("http")
 const httpProxy = require("http-proxy")
+const net = require("net")
+const url = require("url")
 
 const cacher = require("./cacher.js")
 const config = require("./config.json")
@@ -16,6 +18,24 @@ const server = http.createServer(async (req, res) => {
 
     return await cacher.handleCaching(req, res)
 })
+
+// https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
+server.on("connect", (req, socket) => {
+    console.log(`${req.method}: ${req.url}`)
+    const serverUrl = url.parse("https://" + req.url)
+    const srvSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
+        socket.on("error", (...a) => console.log(...a))
+        srvSocket.on("error", (...a) => console.log(...a))
+
+        socket.write("HTTP/1.1 200 Connection Established\r\n" +
+            "Proxy-agent: Node-Proxy\r\n" +
+            "\r\n")
+
+        srvSocket.pipe(socket)
+        socket.pipe(srvSocket)
+    })
+})
+server.on("error", (...a) => console.log(...a))
 
 console.log(`listening on port ${port}`)
 server.listen(port)
