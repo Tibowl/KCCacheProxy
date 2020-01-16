@@ -1,3 +1,4 @@
 @echo off
+:loop
 node proxy
-pause
+goto loop
