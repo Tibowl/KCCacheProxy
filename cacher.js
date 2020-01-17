@@ -111,7 +111,8 @@ const handleCaching = async (req, res) => {
     const cachedFile = cached[file]
     let lastmodified = undefined
     if(cachedFile && existsSync(cacheFile)) {
-        if(cachedFile.version == version || version == "")
+        // Allowing single ? for bugged _onInfoLoadComplete
+        if(cachedFile.version == version || version == "" || version == "?")
             return send(res, cacheFile)
 
         // Version doesn't match, lastmodified set
