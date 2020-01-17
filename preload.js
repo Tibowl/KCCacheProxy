@@ -205,12 +205,15 @@ const cacheShips = async () => {
         const { api_id, api_filename, api_version } = ship
         const version = api_version[0] != "1" ? "?version=" + api_version[0] : ""
         const types = [], typesKey = []
+        const mst_ship = START2.api_mst_ship.find(k => k.api_id == api_id)
         if(!ship.api_battle_n) {
             // Seasonal
+            if(api_id == 5358) continue
+
             types.push("character_full", "character_up")
             if(INCLUDE_RARE)
                 types.push("card", "character_full_dmg", "character_up_dmg")
-        } else if(ship.api_boko_d) {
+        } else if(ship.api_boko_d && mst_ship && mst_ship.api_name != "") {
             // Friendly
             types.push(
                 "card", "card_dmg",
@@ -234,7 +237,7 @@ const cacheShips = async () => {
                 )
                 urls.push(`kcs2/resources/ship/sp_remodel/animation_key/${api_id.toString().padStart(4, "0")}_remodel.json${version}`)
             }
-        } else {
+        } else if(mst_ship && mst_ship.api_name != "") {
             // Abyssal
             types.push(
                 "banner", "banner_g_dmg",
@@ -274,7 +277,8 @@ const cacheEquips = async () => {
         const {api_id, api_version} = equip
         const version = api_version ? "?version=" + api_version : ""
         for(const type of api_id < 500 ? typesNoKeyFriendly : typesNoKeyAbyssal)
-            urls.push(getPath(api_id, "slot", type, "png") + version)
+            if(!(api_id == 42 && type == "item_character"))
+                urls.push(getPath(api_id, "slot", type, "png") + version)
 
         // Airplanes
         if(equip.api_type[4] != 0  && api_id < 500) {
@@ -344,7 +348,7 @@ const cacheBGM = async () => {
 
 const cacheFurniture = async () => {
     let urls = []
-    for(let i = 0; i <= 7; i++)
+    for(let i = 0; i <= 8; i++)
         for(let j = 1; j <= 5; j++)
             urls.push(`kcs2/resources/furniture/outside/window_bg_${i}-${j}.png`)
 
