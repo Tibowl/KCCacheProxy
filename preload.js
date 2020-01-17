@@ -44,32 +44,32 @@ const main = async () => {
         await cacheStatic()
     if(config.preloader.recommended.assets)
         await cacheAssets()
-    if(config.preloader.recommended.static)
-        await cacheServerName()
     if(config.preloader.recommended.maps)
         await cacheMaps()
     if(config.preloader.recommended.useitem)
         await cacheUseItem()
-
-    // When game not muted
-    if(config.preloader.sounds.titlecalls)
-        await cacheTitleCalls()
-    if(config.preloader.sounds.se)
-        await cacheSE()
-    if(config.preloader.sounds.bgm)
-        await cacheBGM()
-    if(config.preloader.sounds.npcvoices)
-        await cacheNPCVoices()
-    if(config.preloader.sounds.voices)
-        await cacheVoices()
+    if(config.preloader.recommended.static)
+        await cacheServerName()
 
     // For less loading
     if(config.preloader.extra.equips)
         await cacheEquips()
-    if(config.preloader.extra.furniture)
-        await cacheFurniture()
     if(config.preloader.extra.ships)
         await cacheShips()
+    if(config.preloader.extra.furniture)
+        await cacheFurniture()
+
+    // When game not muted
+    if(config.preloader.sounds.titlecalls)
+        await cacheTitleCalls()
+    if(config.preloader.sounds.bgm)
+        await cacheBGM()
+    if(config.preloader.sounds.se)
+        await cacheSE()
+    if(config.preloader.sounds.npcvoices)
+        await cacheNPCVoices()
+    if(config.preloader.sounds.voices)
+        await cacheVoices()
 
     // Does not cache:
     // event_maesetsu: too hard to get keys easily
