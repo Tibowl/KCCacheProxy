@@ -180,6 +180,7 @@ const cacheMaps = async () => {
         if(!map.endsWith(".json")) continue
 
         const gaugeFile = require(`./cache/kcs2/resources/gauge/${map}`)
+        // TODO append version tag
         if(gaugeFile.img) {
             urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
             urls.push(`kcs2/resources/gauge/${gaugeFile.img}_light.png`)
@@ -233,7 +234,7 @@ const cacheShips = async () => {
                 types.push(
                     "card_round", "icon_box",
                     "reward_card", "reward_icon",
-                    "sp_remodel/text_remodel_mes", "sp_remodel/full_x2", "sp_remodel/text_class", "sp_remodel/text_name",
+                    "sp_remodel/text_remodel_mes", "sp_remodel/full_x2", "sp_remodel/text_class", "sp_remodel/text_name", "sp_remodel/silhouette",
                 )
                 urls.push(`kcs2/resources/ship/sp_remodel/animation_key/${api_id.toString().padStart(4, "0")}_remodel.json${version}`)
             }
@@ -289,6 +290,8 @@ const cacheEquips = async () => {
             urls.push(`kcs2/resources/plane/${(api_id+"").padStart(3, "0")}.png`)
             urls.push(`kcs2/resources/plane/r${(api_id+"").padStart(3, "0")}.png`)
         }
+        if(api_id < 18)
+            urls.push(`kcs2/resources/plane/e${(api_id+"").padStart(3, "0")}.png`)
     }
 
     console.log(`Caching ${urls.length} equip assets`)

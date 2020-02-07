@@ -4,7 +4,7 @@ This is a local proxy meant to cache KC assets. It can be preloaded from a cache
 
 Setup
 ======
-It's recommended that you start out from a cache dump. You can download the latest one (made on 2020-01-14 (Setsubun start/Yuubari Kai Ni added)) from [MEGA](https://mega.nz/#!pKZVmQpa!EiSElmwTvCobOOeIYlK4KMdJaH1Ej7Ry7UVxBoPjLws). 
+It's recommended that you start out from a cache dump. You can download the latest one (made on 2020-02-07 (Setsubun end/Shikinami Kai Ni added)) from [MEGA](https://mega.nz/#!laBRVKAY!KDTclmXXpNY-XStacYT0lQdIx2HaR30g_UglphbPyvM). 
 
 [More detailed explanation](https://cdn.discordapp.com/attachments/425302689887289344/666769181609295887/unknown.png)
 

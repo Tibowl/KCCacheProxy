@@ -113,7 +113,9 @@
     ],
     "repair": [
         "repair_main.json",
-        "repair_main.png"
+        "repair_main.png",
+        "repair_sort.json",
+        "repair_sort.png"
     ],
     "arsenal": [
         "arsenal_main.json",
@@ -272,8 +274,8 @@
         "interior_parts.png"
     ],
     "duty": [
-        "duty_common.json",
-        "duty_common.png",
+        "duty_main.json",
+        "duty_main.png",
         "poster_girl/1.png",
         "poster_girl/2.png",
         "poster_girl/newyear1.png",
