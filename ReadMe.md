@@ -22,7 +22,7 @@ Don't forget to start the proxy server each time you want to use it (or see auto
 1. To use this in chrome, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
 2. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081` (this can be changed in the `config.json`). [Preview](https://i.imgur.com/w6wHZeM.png).
 3. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or check on wikia, or checking the output of the preloader. [Preview](https://i.imgur.com/cwBrda5.png)
-4. If you also want to go around the recent foreign IP block, add `http://203.104.209.7/` as well.
+4. If you also want to go around the recent foreign IP block, add `http://203.104.209.7/*` as well.
 5. Save your changes and enable the `Auto Switch` profile. [Preview](https://i.imgur.com/Z32Ga5J.png)
 
 ## Auto start on system startup (Windows)
