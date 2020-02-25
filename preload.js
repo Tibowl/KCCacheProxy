@@ -23,7 +23,7 @@ const main = async () => {
     const serverID = config.serverID || (read.keyInSelect(en_names) + 1)
     if(serverID == 0) return
 
-    const kcs_const = await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    const kcs_const = /* require("fs").readFileSync("./cache/gadget_html5/js/kcs_const.js").toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
