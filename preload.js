@@ -39,6 +39,10 @@ const main = async () => {
     ])
     VERSIONS = require("./cache/kcs2/version.json")
 
+    // Recommended one-time
+    if(config.preloader.recommended.gadget)
+        await cacheGadget()
+
     // Recommendend to keep
     if(config.preloader.recommended.static)
         await cacheStatic()
@@ -86,6 +90,57 @@ const cacheURLs = async (urls) => {
             url: full,
             headers: {
                 host: SERVER.split("/")[2]
+            },
+            end: () => 0
+        }, undefined)
+    })
+}
+
+const cacheGadget = async () => {
+    const urls = []
+
+    // Important files
+    for(const js of ["cda", "const", "content", "global", "inspection", "login", "options", "payment"])
+        urls.push(`gadget_html5/js/kcs_${js}.js`)
+
+    for(const script of ["cookie", "jquery.min", "jss", "rollover"])
+        urls.push(`gadget_html5/script/${script}.js`)
+
+    if(INCLUDE_RARE) {
+        for (let i = 1; i <= 9; i++)
+            urls.push(`kcscontents/dictionary/01_aa/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 46; i++)
+            urls.push(`kcscontents/dictionary/02_ka/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 34; i++)
+            urls.push(`kcscontents/dictionary/03_sa/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 25; i++)
+            urls.push(`kcscontents/dictionary/04_ta/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 10; i++)
+            urls.push(`kcscontents/dictionary/05_na/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 13; i++)
+            urls.push(`kcscontents/dictionary/06_ha/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 2; i++)
+            urls.push(`kcscontents/dictionary/07_ma/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 3; i++)
+            urls.push(`kcscontents/dictionary/08_ya/d${(i+"").padStart(2, "0")}.html`)
+        for (let i = 1; i <= 13; i++)
+            urls.push(`kcscontents/dictionary/09_ra/d${(i+"").padStart(2, "0")}.html`)
+
+        for (let y = 13; y <= 20; y++)
+            for (let m = 1; m <= 12; m++)
+                for (let i = 1; i <= 21; i++)
+                    if(!(y == 13 && m < 6))
+                        urls.push(`kcscontents/information/image/rank${(y+"").padStart(2, "0")}${(m+"").padStart(2, "0")}${(i+"").padStart(2, "0")}.jpg`)
+    }
+    console.log(`Caching ${urls.length} gadget urls`)
+
+    await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
+        const full = GADGET + url
+        console.log(full)
+        await cacher.handleCaching({
+            url: full,
+            headers: {
+                host: GADGET.split("/")[2]
             },
             end: () => 0
         }, undefined)

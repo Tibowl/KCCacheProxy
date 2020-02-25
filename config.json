@@ -10,7 +10,8 @@
             "assets": true,
             "servername": true,
             "maps": true,
-            "useitem": true
+            "useitem": true,
+            "gadget": false
         },
         "sounds": {
             "titlecalls": false,

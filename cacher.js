@@ -16,6 +16,8 @@ if(!existsSync(CACHE_LOCATION))
     writeFileSync(CACHE_LOCATION, "{}")
 const cached = require(CACHE_LOCATION)
 
+let invalidatedMainVersion = false
+
 let saveCachedTimeout = undefined, saveCachedCount = 0
 const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) => {
     console.log("Loading...", file)
@@ -40,6 +42,8 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
 
     if(data.status == 403 && lastmodified) {
         console.log("HTTP 403: Forbidden, using cached data")
+        invalidatedMainVersion = true
+
         return {
             "status": 200,
             "contents": readFileSync(cacheFile)
@@ -84,7 +88,7 @@ const send = (res, cacheFile, contents, file, cachedFile) => {
 
         if(file && isBlacklisted(file)) {
             res.setHeader("Server", "nginx")
-            if(!cachedFile || cachedFile.cache == "no-store")
+            if(!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
                 res.setHeader("Cache-Control", "no-store")
             else
                 res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
@@ -93,7 +97,7 @@ const send = (res, cacheFile, contents, file, cachedFile) => {
             res.setHeader("Server", "nginx")
             res.setHeader("X-DNS-Prefetch-Control", "off")
 
-            if(config.disableBrowserCache) {
+            if(config.disableBrowserCache || isInvalidated(file)) {
                 res.setHeader("Cache-Control", "no-store")
                 res.setHeader("Pragma", "no-cache")
             } else {
@@ -129,7 +133,7 @@ const handleCaching = async (req, res) => {
     let lastmodified = undefined
     if(cachedFile && existsSync(cacheFile)) {
         // Allowing single ? for bugged _onInfoLoadComplete
-        if((cachedFile.version == version || version == "" || version == "?") && !isBlacklisted(file))
+        if((cachedFile.version == version || version == "" || version == "?") && !isBlacklisted(file) && !isInvalidated(file))
             return send(res, cacheFile, undefined, file, cachedFile)
 
         // Version doesn't match, lastmodified set
@@ -163,6 +167,11 @@ module.exports = { cache, handleCaching , extractURL}
 const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
 function isBlacklisted(file) {
     return blacklisted.some(k => file.startsWith(k))
+}
+
+const invalidated = ["/kcs2/version.json", "/kcs2/js/main.js"]
+function isInvalidated(file) {
+    return invalidatedMainVersion && invalidated.some(k => file == k)
 }
 
 function queueCacheSave() {
