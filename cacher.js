@@ -27,7 +27,22 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     else
         delete options.headers["If-Modified-Since"]
 
-    const data = await fetch(url, options)
+    let data
+    try {
+        data = await fetch(url, options)
+    } catch (error) {
+        if(lastmodified) {
+            console.error("Fetch failed, using cached version", error)
+            invalidatedMainVersion = true
+
+            return {
+                "status": 200,
+                "contents": readFileSync(cacheFile)
+            }
+        } else
+            console.error("Fetch failed, no cached version", error)
+    }
+
     if(data.status == 304) {
         console.log("Not modified", file)
 

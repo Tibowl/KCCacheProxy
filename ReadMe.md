@@ -4,7 +4,7 @@ This is a local proxy meant to cache KC assets. It can be preloaded from a cache
 
 Setup
 ======
-It's recommended that you start out from a cache dump. You can download the latest one (updated on 2020-02-25) from [MEGA](https://mega.nz/#!1DRC2QYR!h4jYzQL5XEg6-9wnSmna1igqsjQL4RqwVWev6NTwBTg). 
+It's recommended that you start out from a cache dump. You can download the latest one (updated on 2020-02-28, Hirato CG) from [MEGA](https://mega.nz/#!lPxTzLIC!-PsXIeVqVM1o9iZPCRp4ruQ--KlYWVKxSG7awF5qUbU) (4.2GB). If you just want the minimal files required for the gadget server block since 2020-02-25, you can download it from [MEGA](https://mega.nz/#!xbh3FRSY!BEsHNihk_ZWIuNvL0HWMlXGiXWDb446BCwkaI6nnUFg) (45KB)
 
 [More detailed explanation](https://cdn.discordapp.com/attachments/425302689887289344/666769181609295887/unknown.png)
 
