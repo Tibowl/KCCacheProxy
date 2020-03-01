@@ -2,8 +2,7 @@ KanColle Cache Proxy
 =======
 This is a local proxy meant to cache KC assets. It can be preloaded from a cache dump (linked below). This will improve loading of assets on top of browser built-in cache.
 
-Setup
-======
+## Setup
 It's recommended that you start out from a cache dump. You can download the latest one (updated on 2020-02-28, Hirato CG) from [MEGA](https://mega.nz/#!lPxTzLIC!-PsXIeVqVM1o9iZPCRp4ruQ--KlYWVKxSG7awF5qUbU) (4.2GB). If you just want the minimal files required for the gadget server block since 2020-02-25, you can download it from [MEGA](https://mega.nz/#!xbh3FRSY!BEsHNihk_ZWIuNvL0HWMlXGiXWDb446BCwkaI6nnUFg) (45KB)
 
 [More detailed explanation](https://cdn.discordapp.com/attachments/425302689887289344/666769181609295887/unknown.png)
@@ -18,12 +17,29 @@ Don't forget to start the proxy server each time you want to use it (or see auto
 
 **NOTE** for technical people: You can **NOT** run both the preloader and proxy server at the same time, unless you run the preloader via the proxy on startup.
 
-## Chrome proxy setup
+## Browser/Viewer setup
+
+Below are some instructions for some viewers/browsers available
+- [Chrome](#chrome-proxy-setup)
+- [Electronic Observer](#electronic-observer)
+- [Poi](#poi)
+
+### Chrome proxy setup
 1. To use this in chrome, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
 2. Add a new profile, set the HTTP proxy server to `localhost` and port to `8081` (this can be changed in the `config.json`). [Preview](https://i.imgur.com/w6wHZeM.png).
 3. In autoswitch, add two URL wildcard conditions that point to the profile created in the previous step. In the first condition put `http://<your kc server ip>/kcs/*` and in the second `http://<your kc server ip>/kcs2/*`. You can find your KC server ip in the network tab of devtools when playing the game, or check on wikia, or checking the output of the preloader. [Preview](https://i.imgur.com/cwBrda5.png)
 4. If you also want to go around the recent foreign IP block, add `http://203.104.209.7/*` as well.
 5. Save your changes and enable the `Auto Switch` profile. [Preview](https://i.imgur.com/Z32Ga5J.png)
+
+### Electronic Observer
+1. Open settings via File -> Settings.
+2. Go to Network tab (should be first tab) and check `Use local proxy` and enter port `8081` (this can be changed in the `config.json`). [Preview](https://i.imgur.com/MplOchT.png)
+3. Save and restart EO to apply your settings. [Preview](https://i.imgur.com/Fa7uyVJ.png)
+
+### Poi
+1. Open settings via the gear icon
+2. Go to Network tab (should be fourth tab) set proxy to `HTTP Proxy` and change port to `8081` (this can be changed in the `config.json`). [Preview](https://i.imgur.com/jwOI0F4.png)
+3. No refresh required, but it should help checking if it works by looking at the console window. [Preview](https://i.imgur.com/8HLMkB6.png)
 
 ## Auto start on system startup (Windows)
 1. Open the your startup folder by opening run (windows key + R) and running `shell:startup`
