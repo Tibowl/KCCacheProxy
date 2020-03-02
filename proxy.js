@@ -4,7 +4,9 @@ const net = require("net")
 const url = require("url")
 
 const cacher = require("./cacher.js")
-const config = require("./config.json")
+const { readFileSync } = require("fs-extra")
+
+const config = JSON.parse(readFileSync("./config.json"))
 const { port, preloadOnStart } = config
 
 const proxy = httpProxy.createProxyServer({})
