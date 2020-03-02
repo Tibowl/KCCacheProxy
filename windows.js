@@ -1,7 +1,9 @@
 if (process.platform !== "win32")
     return
     
-const { startInBackground } = require("./config.json")
+const { readFileSync } = require("fs-extra")
+
+const { startInBackground } = JSON.parse(readFileSync("./config.json"))
 
 const { NotifyIcon, Icon, Menu } = require("not-the-systray");
 
