@@ -1,7 +1,7 @@
 const fetch = require("node-fetch")
-const path = require("path")
+const { dirname } = require("path")
 const { ensureDirSync, existsSync, renameSync, removeSync, readFileSync, writeFileSync } = require("fs-extra")
-const config = require("./config.json")
+const config = JSON.parse(readFileSync("./config.json"))
 
 const CACHE_LOCATION = "./cache/cached.json"
 
@@ -14,7 +14,7 @@ if(existsSync(CACHE_LOCATION + ".bak")) {
 
 if(!existsSync(CACHE_LOCATION))
     writeFileSync(CACHE_LOCATION, "{}")
-const cached = require(CACHE_LOCATION)
+const cached = JSON.parse(readFileSync(CACHE_LOCATION))
 
 let invalidatedMainVersion = false
 
@@ -22,15 +22,20 @@ let saveCachedTimeout = undefined, saveCachedCount = 0
 const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) => {
     console.log("Loading...", file)
     const options = { method: "GET", headers }
+
+    // Request to only send full file if it has changed since last request
     if(lastmodified)
         options.headers["If-Modified-Since"] = lastmodified
     else
         delete options.headers["If-Modified-Since"]
 
+
+    // Fetch data
     let data
     try {
         data = await fetch(url, options)
     } catch (error) {
+        // Server denied request/network failed,
         if(lastmodified) {
             console.error("Fetch failed, using cached version", error)
             invalidatedMainVersion = true
@@ -39,11 +44,21 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
                 "status": 200,
                 "contents": readFileSync(cacheFile)
             }
-        } else
+        } else {
             console.error("Fetch failed, no cached version", error)
+            return {
+                "status": 502,
+                "contents": "The caching proxy was unable to handle your request and no cached version was available"
+            }
+        }
     }
 
     if(data.status == 304) {
+        if(!lastmodified)
+            // Not modified, but we don't have cached data to update
+            return { "status": data.status }
+
+        // If not modified, update version tag and send cached data
         console.log("Not modified", file)
 
         cached[file].version = version
@@ -55,8 +70,11 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         }
     }
 
+    // Send cached data for forbidden requests.
+    // This bypasses the foreign ip block added on 2020-02-25
     if(data.status == 403 && lastmodified) {
         console.log("HTTP 403: Forbidden, using cached data")
+        // Invalidate main.js and version.json versions since they might be outdated
         invalidatedMainVersion = true
 
         return {
@@ -65,14 +83,16 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         }
     }
 
+    // These won't have useful responses
     if(data.status >= 400) {
-        console.log("Didn't find ", data.status, url)
+        console.log("HTTP error ", data.status, url)
         return data
     }
 
+    // Store contents and meta-data
     const contents = await data.buffer()
 
-    ensureDirSync(path.dirname(cacheFile))
+    ensureDirSync(dirname(cacheFile))
 
     if(existsSync(cacheFile + ".tmp"))
         removeSync(cacheFile + ".tmp")
@@ -86,7 +106,6 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         "lastmodified": data.headers.get("last-modified"),
         "cache": data.headers.get("cache-control")
     }
-
     queueCacheSave()
 
     console.log("Saved", url)
@@ -161,6 +180,11 @@ const handleCaching = async (req, res) => {
     if(!result.contents && res) {
         res.statusCode = result.status
         return res.end()
+    }
+
+    if(result.status >= 500 && result.contents && res) {
+        res.statusCode = result.status
+        return res.end(result.contents)
     }
 
     return send(res, cacheFile, result.contents, file, cachedFile)
