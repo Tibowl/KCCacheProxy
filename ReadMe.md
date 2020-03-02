@@ -25,6 +25,9 @@ Don't forget to start the proxy server each time you want to use it (or see auto
 
 **NOTE** for technical people: You can **NOT** run both the preloader and proxy server at the same time, unless you run the preloader via the proxy on startup.
 
+## Updating
+Game files should be automatically updated on the fly. No need to redownload a cache dump. If you want to update the proxy and you installed it via node using git, just `git pull`. Otherwise redownload the zip and extract and replace all files. If you installed it via the compiled versions, you'll need to replace the executable from the zip in releases.
+
 ## Browser/Viewer setup
 
 Below are some instructions for some viewers/browsers available
