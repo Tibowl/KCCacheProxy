@@ -1,7 +1,7 @@
 const fetch = require("node-fetch")
-const path = require("path")
+const { dirname } = require("path")
 const { ensureDirSync, existsSync, renameSync, removeSync, readFileSync, writeFileSync } = require("fs-extra")
-const config = require("./config.json")
+const config = JSON.parse(readFileSync("./config.json"))
 
 const CACHE_LOCATION = "./cache/cached.json"
 
@@ -14,7 +14,7 @@ if(existsSync(CACHE_LOCATION + ".bak")) {
 
 if(!existsSync(CACHE_LOCATION))
     writeFileSync(CACHE_LOCATION, "{}")
-const cached = require(CACHE_LOCATION)
+const cached = JSON.parse(readFileSync(CACHE_LOCATION))
 
 let invalidatedMainVersion = false
 
@@ -92,7 +92,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     // Store contents and meta-data
     const contents = await data.buffer()
 
-    ensureDirSync(path.dirname(cacheFile))
+    ensureDirSync(dirname(cacheFile))
 
     if(existsSync(cacheFile + ".tmp"))
         removeSync(cacheFile + ".tmp")
