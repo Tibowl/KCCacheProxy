@@ -22,7 +22,7 @@ if (!hWndOk) {
 // System tray icon
 var lastClickTime = 0
 const appIcon = new NotifyIcon({
-    icon: Icon.load("icon.ico", Icon.small),
+    icon: Icon.load("icon.ico", Icon.large),
     tooltip: "KCCacheProxy",
     onSelect({ target, rightButton, mouseX, mouseY }) {
         if (rightButton) {
