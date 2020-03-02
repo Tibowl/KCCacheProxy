@@ -2,9 +2,15 @@ KanColle Cache Proxy
 =======
 This is a local proxy meant to cache KC assets. It can be preloaded from a cache dump (linked below). This will improve loading of assets on top of browser built-in cache.
 
-## Setup
+## 
 It's recommended that you start out from a cache dump. You can download the latest one (updated on 2020-02-28, Hirato CG) from [MEGA](https://mega.nz/#!lPxTzLIC!-PsXIeVqVM1o9iZPCRp4ruQ--KlYWVKxSG7awF5qUbU) (4.2GB). If you just want the minimal files required for the gadget server block since 2020-02-25, you can download it from [MEGA](https://mega.nz/#!xbh3FRSY!BEsHNihk_ZWIuNvL0HWMlXGiXWDb446BCwkaI6nnUFg) (45KB)
 
+## Setup using compiled versions
+1. Go to [Releases](https://github.com/Tibowl/KCCacheProxy/releases) and download the latest one for your operating system.
+2. Unzip this file somewhere, run the executable. Recommended to do this from command prompt/powershell/terminal so the output is visible after it finishes running.
+3. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. [Below are some details](#browserviewer-setup)) on how to do it for some viewers/chrome.
+
+## Setup using node
 If you're not sure what you're doing, use these instructions: [Detailed setup instructions with screenshots](https://github.com/planetarian/KCDocumentation/blob/master/KCCacheProxy.md)
 
 Otherwise, here's the general outline:
@@ -13,7 +19,7 @@ Otherwise, here's the general outline:
 1. Install dependencies with npm by running `npm i` in the folder with `package.json`. 
 2. (Optional) Extract the downloaded cache dump, so you'll have a folder `cache` with `cached.json` in it respectively to where you unzipped/cloned the repository (if there's a file `./proxy.js` then there should be `./cache/cached.json`).
 3. You can start the proxy server with `node proxy`. 
-4. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. Below are details on how to set up in Chrome with extra safety that it doesn't redirect game api requests through the proxy.
+4. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. [Below are some details](#browserviewer-setup)) on how to do it for some viewers/chrome.
 
 Don't forget to start the proxy server each time you want to use it (or see auto start section).
 
