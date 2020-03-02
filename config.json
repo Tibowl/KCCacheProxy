@@ -1,6 +1,7 @@
 {
     "port": 8081,
     "disableBrowserCache": false,
+    "startInBackground": true,
     "serverID": 0,
     "preloadOnStart": false,
     "preloader": {

@@ -3,13 +3,14 @@ const httpProxy = require("http-proxy")
 const net = require("net")
 const url = require("url")
 
+const cacher = require("./cacher.js")
+const config = require("./config.json")
+const { port, preloadOnStart } = config
+
 // System tray / console hiding in win32
 process.title = "KCCacheProxy Console";
 const windows = require("./windows.js")
 
-const cacher = require("./cacher.js")
-const config = require("./config.json")
-const { port, preloadOnStart } = config
 
 const proxy = httpProxy.createProxyServer({})
 const server = http.createServer(async (req, res) => {

@@ -6,6 +6,7 @@ mkdir -p build/KCCacheProxy/preloader
 cp -r build_template/* build/KCCacheProxy/
 
 cp preloader/* build/KCCacheProxy/preloader
+cp icon.ico build/KCCacheProxy
 
 mv config.json config.json.tmp
 git checkout config.json

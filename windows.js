@@ -1,5 +1,7 @@
 if (process.platform !== "win32")
     return
+    
+const { startInBackground } = require("./config.json")
 
 const { NotifyIcon, Icon, Menu } = require("not-the-systray");
 
@@ -87,6 +89,10 @@ function showWindow(state) {
         state = windowState === SW_SHOWNORMAL ? SW_HIDE : SW_SHOWNORMAL
     windowState = state
     user32.ShowWindow(hWnd, state)
+}
+
+if (startInBackground) {
+    showWindow(SW_HIDE)
 }
 
 // Show startup notification
