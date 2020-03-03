@@ -1,7 +1,9 @@
 const fetch = require("node-fetch")
 const { dirname } = require("path")
 const { ensureDirSync, existsSync, renameSync, removeSync, readFileSync, writeFileSync } = require("fs-extra")
-const config = JSON.parse(readFileSync("./config.json"))
+let config = {}
+if(existsSync("./config.json"))
+    config = JSON.parse(readFileSync("./config.json"))
 
 const CACHE_LOCATION = "./cache/cached.json"
 

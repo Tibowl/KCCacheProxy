@@ -1,10 +1,12 @@
 const { eachLimit } = require("async")
 const { keyInSelect } = require("readline-sync")
 const fetch = require("node-fetch")
-const { readdirSync, readFileSync } = require("fs-extra")
+const { readdirSync, readFileSync, existsSync } = require("fs-extra")
 
 const cacher = require("./cacher.js")
-const config = JSON.parse(readFileSync("./config.json"))
+let config = {serverID: -1, preloader: {recommended: { gadget: true }}}
+if(existsSync("./config.json"))
+    config = JSON.parse(readFileSync("./config.json"))
 
 const GADGET = "http://203.104.209.7/"
 const INCLUDE_RARE = false
@@ -21,7 +23,12 @@ const main = async () => {
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
     const serverID = config.serverID || (keyInSelect(en_names) + 1)
-    if(serverID == 0) return
+
+    // Recommended one-time
+    if(config.preloader.recommended.gadget)
+        await cacheGadget()
+
+    if(serverID <= 0) return
 
     const kcs_const = /* readFileSync("./cache/gadget_html5/js/kcs_const.js").toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
@@ -38,10 +45,6 @@ const main = async () => {
         `kcs2/js/main.js?version=${GAME_VERSION}`
     ])
     VERSIONS = JSON.parse(readFileSync("./cache/kcs2/version.json"))
-
-    // Recommended one-time
-    if(config.preloader.recommended.gadget)
-        await cacheGadget()
 
     // Recommendend to keep
     if(config.preloader.recommended.static)
@@ -433,7 +436,7 @@ const cacheFurniture = async () => {
         const {api_id, api_active_flag, api_version} = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
         if(api_active_flag != 1) continue
-        const script = JSON.parse(readFileSync("./cache/" + getPath(api_id, "furniture", "scripts", "json")))
+        const script = JSON.parse(readFileSync("./cache/" + getPath(api_id, "furniture", "scripts", "json")).toString().trim())
 
         const standard = script.standard
         if(!standard.hitarea) continue
