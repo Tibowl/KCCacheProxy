@@ -106,7 +106,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     cached[file] = {
         "version": version,
         "lastmodified": data.headers.get("last-modified"),
-        "length": +data.headers.get("content-length") || contents.length,
+        "length": (+data.headers.get("content-length")) || contents.length,
         "cache": data.headers.get("cache-control")
     }
     queueCacheSave()
@@ -210,7 +210,7 @@ const extractURL = (url) => {
     return { file, cacheFile, version }
 }
 
-module.exports = { cache, handleCaching , extractURL}
+module.exports = { cache, handleCaching , extractURL, cached}
 const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
 function isBlacklisted(file) {
     return blacklisted.some(k => file.startsWith(k))
