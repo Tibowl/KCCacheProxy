@@ -104,6 +104,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     cached[file] = {
         "version": version,
         "lastmodified": data.headers.get("last-modified"),
+        "length": +data.headers.get("content-length") || contents.length,
         "cache": data.headers.get("cache-control")
     }
     queueCacheSave()
@@ -115,10 +116,15 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     }
 }
 
-const send = (res, cacheFile, contents, file, cachedFile) => {
+const send = (req, res, cacheFile, contents, file, cachedFile, forceCache = false) => {
     if (res) {
         if(contents == undefined)
             contents = readFileSync(cacheFile)
+
+        if(!forceCache && config.verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
+            console.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
+            return handleCaching(req, res, true)
+        }
 
         if(file && isBlacklisted(file)) {
             res.setHeader("Server", "nginx")
@@ -158,17 +164,17 @@ const send = (res, cacheFile, contents, file, cachedFile) => {
     }
 }
 
-const handleCaching = async (req, res) => {
+const handleCaching = async (req, res, forceCache = false) => {
     const { url, headers } = req
     const { file, cacheFile, version } = extractURL(url)
 
     // Return cached if version matches
     const cachedFile = cached[file]
     let lastmodified = undefined
-    if(cachedFile && existsSync(cacheFile)) {
+    if(cachedFile && existsSync(cacheFile) && !forceCache) {
         // Allowing single ? for bugged _onInfoLoadComplete
         if((cachedFile.version == version || version == "" || version == "?") && !isBlacklisted(file) && !isInvalidated(file))
-            return send(res, cacheFile, undefined, file, cachedFile)
+            return send(req, res, cacheFile, undefined, file, cachedFile, forceCache)
 
         // Version doesn't match, lastmodified set
         lastmodified = cachedFile.lastmodified
@@ -187,7 +193,7 @@ const handleCaching = async (req, res) => {
         return res.end(result.contents)
     }
 
-    return send(res, cacheFile, result.contents, file, cachedFile)
+    return send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
 const extractURL = (url) => {

@@ -32,7 +32,9 @@ const main = async () => {
     console.log("Loading api_start2...")
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
-    // await cacheURLs(Object.entries(require("./cache/cached.json")).map(k => k[0].substring(1) + k[1].version))
+    // SERVER = GADGET
+    // await cacheURLs(Object.entries(require("./cache/cached.json")).filter(k => (k[0].includes("kcscontents") || k[0].includes("gadget_html5"))).map(k => k[0].substring(1) + k[1].version))
+
     await cacheURLs([
         `kcs2/version.json?${GAME_VERSION}`,
         `kcs2/js/main.js?version=${GAME_VERSION}`
