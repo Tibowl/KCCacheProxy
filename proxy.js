@@ -40,11 +40,6 @@ server.on("connect", (req, socket) => {
 server.on("error", (...a) => console.log("server error", ...a))
 proxy.on("error", (...a) => console.log("proxy error", ...a))
 
-console.log(`listening on port ${port}`)
-server.listen(port)
-if(preloadOnStart)
-    require("./preload")
-
 // Verify cache
 if (process.argv.length > 2) {
     if(process.argv.find(k => k.toLowerCase() == "verifycache")) {
@@ -81,3 +76,8 @@ if (process.argv.length > 2) {
         console.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
     }
 }
+
+console.log(`listening on port ${port}`)
+server.listen(port)
+if(preloadOnStart)
+    require("./preload")
