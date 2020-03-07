@@ -1,10 +1,12 @@
 const { eachLimit } = require("async")
-const read = require("readline-sync")
+const { keyInSelect } = require("readline-sync")
 const fetch = require("node-fetch")
-const { readdirSync } = require("fs-extra")
+const { readdirSync, readFileSync, existsSync } = require("fs-extra")
 
 const cacher = require("./cacher.js")
-const config = require("./config.json")
+let config = {serverID: -1, preloader: {recommended: { gadget: true }}}
+if(existsSync("./config.json"))
+    config = JSON.parse(readFileSync("./config.json"))
 
 const GADGET = "http://203.104.209.7/"
 const INCLUDE_RARE = false
@@ -20,10 +22,15 @@ const main = async () => {
     console.log("Select your server:")
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
-    const serverID = config.serverID || (read.keyInSelect(en_names) + 1)
-    if(serverID == 0) return
+    const serverID = config.serverID || (keyInSelect(en_names) + 1)
 
-    const kcs_const = /* require("fs").readFileSync("./cache/gadget_html5/js/kcs_const.js").toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    // Recommended one-time
+    if(config.preloader.recommended.gadget)
+        await cacheGadget()
+
+    if(serverID <= 0) return
+
+    const kcs_const = /* readFileSync("./cache/gadget_html5/js/kcs_const.js").toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
@@ -39,11 +46,7 @@ const main = async () => {
         `kcs2/version.json?${GAME_VERSION}`,
         `kcs2/js/main.js?version=${GAME_VERSION}`
     ])
-    VERSIONS = require("./cache/kcs2/version.json")
-
-    // Recommended one-time
-    if(config.preloader.recommended.gadget)
-        await cacheGadget()
+    VERSIONS = JSON.parse(readFileSync("./cache/kcs2/version.json"))
 
     // Recommendend to keep
     if(config.preloader.recommended.static)
@@ -150,7 +153,7 @@ const cacheGadget = async () => {
 }
 
 const cacheStatic = async () => {
-    const urls = require("./preloader/urls.json")
+    const urls = JSON.parse(readFileSync("./preloader/urls.json"))
 
     if(INCLUDE_RARE)
         for(let i = 0; i < 50; i++) {
@@ -167,7 +170,7 @@ const cacheStatic = async () => {
 }
 
 const cacheAssets = async () => {
-    const assets = require("./preloader/assets.json")
+    const assets = JSON.parse(readFileSync("./preloader/assets.json"))
     for(const type of Object.keys(assets)) {
         const urls = assets[type].map(k => `kcs2/img/${type}/${k}?version=${VERSIONS[type]}`)
         console.log(`Caching ${urls.length} of assets type ${type}`)
@@ -236,7 +239,7 @@ const cacheMaps = async () => {
     for (const map of readdirSync("./cache/kcs2/resources/gauge")) {
         if(!map.endsWith(".json")) continue
 
-        const gaugeFile = require(`./cache/kcs2/resources/gauge/${map}`)
+        const gaugeFile = JSON.parse(readFileSync(`./cache/kcs2/resources/gauge/${map}`))
         // TODO append version tag
         if(gaugeFile.img) {
             urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
@@ -435,7 +438,7 @@ const cacheFurniture = async () => {
         const {api_id, api_active_flag, api_version} = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
         if(api_active_flag != 1) continue
-        const script = require("./cache/" + getPath(api_id, "furniture", "scripts", "json"))
+        const script = JSON.parse(readFileSync("./cache/" + getPath(api_id, "furniture", "scripts", "json")).toString().trim())
 
         const standard = script.standard
         if(!standard.hitarea) continue

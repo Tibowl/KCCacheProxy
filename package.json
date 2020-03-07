@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node proxy",
+    "build": "sh build.sh",
     "preload": "node preload"
   },
   "author": "Tibi",
