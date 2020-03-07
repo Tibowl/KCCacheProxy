@@ -4,7 +4,7 @@ const net = require("net")
 const url = require("url")
 
 const cacher = require("./cacher.js")
-const { readFileSync } = require("fs-extra")
+const { readFileSync, unlinkSync } = require("fs-extra")
 
 const config = JSON.parse(readFileSync("./config.json"))
 const { port, preloadOnStart } = config
@@ -49,3 +49,40 @@ console.log(`listening on port ${port}`)
 server.listen(port)
 if(preloadOnStart)
     require("./preload")
+
+// Verify cache
+if (process.argv.length > 2) {
+    if(process.argv.find(k => k.toLowerCase() == "verifycache")) {
+        if(!config.verifyCache) {
+            console.error("verifyCache is not set in config! Aborted check!")
+            return
+        }
+        console.log("Verifying cache... This might take a while")
+
+        const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
+
+        let total = 0, invalid = 0, checked = 0, error = 0
+        Object.entries(cacher.cached).forEach(([key, value]) => {
+            total++
+            if(value.length == undefined) return
+
+            try {
+                const file = "./cache/" + key
+                const contents = readFileSync(file)
+
+                checked++
+                if(contents.length != value.length) {
+                    invalid++
+
+                    console.error(key, "length doesn't match!", contents.length, value.length)
+                    if(deleteinvalid)
+                        unlinkSync(file)
+                }
+            } catch(e) {
+                error++
+            }
+        })
+
+        console.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
+    }
+}
