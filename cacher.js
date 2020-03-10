@@ -185,12 +185,16 @@ const handleCaching = async (req, res, forceCache = false) => {
     // Not in cache or version mismatch, need to check with server
     const result = await cache(cacheFile, file, url, version, lastmodified, headers)
 
-    if(!result.contents && res) {
+    if(!result.contents) {
+        if(!res) return
+
         res.statusCode = result.status
         return res.end()
     }
 
-    if(result.status >= 500 && result.contents && res) {
+    if(result.status >= 500 && result.contents) {
+        if(!res) return
+
         res.statusCode = result.status
         return res.end(result.contents)
     }
