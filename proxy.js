@@ -13,6 +13,7 @@ const { port, preloadOnStart } = config
 process.title = "KCCacheProxy Console";
 const windows = require("./windows.js")
 
+const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"]
 
 const proxy = httpProxy.createProxyServer({})
 const server = http.createServer(async (req, res) => {
@@ -20,7 +21,7 @@ const server = http.createServer(async (req, res) => {
 
     console.log(method + ": " + url)
 
-    if(method !== "GET" || (!url.includes("/kcs/") && !url.includes("/kcs2/") && !url.includes("/kcscontents/") && !url.includes("/gadget_html5/")) || url.includes(".php"))
+    if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php"))
         return proxy.web(req, res, { target: `http://${req.headers.host}/` })
 
     return await cacher.handleCaching(req, res)
@@ -44,11 +45,6 @@ server.on("connect", (req, socket) => {
 })
 server.on("error", (...a) => console.log("server error", ...a))
 proxy.on("error", (...a) => console.log("proxy error", ...a))
-
-console.log(`listening on port ${port}`)
-server.listen(port)
-if(preloadOnStart)
-    require("./preload")
 
 // Verify cache
 if (process.argv.length > 2) {
@@ -86,3 +82,8 @@ if (process.argv.length > 2) {
         console.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
     }
 }
+
+console.log(`listening on port ${port}`)
+server.listen(port)
+if(preloadOnStart)
+    require("./preload")
