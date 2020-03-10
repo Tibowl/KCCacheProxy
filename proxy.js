@@ -26,11 +26,11 @@ const server = http.createServer(async (req, res) => {
 // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
 server.on("connect", (req, socket) => {
     console.log(`${req.method}: ${req.url}`)
+
+    socket.on("error", (...a) => console.log("socket error", ...a))
+
     const serverUrl = url.parse("https://" + req.url)
     const srvSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
-        socket.on("error", (...a) => console.log("socket error", ...a))
-        srvSocket.on("error", (...a) => console.log("srvsocket error", ...a))
-
         socket.write("HTTP/1.1 200 Connection Established\r\n" +
             "Proxy-agent: Node-Proxy\r\n" +
             "\r\n")
@@ -38,6 +38,7 @@ server.on("connect", (req, socket) => {
         srvSocket.pipe(socket)
         socket.pipe(srvSocket)
     })
+    srvSocket.on("error", (...a) => console.log("srvsocket error", ...a))
 })
 server.on("error", (...a) => console.log("server error", ...a))
 proxy.on("error", (...a) => console.log("proxy error", ...a))
