@@ -1,6 +1,10 @@
 const fetch = require("node-fetch")
 const { dirname } = require("path")
-const { ensureDirSync, existsSync, renameSync, removeSync, readFileSync, writeFileSync } = require("fs-extra")
+const { ensureDirSync, ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFileSync, writeFile } = require("fs-extra")
+const { promisify } = require("util")
+
+const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
+
 let config = {}
 if(existsSync("./config.json"))
     config = JSON.parse(readFileSync("./config.json"))
@@ -44,7 +48,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
 
             return {
                 "status": 200,
-                "contents": readFileSync(cacheFile)
+                "contents": await readFile(cacheFile)
             }
         } else {
             console.error("Fetch failed, no cached version", error)
@@ -68,7 +72,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
 
         return {
             "status": 200,
-            "contents": readFileSync(cacheFile)
+            "contents": await readFile(cacheFile)
         }
     }
 
@@ -81,7 +85,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
 
         return {
             "status": 200,
-            "contents": readFileSync(cacheFile)
+            "contents": await readFile(cacheFile)
         }
     }
 
@@ -94,34 +98,38 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     // Store contents and meta-data
     const contents = await data.buffer()
 
-    ensureDirSync(dirname(cacheFile))
+    const queueSave = async () => {
+        await ensureDir(dirname(cacheFile))
 
-    if(existsSync(cacheFile + ".tmp"))
-        removeSync(cacheFile + ".tmp")
-    writeFileSync(cacheFile + ".tmp", contents)
-    if(existsSync(cacheFile))
-        removeSync(cacheFile)
-    renameSync(cacheFile + ".tmp", cacheFile)
+        if(await exists(cacheFile + ".tmp"))
+            await remove(cacheFile + ".tmp")
+        await writeFile(cacheFile + ".tmp", contents)
+        if(await exists(cacheFile))
+            await remove(cacheFile)
+        await move(cacheFile + ".tmp", cacheFile)
 
-    cached[file] = {
-        "version": version,
-        "lastmodified": data.headers.get("last-modified"),
-        "length": (+data.headers.get("content-length")) || contents.length,
-        "cache": data.headers.get("cache-control")
+        cached[file] = {
+            "version": version,
+            "lastmodified": data.headers.get("last-modified"),
+            "length": (+data.headers.get("content-length")) || contents.length,
+            "cache": data.headers.get("cache-control")
+        }
+        queueCacheSave()
+
+        console.log("Saved", url)
     }
-    queueCacheSave()
+    queueSave()
 
-    console.log("Saved", url)
     return {
         "status": data.status,
         "contents": contents
     }
 }
 
-const send = (req, res, cacheFile, contents, file, cachedFile, forceCache = false) => {
+const send = async (req, res, cacheFile, contents, file, cachedFile, forceCache = false) => {
     if (res) {
         if(contents == undefined)
-            contents = readFileSync(cacheFile)
+            contents = await read(cacheFile)
 
         if(!forceCache && config.verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
             console.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
@@ -173,10 +181,10 @@ const handleCaching = async (req, res, forceCache = false) => {
     // Return cached if version matches
     const cachedFile = cached[file]
     let lastmodified = undefined
-    if(cachedFile && existsSync(cacheFile) && !forceCache) {
+    if(cachedFile && await exists(cacheFile) && !forceCache) {
         // Allowing single ? for bugged _onInfoLoadComplete
         if((cachedFile.version == version || version == "" || version == "?") && !isBlacklisted(file) && !isInvalidated(file))
-            return send(req, res, cacheFile, undefined, file, cachedFile, forceCache)
+            return await send(req, res, cacheFile, undefined, file, cachedFile, forceCache)
 
         // Version doesn't match, lastmodified set
         lastmodified = cachedFile.lastmodified
@@ -199,7 +207,7 @@ const handleCaching = async (req, res, forceCache = false) => {
         return res.end(result.contents)
     }
 
-    return send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
+    return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
 const extractURL = (url) => {
@@ -229,17 +237,18 @@ function queueCacheSave() {
     if (++saveCachedCount < 25) {
         if (saveCachedTimeout)
             clearTimeout(saveCachedTimeout)
-        saveCachedTimeout = setTimeout(() => {
+        saveCachedTimeout = setTimeout(async () => {
             saveCachedTimeout = undefined
-            saveCached()
+            saveCachedCount = 0
+            await saveCached()
             saveCachedCount = 0
         }, 5000)
     }
 }
 
-function saveCached() {
-    renameSync(CACHE_LOCATION, CACHE_LOCATION + ".bak")
-    writeFileSync(CACHE_LOCATION, JSON.stringify(cached))
-    removeSync(CACHE_LOCATION + ".bak")
+async function saveCached() {
+    await move(CACHE_LOCATION, CACHE_LOCATION + ".bak")
+    await writeFile(CACHE_LOCATION, JSON.stringify(cached))
+    await remove(CACHE_LOCATION + ".bak")
     console.log("Saved cache.")
 }
