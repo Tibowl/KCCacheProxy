@@ -25,8 +25,21 @@ const cached = JSON.parse(readFileSync(CACHE_LOCATION))
 let invalidatedMainVersion = false
 
 let saveCachedTimeout = undefined, saveCachedCount = 0
+const currentlyLoadingCache = {}
+
 const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) => {
+    if(currentlyLoadingCache[file])
+        return await new Promise((resolve) => currentlyLoadingCache[file].push(resolve))
+
+    currentlyLoadingCache[file] = []
     console.log("Loading...", file)
+
+    const response = (rep) => {
+        currentlyLoadingCache[file].forEach(k => k(rep))
+        delete currentlyLoadingCache[file]
+        return rep
+    }
+
     const options = { method: "GET", headers }
 
     // Request to only send full file if it has changed since last request
@@ -46,23 +59,23 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
             console.error("Fetch failed, using cached version", error)
             invalidatedMainVersion = true
 
-            return {
+            return response({
                 "status": 200,
                 "contents": await readFile(cacheFile)
-            }
+            })
         } else {
             console.error("Fetch failed, no cached version", error)
-            return {
+            return response({
                 "status": 502,
                 "contents": "The caching proxy was unable to handle your request and no cached version was available"
-            }
+            })
         }
     }
 
     if(data.status == 304) {
         if(!lastmodified)
             // Not modified, but we don't have cached data to update
-            return { "status": data.status }
+            return response({ "status": data.status })
 
         // If not modified, update version tag and send cached data
         console.log("Not modified", file)
@@ -70,10 +83,10 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         cached[file].version = version
         queueCacheSave()
 
-        return {
+        return response({
             "status": 200,
             "contents": await readFile(cacheFile)
-        }
+        })
     }
 
     // Send cached data for forbidden requests.
@@ -83,20 +96,24 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         // Invalidate main.js and version.json versions since they might be outdated
         invalidatedMainVersion = true
 
-        return {
+        return response({
             "status": 200,
             "contents": await readFile(cacheFile)
-        }
+        })
     }
 
     // These won't have useful responses
     if(data.status >= 400) {
         console.log("HTTP error ", data.status, url)
-        return data
+        return response(data)
     }
 
     // Store contents and meta-data
     const contents = await data.buffer()
+    const rep = {
+        "status": data.status,
+        "contents": contents
+    }
 
     const queueSave = async () => {
         await ensureDir(dirname(cacheFile))
@@ -117,13 +134,11 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         queueCacheSave()
 
         console.log("Saved", url)
+        response(rep)
     }
     queueSave()
 
-    return {
-        "status": data.status,
-        "contents": contents
-    }
+    return rep
 }
 
 const send = async (req, res, cacheFile, contents, file, cachedFile, forceCache = false) => {
