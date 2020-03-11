@@ -20,7 +20,10 @@ const server = http.createServer(async (req, res) => {
     console.log(method + ": " + url)
 
     if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php"))
-        return proxy.web(req, res, { target: `http://${req.headers.host}/` })
+        return proxy.web(req, res, {
+            target: `http://${req.headers.host}/`,
+            timeout:  config.timeout
+        })
 
     return await cacher.handleCaching(req, res)
 })
