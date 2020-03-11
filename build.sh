@@ -8,6 +8,7 @@ pkg --out-path build proxy.js
 mkdir -p build/KCCacheProxy/preloader
 
 # Update build_template cache
+mkdir build_template
 cd build_template
 node ../preload
 cd ..
