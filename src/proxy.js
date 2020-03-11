@@ -17,7 +17,10 @@ const proxy = httpProxy.createProxyServer({})
 const server = http.createServer(async (req, res) => {
     const {method, url} = req
 
-    console.log(method + ": " + url)
+    if(global.mainWindow) {
+        global.mainWindow.webContents.send("message", method + ": " + url)
+        console.log(method + ": " + url)
+    }
 
     if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php"))
         return proxy.web(req, res, {
