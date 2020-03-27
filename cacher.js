@@ -136,6 +136,8 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         console.log("Saved", url)
         response(rep)
     }
+    if(cached[file])
+        cached[file].length = (+data.headers.get("content-length")) || contents.length
     queueSave()
 
     return rep
