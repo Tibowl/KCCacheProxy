@@ -26,6 +26,7 @@
             "equips": false,
             "furniture": false,
             "ships": false
-        }
+        },
+        "cleanup": true
     }
 }

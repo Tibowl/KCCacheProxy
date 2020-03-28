@@ -136,6 +136,8 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         console.log("Saved", url)
         response(rep)
     }
+    if(cached[file])
+        cached[file].length = (+data.headers.get("content-length")) || contents.length
     queueSave()
 
     return rep
@@ -237,7 +239,6 @@ const extractURL = (url) => {
     return { file, cacheFile, version }
 }
 
-module.exports = { cache, handleCaching , extractURL, cached}
 const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
 function isBlacklisted(file) {
     return blacklisted.some(k => file.startsWith(k))
@@ -267,3 +268,5 @@ async function saveCached() {
     await remove(CACHE_LOCATION + ".bak")
     console.log("Saved cache.")
 }
+
+module.exports = { cache, handleCaching , extractURL, cached, queueCacheSave}
