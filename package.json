@@ -1,6 +1,6 @@
 {
   "name": "kccacheproxy",
-  "productName": "kccacheproxy",
+  "productName": "KCCacheProxy",
   "version": "2.0.0",
   "description": "My Electron application description",
   "main": "src/electron/index.js",
@@ -30,7 +30,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "kccacheproxy"
+            "name": "KCCacheProxy"
           }
         },
         {

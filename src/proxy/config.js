@@ -1,10 +1,11 @@
-const { existsSync, readFileSync } = require("fs-extra")
-const path = require("path")
+const { existsSync, readFileSync, writeFileSync, ensureDirSync } = require("fs-extra")
+const { join, dirname } = require("path")
 
 const Logger = require("./logger")
 
 const defaultConfig = {
     "port": 8081,
+    "cacheLocation": "default",
     "disableBrowserCache": false,
     "verifyCache": false,
     "serverID": 0,
@@ -35,20 +36,40 @@ const defaultConfig = {
     }
 }
 
-let config = existsSync("./config.json") ? JSON.parse(readFileSync("./config.json")) : defaultConfig
+let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON.parse(readFileSync("./config.json"))) : defaultConfig
 
-function loadConfig(app) {
-    const userdata = app.getPath("userData")
-    const configLocation = path.join(userdata, "config.json")
+let app = undefined
+function loadConfig(electronApp) {
+    app = electronApp // Prevent compiling electron stuff in small versions
 
-    Logger.log("Loading config from " + configLocation)
+    const userdata = join(app.getPath("userData"), "ProxyData")
+    const configLocation = join(userdata, "config.json")
+
+    Logger.log(`Loading config from: ${configLocation}`)
 
     if (existsSync(configLocation))
-        config = JSON.parse(readFileSync(configLocation))
+        config = Object.assign({}, defaultConfig, JSON.parse(readFileSync(configLocation)))
     else
         config = defaultConfig
+
+    if (config.cacheLocation == undefined || config.cacheLocation == "default")
+        config.cacheLocation = join(userdata, "cache")
+
+    Logger.log(`Cache location is at: ${config.cacheLocation}`)
 }
 
+function saveConfig() {
+    let configLocation
+    if(app) {
+        const userdata = join(app.getPath("userData"), "ProxyData")
+        configLocation = join(userdata, "config.json")
+    } else {
+        configLocation = "./config.json"
+    }
+
+    ensureDirSync(dirname(configLocation))
+    writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 4))
+}
 function preloader() {
     if(config == defaultConfig)
         config = {serverID: -1, preloader: {recommended: { gadget: true }}}
@@ -58,4 +79,11 @@ function getConfig() {
     return config
 }
 
-module.exports = { getConfig, loadConfig, preloader }
+function getCacheLocation() {
+    if (config.cacheLocation == undefined || config.cacheLocation == "default")
+        return "./cache/"
+
+    return config.cacheLocation
+}
+
+module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, preloader }

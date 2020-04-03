@@ -2,10 +2,11 @@ const { eachLimit } = require("async")
 const { keyInSelect } = require("readline-sync")
 const fetch = require("node-fetch")
 const { readdirSync, readFileSync, removeSync } = require("fs-extra")
+const { join } = require("path")
 
 const cacher = require("./cacher")
 const Logger = require("./logger")
-const { getConfig, preloader } = require("./config")
+const { getConfig, getCacheLocation, preloader } = require("./config")
 preloader()
 
 const GADGET = "http://203.104.209.7/"
@@ -30,7 +31,7 @@ const main = async () => {
 
     if(serverID <= 0) return
 
-    const kcs_const = /* readFileSync("./cache/gadget_html5/js/kcs_const.js").toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    const kcs_const =  readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
@@ -46,7 +47,7 @@ const main = async () => {
         `kcs2/version.json?${GAME_VERSION}`,
         `kcs2/js/main.js?version=${GAME_VERSION}`
     ])
-    VERSIONS = JSON.parse(readFileSync("./cache/kcs2/version.json"))
+    VERSIONS = JSON.parse(readFileSync(join(getCacheLocation(), "/kcs2/version.json")))
 
     // Recommendend to keep
     if(getConfig().preloader.recommended.static)

@@ -1,18 +1,18 @@
-# Clean previous output
+echo 'Clean previous output'
 rm -r out/
 
-# Compile js files
-pkg --out-path out src/proxy/proxy.js
-
-# Create folder in out path
+echo 'Create folder in out path'
 mkdir -p out/KCCacheProxy/preloader
 
-# Update cache_template cache
+echo 'Update cache_template cache'
 cd cache_template
 node ../src/proxy/preload
 cd ..
 
-# Copy some common files to out path
+echo 'Compile old js version'
+pkg --out-path out src/proxy/proxy.js
+
+echo 'Copy some common files to out path'
 cp -r cache_template/* out/KCCacheProxy/
 cp preloader/* out/KCCacheProxy/preloader
 
@@ -42,4 +42,9 @@ cp -r KCCacheProxy/cache/ minimum-cache/ &&
 rm -r minimum-cache &
 
 wait
+
+echo 'Make electron build'
+npm run-script make
+
+echo 'Cleanup...'
 rm -r KCCacheProxy

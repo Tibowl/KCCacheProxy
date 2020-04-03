@@ -1,5 +1,5 @@
 const fetch = require("node-fetch")
-const { dirname } = require("path")
+const { dirname, join } = require("path")
 const { ensureDirSync, ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFileSync, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
@@ -7,20 +7,22 @@ const Logger = require("./logger")
 
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
-const { getConfig } = require("./config")
+const { getConfig, getCacheLocation } = require("./config")
 
-const CACHE_LOCATION = "./cache/cached.json"
+const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
 
-ensureDirSync("./cache/")
-if(existsSync(CACHE_LOCATION + ".bak")) {
-    if(existsSync(CACHE_LOCATION))
-        removeSync(CACHE_LOCATION)
-    renameSync(CACHE_LOCATION + ".bak", CACHE_LOCATION)
+ensureDirSync(getCacheLocation())
+
+if(existsSync(CACHE_INFORMATION + ".bak")) {
+    if(existsSync(CACHE_INFORMATION))
+        removeSync(CACHE_INFORMATION)
+    renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
 }
 
-if(!existsSync(CACHE_LOCATION))
-    writeFileSync(CACHE_LOCATION, "{}")
-const cached = JSON.parse(readFileSync(CACHE_LOCATION))
+if(!existsSync(CACHE_INFORMATION))
+    writeFileSync(CACHE_INFORMATION, "{}")
+
+const cached = JSON.parse(readFileSync(CACHE_INFORMATION))
 
 let invalidatedMainVersion = false
 
@@ -235,7 +237,8 @@ const extractURL = (url) => {
         file = file.substring(0, file.indexOf("?"))
     }
     if(file.endsWith("/")) file += "index.html"
-    const cacheFile = "./cache/" + file
+
+    const cacheFile = join(getCacheLocation(), file)
     return { file, cacheFile, version }
 }
 
@@ -263,9 +266,9 @@ function queueCacheSave() {
 }
 
 async function saveCached() {
-    await move(CACHE_LOCATION, CACHE_LOCATION + ".bak")
-    await writeFile(CACHE_LOCATION, JSON.stringify(cached))
-    await remove(CACHE_LOCATION + ".bak")
+    await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
+    await writeFile(CACHE_INFORMATION, JSON.stringify(cached))
+    await remove(CACHE_INFORMATION + ".bak")
     Logger.log("Saved cache.")
 }
 

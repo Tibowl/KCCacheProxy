@@ -1,21 +1,22 @@
-const http = require("http")
-const httpProxy = require("http-proxy")
-const net = require("net")
-const url = require("url")
+const { createServer } = require("http")
+const { createProxyServer } = require("http-proxy")
+const { connect } = require("net")
+const { parse } = require("url")
 
 const { mapLimit } = require("async")
 const { readFile, unlink } = require("fs-extra")
+const { join } = require("path")
 
 const cacher = require("./cacher")
 const Logger = require("./logger")
 
-const { getConfig } = require("./config")
+const { getConfig, getCacheLocation } = require("./config")
 const { port, preloadOnStart } = getConfig()
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"]
 
-const proxy = httpProxy.createProxyServer({})
-const server = http.createServer(async (req, res) => {
+const proxy = createProxyServer({})
+const server = createServer(async (req, res) => {
     const { method, url } = req
 
     Logger.log(method + ": " + url)
@@ -35,8 +36,8 @@ server.on("connect", (req, socket) => {
 
     socket.on("error", (...a) => Logger.error("Socket error", ...a))
 
-    const serverUrl = url.parse("https://" + req.url)
-    const srvSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
+    const serverUrl = parse("https://" + req.url)
+    const srvSocket = connect(serverUrl.port, serverUrl.hostname, () => {
         socket.write("HTTP/1.1 200 Connection Established\r\n" +
             "Proxy-agent: Node-Proxy\r\n" +
             "\r\n")
@@ -68,7 +69,7 @@ const main = async () => {
                 async ([key, value]) =>  {
                     try {
                         if(value.length == undefined) return 0
-                        const file = "./cache/" + key
+                        const file = join(getCacheLocation(), key)
                         const contents = await readFile(file)
 
                         if(contents.length != value.length) {

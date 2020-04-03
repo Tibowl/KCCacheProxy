@@ -1,5 +1,4 @@
 @echo off
-cd src/proxy/
 :loop
-node proxy.js
+node src/proxy/proxy.js
 goto loop
