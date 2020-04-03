@@ -7,9 +7,7 @@ const Logger = require("./logger")
 
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
-let config = {}
-if(existsSync("./config.json"))
-    config = JSON.parse(readFileSync("./config.json"))
+const { getConfig } = require("./config")
 
 const CACHE_LOCATION = "./cache/cached.json"
 
@@ -150,7 +148,7 @@ const send = async (req, res, cacheFile, contents, file, cachedFile, forceCache 
         if(contents == undefined)
             contents = await read(cacheFile)
 
-        if(!forceCache && config.verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
+        if(!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
             Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
             return handleCaching(req, res, true)
         }
@@ -166,7 +164,7 @@ const send = async (req, res, cacheFile, contents, file, cachedFile, forceCache 
             res.setHeader("Server", "nginx")
             res.setHeader("X-DNS-Prefetch-Control", "off")
 
-            if(config.disableBrowserCache || isInvalidated(file)) {
+            if(getConfig().disableBrowserCache || isInvalidated(file)) {
                 res.setHeader("Cache-Control", "no-store")
                 res.setHeader("Pragma", "no-cache")
             } else {

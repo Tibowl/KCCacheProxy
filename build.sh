@@ -1,28 +1,22 @@
-# Clean previous build
-rm -r build/
+# Clean previous output
+rm -r out/
 
 # Compile js files
-pkg --out-path build proxy.js
+pkg --out-path out src/proxy/proxy.js
 
-# Create folder in build path
-mkdir -p build/KCCacheProxy/preloader
+# Create folder in out path
+mkdir -p out/KCCacheProxy/preloader
 
-# Update build_template cache
-cd build_template
-node ../preload
+# Update cache_template cache
+cd cache_template
+node ../src/proxy/preload
 cd ..
 
-# Copy some common files to build path
-cp -r build_template/* build/KCCacheProxy/
-cp preloader/* build/KCCacheProxy/preloader
+# Copy some common files to out path
+cp -r cache_template/* out/KCCacheProxy/
+cp preloader/* out/KCCacheProxy/preloader
 
-# Copy default config.json
-mv config.json config.json.tmp
-git checkout config.json
-mv config.json build/KCCacheProxy/config.json
-mv config.json.tmp config.json
-
-cd build
+cd out
 
 # Make linux package
 cp -r KCCacheProxy/ KCCacheProxy-linux/ && 

@@ -15,7 +15,8 @@ const createWindow = () => {
         height: 600,
         webPreferences: {
             nodeIntegration: true
-        }
+        },
+        // show: false
     })
 
     // and load the index.html of the app.
@@ -56,5 +57,6 @@ app.on("activate", () => {
     }
 })
 
-require("../proxy/proxy")
 require("../proxy/logger").registerElectron(ipcMain)
+require("../proxy/config").loadConfig(app)
+require("../proxy/proxy")

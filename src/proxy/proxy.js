@@ -4,13 +4,13 @@ const net = require("net")
 const url = require("url")
 
 const { mapLimit } = require("async")
-const { readFileSync, readFile, unlink } = require("fs-extra")
+const { readFile, unlink } = require("fs-extra")
 
-const cacher = require("./cacher.js")
+const cacher = require("./cacher")
 const Logger = require("./logger")
 
-const config = JSON.parse(readFileSync("./config.json"))
-const { port, preloadOnStart } = config
+const { getConfig } = require("./config")
+const { port, preloadOnStart } = getConfig()
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"]
 
@@ -23,7 +23,7 @@ const server = http.createServer(async (req, res) => {
     if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php"))
         return proxy.web(req, res, {
             target: `http://${req.headers.host}/`,
-            timeout:  config.timeout
+            timeout: getConfig().timeout
         })
 
     return await cacher.handleCaching(req, res)
@@ -53,10 +53,11 @@ const main = async () => {
     // Verify cache
     if (process.argv.length > 2) {
         if(process.argv.find(k => k.toLowerCase() == "verifycache")) {
-            if(!config.verifyCache) {
+            if(!getConfig().verifyCache) {
                 Logger.error("verifyCache is not set in config! Aborted check!")
                 return
             }
+
             Logger.log("Verifying cache... This might take a while")
 
             const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
@@ -95,6 +96,8 @@ const main = async () => {
 
 Logger.log(`listening on port ${port}`)
 server.listen(port)
+
 if(preloadOnStart)
     require("./preload")
+
 main()

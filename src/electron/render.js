@@ -43,7 +43,7 @@ ipcRenderer.on("error", (event, message) => addNew(message))
 ipcRenderer.on("recent", (event, message) => {
     recent = []
     log.innerHTML = ""
-    message.forEach(m => addNew(m))
+    message.reverse().forEach(m => addNew(m))
 })
 
 ipcRenderer.send("getRecent")

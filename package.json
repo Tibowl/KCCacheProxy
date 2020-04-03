@@ -19,7 +19,13 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "icon": "src/electron/icon.png",
+        "ignore": [
+          ".*\\.(zip|sh|md|bat)",
+          "^/cache"
+        ]
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",

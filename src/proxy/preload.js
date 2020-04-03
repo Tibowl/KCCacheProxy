@@ -1,13 +1,12 @@
 const { eachLimit } = require("async")
 const { keyInSelect } = require("readline-sync")
 const fetch = require("node-fetch")
-const { readdirSync, readFileSync, existsSync, removeSync } = require("fs-extra")
+const { readdirSync, readFileSync, removeSync } = require("fs-extra")
 
-const cacher = require("./cacher.js")
+const cacher = require("./cacher")
 const Logger = require("./logger")
-let config = {serverID: -1, preloader: {recommended: { gadget: true }}}
-if(existsSync("./config.json"))
-    config = JSON.parse(readFileSync("./config.json"))
+const { getConfig, preloader } = require("./config")
+preloader()
 
 const GADGET = "http://203.104.209.7/"
 const INCLUDE_RARE = false
@@ -23,10 +22,10 @@ const main = async () => {
     Logger.log("Select your server:")
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
-    const serverID = config.serverID || (keyInSelect(en_names) + 1)
+    const serverID = getConfig().serverID || (keyInSelect(en_names) + 1)
 
     // Recommended one-time
-    if(config.preloader.recommended.gadget)
+    if(getConfig().preloader.recommended.gadget)
         await cacheGadget()
 
     if(serverID <= 0) return
@@ -50,35 +49,35 @@ const main = async () => {
     VERSIONS = JSON.parse(readFileSync("./cache/kcs2/version.json"))
 
     // Recommendend to keep
-    if(config.preloader.recommended.static)
+    if(getConfig().preloader.recommended.static)
         await cacheStatic()
-    if(config.preloader.recommended.assets)
+    if(getConfig().preloader.recommended.assets)
         await cacheAssets()
-    if(config.preloader.recommended.maps)
+    if(getConfig().preloader.recommended.maps)
         await cacheMaps()
-    if(config.preloader.recommended.useitem)
+    if(getConfig().preloader.recommended.useitem)
         await cacheUseItem()
-    if(config.preloader.recommended.static)
+    if(getConfig().preloader.recommended.static)
         await cacheServerName()
 
     // For less loading
-    if(config.preloader.extra.equips)
+    if(getConfig().preloader.extra.equips)
         await cacheEquips()
-    if(config.preloader.extra.ships)
+    if(getConfig().preloader.extra.ships)
         await cacheShips()
-    if(config.preloader.extra.furniture)
+    if(getConfig().preloader.extra.furniture)
         await cacheFurniture()
 
     // When game not muted
-    if(config.preloader.sounds.titlecalls)
+    if(getConfig().preloader.sounds.titlecalls)
         await cacheTitleCalls()
-    if(config.preloader.sounds.bgm)
+    if(getConfig().preloader.sounds.bgm)
         await cacheBGM()
-    if(config.preloader.sounds.se)
+    if(getConfig().preloader.sounds.se)
         await cacheSE()
-    if(config.preloader.sounds.npcvoices)
+    if(getConfig().preloader.sounds.npcvoices)
         await cacheNPCVoices()
-    if(config.preloader.sounds.voices)
+    if(getConfig().preloader.sounds.voices)
         await cacheVoices()
 
     // Does not cache:
@@ -87,12 +86,12 @@ const main = async () => {
     // purchase_items
     // other assets with as "key" START_TIME
 
-    if(config.preloader.cleanup)
+    if(getConfig().preloader.cleanup)
         await cleanup()
 }
 
 const cacheURLs = async (urls) => {
-    await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
+    await eachLimit(urls, getConfig().preloader.maxSimulPreload || 8, async (url) => {
         const full = SERVER + url
         Logger.log(full)
         await cacher.handleCaching({
@@ -148,7 +147,7 @@ const cacheGadget = async () => {
     }
     Logger.log(`Caching ${urls.length} gadget urls`)
 
-    await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
+    await eachLimit(urls, getConfig().preloader.maxSimulPreload || 8, async (url) => {
         const full = GADGET + url
         Logger.log(full)
         await cacher.handleCaching({

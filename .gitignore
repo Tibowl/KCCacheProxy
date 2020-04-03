@@ -1,4 +1,6 @@
-build/
+out/
 cache/
+cache_template/
 node_modules/
 *.zip
+config.json
