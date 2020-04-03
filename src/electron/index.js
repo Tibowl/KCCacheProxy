@@ -51,6 +51,11 @@ const createWindow = () => {
     mainWindow.on("close", (event) => {
         if(!app.isQuiting){
             event.preventDefault()
+            tray.displayBalloon({
+                "noSound": true,
+                "title": "KCCacheProxy is now hidden",
+                "content": "Double click tray icon to show"
+            })
             mainWindow.hide()
         }
 
