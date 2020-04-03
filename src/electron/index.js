@@ -6,10 +6,8 @@ if (require("electron-squirrel-startup")) { // eslint-disable-line global-requir
     app.quit()
 }
 
-let tray = null
 const createWindow = () => {
     // Create the browser window.
-
     const mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
@@ -22,9 +20,13 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
+    mainWindow.setMenu(null)
 
-    tray = new Tray(path.join(__dirname, "icon.png"))
+    const icon = path.join(__dirname, "icon.png")
+    mainWindow.setIcon(icon)
+
+    const tray = new Tray(icon)
     tray.setToolTip("KCCacheProxy")
     tray.setContextMenu(Menu.buildFromTemplate([
         {
@@ -45,7 +47,6 @@ const createWindow = () => {
         mainWindow.hide()
     })
 
-    global.mainWindow = mainWindow
     mainWindow.on("closed", () => global.mainWindow = null)
     mainWindow.on("close", (event) => {
         if(!app.isQuiting){
@@ -55,6 +56,11 @@ const createWindow = () => {
 
         return false
     })
+
+    if (config.getConfig().startHidden)
+        mainWindow.hide()
+
+    global.mainWindow = mainWindow
 }
 
 // This method will be called when Electron has finished

@@ -56,6 +56,7 @@ let config = undefined
 const settable = {
     "port": {
         "label": "Port",
+        "ifEmpty": "8081",
         "input": {
             "type": "number",
             "min": 1,
@@ -65,9 +66,17 @@ const settable = {
     },
     "cacheLocation": {
         "label": "Cache location",
+        "ifEmpty": "default",
         "input": {
             "type": "text",
             "title": "Cache location used by proxy. You'll need to save to apply changes"
+        }
+    },
+    "startHidden": {
+        "label": "Start in system tray",
+        "input": {
+            "type": "checkbox",
+            "title": "Whenever or not window should start in system tray. Don't forget to change before restarting"
         }
     }
 }
@@ -89,7 +98,14 @@ function updateConfig(c) {
             input[K] = value.input[K]
 
         input.id = key
-        input.value = config[key]
+        switch(value.input.type) {
+            case "checkbox":
+                input.checked = config[key]
+                break
+            default:
+                input.value = config[key]
+                break
+        }
         input.onchange = checkSaveable
         label.appendChild(input)
     }
@@ -103,16 +119,29 @@ function checkSaveable() {
     let foundDifferent = false
     for (const key of Object.keys(settable)) {
         const input = document.getElementById(key)
-        if (input.value != config[key])
+        const value = getValue(key, input)
+
+        if (value != config[key])
             foundDifferent = true
 
-        if(settable[key].input.type == "number")
-            newConfig[key] = +input.value
-        else
-            newConfig[key] = input.value
+        if(settable[key].ifEmpty !== undefined && input.value == "")
+            input.value = settable[key].ifEmpty
+
+        newConfig[key] = value
     }
     saveButton.disabled = !foundDifferent
     saveButton.onclick = saveConfig
+
+    function getValue(key, input) {
+        switch (settable[key].input.type) {
+            case "number":
+                return +input.value
+            case "checkbox":
+                return input.checked
+            default:
+                return input.value
+        }
+    }
 }
 
 function saveConfig() {

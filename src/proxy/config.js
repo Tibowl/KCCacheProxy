@@ -6,6 +6,7 @@ const Logger = require("./ipc")
 const defaultConfig = {
     "port": 8081,
     "cacheLocation": "default",
+    "startHidden": false,
     "disableBrowserCache": false,
     "verifyCache": false,
     "serverID": 0,
