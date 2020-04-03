@@ -29,8 +29,16 @@ function send(type, ...toSend) {
     recent.unshift(toSend)
 }
 
+
 function registerElectron(ipcMain) {
+    const config = require("./config")
+    const { verifyCache } = require("./verifier")
+
     ipcMain.on("getRecent", () => global.mainWindow.webContents.send("recent", recent))
+    ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
+    ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
+    ipcMain.on("saveConfig", () => config.saveConfig())
+    ipcMain.on("verifyCache", () => verifyCache())
 }
 
 module.exports = { log, error, registerElectron }

@@ -1,7 +1,7 @@
 const { existsSync, readFileSync, writeFileSync, ensureDirSync } = require("fs-extra")
 const { join, dirname } = require("path")
 
-const Logger = require("./logger")
+const Logger = require("./ipc")
 
 const defaultConfig = {
     "port": 8081,
@@ -37,12 +37,13 @@ const defaultConfig = {
 }
 
 let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON.parse(readFileSync("./config.json"))) : defaultConfig
+let cacheLocation = config.cacheLocation
 
-let app = undefined
+let app = undefined, userdata = "."
 function loadConfig(electronApp) {
     app = electronApp // Prevent compiling electron stuff in small versions
 
-    const userdata = join(app.getPath("userData"), "ProxyData")
+    userdata = join(app.getPath("userData"), "ProxyData")
     const configLocation = join(userdata, "config.json")
 
     Logger.log(`Loading config from: ${configLocation}`)
@@ -52,27 +53,41 @@ function loadConfig(electronApp) {
     else
         config = defaultConfig
 
-    if (config.cacheLocation == undefined || config.cacheLocation == "default")
-        config.cacheLocation = join(userdata, "cache")
-
-    Logger.log(`Cache location is at: ${config.cacheLocation}`)
+    setConfig(config)
 }
 
 function saveConfig() {
-    let configLocation
-    if(app) {
-        const userdata = join(app.getPath("userData"), "ProxyData")
-        configLocation = join(userdata, "config.json")
-    } else {
-        configLocation = "./config.json"
-    }
+    const configLocation = join(userdata, "config.json")
+    Logger.log(`Saving config to ${configLocation}`)
 
     ensureDirSync(dirname(configLocation))
     writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 4))
 }
+
 function preloader() {
     if(config == defaultConfig)
         config = {serverID: -1, preloader: {recommended: { gadget: true }}}
+}
+
+async function setConfig(newConfig, save = false) {
+    const oldConfig = config
+    config = newConfig
+
+    if(newConfig.cacheLocation !== oldConfig.cacheLocation) {
+        if(save)
+            await require("./cacher").forceSave()
+
+        if (config.cacheLocation == undefined || config.cacheLocation == "default")
+            cacheLocation = join(userdata, "cache")
+        else
+            cacheLocation = config.cacheLocation
+
+        require("./cacher").loadCached()
+    }
+
+
+    if(save)
+        saveConfig()
 }
 
 function getConfig() {
@@ -80,10 +95,10 @@ function getConfig() {
 }
 
 function getCacheLocation() {
-    if (config.cacheLocation == undefined || config.cacheLocation == "default")
+    if (cacheLocation == undefined || cacheLocation == "default")
         return "./cache/"
 
-    return config.cacheLocation
+    return cacheLocation
 }
 
-module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, preloader }
+module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfig, preloader }

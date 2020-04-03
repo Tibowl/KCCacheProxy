@@ -5,7 +5,7 @@ const { readdirSync, readFileSync, removeSync } = require("fs-extra")
 const { join } = require("path")
 
 const cacher = require("./cacher")
-const Logger = require("./logger")
+const Logger = require("./ipc")
 const { getConfig, getCacheLocation, preloader } = require("./config")
 preloader()
 

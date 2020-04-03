@@ -3,14 +3,11 @@ const { createProxyServer } = require("http-proxy")
 const { connect } = require("net")
 const { parse } = require("url")
 
-const { mapLimit } = require("async")
-const { readFile, unlink } = require("fs-extra")
-const { join } = require("path")
-
 const cacher = require("./cacher")
-const Logger = require("./logger")
+const Logger = require("./ipc")
 
-const { getConfig, getCacheLocation } = require("./config")
+const { verifyCache } = require("./verifier")
+const { getConfig } = require("./config")
 const { port, preloadOnStart } = getConfig()
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"]
@@ -53,49 +50,12 @@ proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.h
 const main = async () => {
     // Verify cache
     if (process.argv.length > 2) {
-        if(process.argv.find(k => k.toLowerCase() == "verifycache")) {
-            if(!getConfig().verifyCache) {
-                Logger.error("verifyCache is not set in config! Aborted check!")
-                return
-            }
-
-            Logger.log("Verifying cache... This might take a while")
-
-            const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
-
-            const responses = await mapLimit(
-                Object.entries(cacher.cached),
-                32,
-                async ([key, value]) =>  {
-                    try {
-                        if(value.length == undefined) return 0
-                        const file = join(getCacheLocation(), key)
-                        const contents = await readFile(file)
-
-                        if(contents.length != value.length) {
-                            Logger.error(key, "length doesn't match!", contents.length, value.length)
-                            if(deleteinvalid)
-                                unlink(file)
-                            return 0
-                        }
-                        return 1
-                    } catch(e) {
-                        return -1
-                    }
-                }
-            )
-
-            const total = responses.length,
-                  invalid = responses.filter(k => k == 0).length,
-                  checked = responses.filter(k => k >= 0).length,
-                  error   = responses.filter(k => k == -1).length
-
-            Logger.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
-        }
+        if(process.argv.find(k => k.toLowerCase() == "verifycache"))
+            verifyCache()
     }
 }
 
-Logger.log(`listening on port ${port}`)
+Logger.log(`Listening on port ${port}`)
 server.listen(port)
 
 if(preloadOnStart)

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, ipcMain } = require("electron")
+const { app, BrowserWindow, Tray, Menu, ipcMain } = require("electron")
 const path = require("path")
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -15,8 +15,7 @@ const createWindow = () => {
         height: 600,
         webPreferences: {
             nodeIntegration: true
-        },
-        // show: false
+        }
     })
 
     // and load the index.html of the app.
@@ -27,12 +26,35 @@ const createWindow = () => {
 
     tray = new Tray(path.join(__dirname, "icon.png"))
     tray.setToolTip("KCCacheProxy")
+    tray.setContextMenu(Menu.buildFromTemplate([
+        {
+            label: "Show",
+            click: () => mainWindow.show()
+        }, {
+            label: "Quit",
+            click: () => {
+                app.isQuiting = true
+                app.quit()
+            }
+        }
+    ]))
     tray.on("double-click", () => mainWindow.show())
 
-    mainWindow.on("minimize", () => mainWindow.hide())
+    mainWindow.on("minimize", (e) => {
+        e.preventDefault()
+        mainWindow.hide()
+    })
 
     global.mainWindow = mainWindow
     mainWindow.on("closed", () => global.mainWindow = null)
+    mainWindow.on("close", (event) => {
+        if(!app.isQuiting){
+            event.preventDefault()
+            mainWindow.hide()
+        }
+
+        return false
+    })
 }
 
 // This method will be called when Electron has finished
@@ -57,6 +79,6 @@ app.on("activate", () => {
     }
 })
 
-require("../proxy/logger").registerElectron(ipcMain)
+require("../proxy/ipc").registerElectron(ipcMain)
 require("../proxy/config").loadConfig(app)
 require("../proxy/proxy")

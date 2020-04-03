@@ -3,26 +3,32 @@ const { dirname, join } = require("path")
 const { ensureDirSync, ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFileSync, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
-const Logger = require("./logger")
+const Logger = require("./ipc")
 
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
 const { getConfig, getCacheLocation } = require("./config")
 
-const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
+let cached
 
-ensureDirSync(getCacheLocation())
+function loadCached() {
+    const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
+    Logger.log(`Loading cached from ${CACHE_INFORMATION}.`)
 
-if(existsSync(CACHE_INFORMATION + ".bak")) {
-    if(existsSync(CACHE_INFORMATION))
-        removeSync(CACHE_INFORMATION)
-    renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
+    ensureDirSync(getCacheLocation())
+
+    if(existsSync(CACHE_INFORMATION + ".bak")) {
+        if(existsSync(CACHE_INFORMATION))
+            removeSync(CACHE_INFORMATION)
+        renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
+    }
+
+    if(!existsSync(CACHE_INFORMATION))
+        writeFileSync(CACHE_INFORMATION, "{}")
+
+    cached = JSON.parse(readFileSync(CACHE_INFORMATION))
 }
-
-if(!existsSync(CACHE_INFORMATION))
-    writeFileSync(CACHE_INFORMATION, "{}")
-
-const cached = JSON.parse(readFileSync(CACHE_INFORMATION))
+loadCached()
 
 let invalidatedMainVersion = false
 
@@ -256,20 +262,27 @@ function queueCacheSave() {
     if (++saveCachedCount < 25) {
         if (saveCachedTimeout)
             clearTimeout(saveCachedTimeout)
-        saveCachedTimeout = setTimeout(async () => {
-            saveCachedTimeout = undefined
-            saveCachedCount = 0
-            await saveCached()
-            saveCachedCount = 0
-        }, 5000)
+        saveCachedTimeout = setTimeout(forceSave, 5000)
     }
 }
 
+async function forceSave() {
+    if (saveCachedTimeout)
+        clearTimeout(saveCachedTimeout)
+
+    saveCachedTimeout = undefined
+    saveCachedCount = 0
+    await saveCached()
+    saveCachedCount = 0
+}
+
 async function saveCached() {
+    const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
+
     await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
     await writeFile(CACHE_INFORMATION, JSON.stringify(cached))
     await remove(CACHE_INFORMATION + ".bak")
-    Logger.log("Saved cache.")
+    Logger.log(`Saved cached to ${CACHE_INFORMATION}.`)
 }
 
-module.exports = { cache, handleCaching , extractURL, cached, queueCacheSave}
+module.exports = { cache, handleCaching , extractURL, cached, queueCacheSave, forceSave, loadCached }
