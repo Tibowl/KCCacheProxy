@@ -7,6 +7,7 @@ const { mapLimit } = require("async")
 const { readFileSync, readFile, unlink } = require("fs-extra")
 
 const cacher = require("./cacher.js")
+const Logger = require("./logger")
 
 const config = JSON.parse(readFileSync("./config.json"))
 const { port, preloadOnStart } = config
@@ -15,12 +16,9 @@ const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"
 
 const proxy = httpProxy.createProxyServer({})
 const server = http.createServer(async (req, res) => {
-    const {method, url} = req
+    const { method, url } = req
 
-    if(global.mainWindow) {
-        global.mainWindow.webContents.send("message", method + ": " + url)
-        console.log(method + ": " + url)
-    }
+    Logger.log(method + ": " + url)
 
     if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php"))
         return proxy.web(req, res, {
@@ -33,9 +31,9 @@ const server = http.createServer(async (req, res) => {
 
 // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
 server.on("connect", (req, socket) => {
-    console.log(`${req.method}: ${req.url}`)
+    Logger.log(`${req.method}: ${req.url}`)
 
-    socket.on("error", (...a) => console.log("socket error", ...a))
+    socket.on("error", (...a) => Logger.error("Socket error", ...a))
 
     const serverUrl = url.parse("https://" + req.url)
     const srvSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
@@ -46,20 +44,20 @@ server.on("connect", (req, socket) => {
         srvSocket.pipe(socket)
         socket.pipe(srvSocket)
     })
-    srvSocket.on("error", (...a) => console.log("srvsocket error", ...a))
+    srvSocket.on("error", (...a) => Logger.error("Srvsocket error", ...a))
 })
-server.on("error", (...a) => console.log("server error", ...a))
-proxy.on("error", (...a) => console.log("proxy error", ...a))
+server.on("error", (...a) => Logger.error("Server error", ...a))
+proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
 const main = async () => {
     // Verify cache
     if (process.argv.length > 2) {
         if(process.argv.find(k => k.toLowerCase() == "verifycache")) {
             if(!config.verifyCache) {
-                console.error("verifyCache is not set in config! Aborted check!")
+                Logger.error("verifyCache is not set in config! Aborted check!")
                 return
             }
-            console.log("Verifying cache... This might take a while")
+            Logger.log("Verifying cache... This might take a while")
 
             const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
 
@@ -73,7 +71,7 @@ const main = async () => {
                         const contents = await readFile(file)
 
                         if(contents.length != value.length) {
-                            console.error(key, "length doesn't match!", contents.length, value.length)
+                            Logger.error(key, "length doesn't match!", contents.length, value.length)
                             if(deleteinvalid)
                                 unlink(file)
                             return 0
@@ -90,12 +88,12 @@ const main = async () => {
                   checked = responses.filter(k => k >= 0).length,
                   error   = responses.filter(k => k == -1).length
 
-            console.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
+            Logger.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
         }
     }
 }
 
-console.log(`listening on port ${port}`)
+Logger.log(`listening on port ${port}`)
 server.listen(port)
 if(preloadOnStart)
     require("./preload")

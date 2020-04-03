@@ -3,6 +3,8 @@ const { dirname } = require("path")
 const { ensureDirSync, ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFileSync, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
+const Logger = require("./logger")
+
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
 let config = {}
@@ -32,7 +34,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         return await new Promise((resolve) => currentlyLoadingCache[file].push(resolve))
 
     currentlyLoadingCache[file] = []
-    console.log("Loading...", file)
+    Logger.log("Loading...", file)
 
     const response = (rep) => {
         currentlyLoadingCache[file].forEach(k => k(rep))
@@ -56,7 +58,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     } catch (error) {
         // Server denied request/network failed,
         if(lastmodified) {
-            console.error("Fetch failed, using cached version", error)
+            Logger.error("Fetch failed, using cached version", error)
             invalidatedMainVersion = true
 
             return response({
@@ -64,7 +66,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
                 "contents": await readFile(cacheFile)
             })
         } else {
-            console.error("Fetch failed, no cached version", error)
+            Logger.error("Fetch failed, no cached version", error)
             return response({
                 "status": 502,
                 "contents": "The caching proxy was unable to handle your request and no cached version was available"
@@ -78,7 +80,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
             return response({ "status": data.status })
 
         // If not modified, update version tag and send cached data
-        console.log("Not modified", file)
+        Logger.log("Not modified", file)
 
         cached[file].version = version
         queueCacheSave()
@@ -92,7 +94,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
     // Send cached data for forbidden requests.
     // This bypasses the foreign ip block added on 2020-02-25
     if(data.status == 403 && lastmodified) {
-        console.log("HTTP 403: Forbidden, using cached data")
+        Logger.log("HTTP 403: Forbidden, using cached data")
         // Invalidate main.js and version.json versions since they might be outdated
         invalidatedMainVersion = true
 
@@ -104,7 +106,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
 
     // These won't have useful responses
     if(data.status >= 400) {
-        console.log("HTTP error ", data.status, url)
+        Logger.log("HTTP error ", data.status, url)
         return response(data)
     }
 
@@ -133,7 +135,7 @@ const cache = async (cacheFile, file, url, version, lastmodified, headers = {}) 
         }
         queueCacheSave()
 
-        console.log("Saved", url)
+        Logger.log("Saved", url)
         response(rep)
     }
     if(cached[file])
@@ -149,7 +151,7 @@ const send = async (req, res, cacheFile, contents, file, cachedFile, forceCache 
             contents = await read(cacheFile)
 
         if(!forceCache && config.verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
-            console.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
+            Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
             return handleCaching(req, res, true)
         }
 
@@ -266,7 +268,7 @@ async function saveCached() {
     await move(CACHE_LOCATION, CACHE_LOCATION + ".bak")
     await writeFile(CACHE_LOCATION, JSON.stringify(cached))
     await remove(CACHE_LOCATION + ".bak")
-    console.log("Saved cache.")
+    Logger.log("Saved cache.")
 }
 
 module.exports = { cache, handleCaching , extractURL, cached, queueCacheSave}
