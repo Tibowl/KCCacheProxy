@@ -24,7 +24,7 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools()
 
-    tray = new Tray("./src/icon.png")
+    tray = new Tray(path.join(__dirname, "icon.png"))
     tray.setToolTip("KCCacheProxy")
     tray.on("double-click", () => mainWindow.show())
 
@@ -56,5 +56,5 @@ app.on("activate", () => {
     }
 })
 
-require("./proxy")
-require("./logger").registerElectron(ipcMain)
+require("../proxy/proxy")
+require("../proxy/logger").registerElectron(ipcMain)

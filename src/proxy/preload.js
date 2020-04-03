@@ -4,6 +4,7 @@ const fetch = require("node-fetch")
 const { readdirSync, readFileSync, existsSync, removeSync } = require("fs-extra")
 
 const cacher = require("./cacher.js")
+const Logger = require("./logger")
 let config = {serverID: -1, preloader: {recommended: { gadget: true }}}
 if(existsSync("./config.json"))
     config = JSON.parse(readFileSync("./config.json"))
@@ -19,7 +20,7 @@ let VERSIONS = {}
 let START2 = {}
 
 const main = async () => {
-    console.log("Select your server:")
+    Logger.log("Select your server:")
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
     const serverID = config.serverID || (keyInSelect(en_names) + 1)
@@ -34,9 +35,9 @@ const main = async () => {
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
-    console.log("Game version: " + GAME_VERSION)
-    console.log(`${en_names[serverID-1]}: ${SERVER.split("/")[2]}`)
-    console.log("Loading api_start2...")
+    Logger.log("Game version: " + GAME_VERSION)
+    Logger.log(`${en_names[serverID-1]}: ${SERVER.split("/")[2]}`)
+    Logger.log("Loading api_start2...")
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
     // SERVER = GADGET
@@ -93,7 +94,7 @@ const main = async () => {
 const cacheURLs = async (urls) => {
     await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
         const full = SERVER + url
-        console.log(full)
+        Logger.log(full)
         await cacher.handleCaching({
             url: full,
             headers: {
@@ -145,11 +146,11 @@ const cacheGadget = async () => {
                     if(!(y == 13 && m < 6))
                         urls.push(`kcscontents/information/image/rank${(y+"").padStart(2, "0")}${(m+"").padStart(2, "0")}${(i+"").padStart(2, "0")}.jpg`)
     }
-    console.log(`Caching ${urls.length} gadget urls`)
+    Logger.log(`Caching ${urls.length} gadget urls`)
 
     await eachLimit(urls, config.preloader.maxSimulPreload || 8, async (url) => {
         const full = GADGET + url
-        console.log(full)
+        Logger.log(full)
         await cacher.handleCaching({
             url: full,
             headers: {
@@ -173,7 +174,7 @@ const cacheStatic = async () => {
             urls.push(`kcs2/resources/area/sally/${(i+"").padStart(3, "0")}.png`)
         }
 
-    console.log(`Caching ${urls.length} URLs`)
+    Logger.log(`Caching ${urls.length} URLs`)
     await cacheURLs(urls)
 }
 
@@ -181,7 +182,7 @@ const cacheAssets = async () => {
     const assets = JSON.parse(readFileSync("./preloader/assets.json"))
     for(const type of Object.keys(assets)) {
         const urls = assets[type].map(k => `kcs2/img/${type}/${k}?version=${VERSIONS[type]}`)
-        console.log(`Caching ${urls.length} of assets type ${type}`)
+        Logger.log(`Caching ${urls.length} of assets type ${type}`)
         await cacheURLs(urls)
     }
 
@@ -200,7 +201,7 @@ const cacheTitleCalls = async () => {
     for(let i = 1; i <= 49; i++)
         urls.push(`kcs2/resources/voice/titlecall_2/${(i+"").padStart(3, "0")}.mp3`)
 
-    console.log(`Caching ${urls.length} title calls`)
+    Logger.log(`Caching ${urls.length} title calls`)
     await cacheURLs(urls)
 }
 
@@ -216,7 +217,7 @@ const cacheSE = async () => {
     for(let i = 301; i <= 327; i++)
         urls.push(`kcs2/resources/se/${i}.mp3`)
 
-    console.log(`Caching ${urls.length} SE`)
+    Logger.log(`Caching ${urls.length} SE`)
     await cacheURLs(urls)
 }
 
@@ -240,7 +241,7 @@ const cacheMaps = async () => {
             urls.push(`kcs2/resources/gauge/${(""+api_maparea_id).padStart(3, "0")}${(""+api_no).padStart(2, "0")}.json${getVersion(api_maparea_id*10+api_no)}`)
     }
 
-    console.log(`Caching ${urls.length} map assets`)
+    Logger.log(`Caching ${urls.length} map assets`)
     await cacheURLs(urls)
     urls = []
 
@@ -259,7 +260,7 @@ const cacheMaps = async () => {
         }
     }
 
-    console.log(`Caching ${urls.length} map gauge assets`)
+    Logger.log(`Caching ${urls.length} map gauge assets`)
     await cacheURLs(urls)
 }
 
@@ -324,7 +325,7 @@ const cacheShips = async () => {
         typesKey.forEach((type) => urls.push(getPath(api_id, "ship", type, "png", api_filename) + version))
     }
 
-    console.log(`Caching ${urls.length} ship assets`)
+    Logger.log(`Caching ${urls.length} ship assets`)
     await cacheURLs(urls)
 }
 
@@ -362,7 +363,7 @@ const cacheEquips = async () => {
             urls.push(`kcs2/resources/plane/e${(api_id+"").padStart(3, "0")}.png`)
     }
 
-    console.log(`Caching ${urls.length} equip assets`)
+    Logger.log(`Caching ${urls.length} equip assets`)
     await cacheURLs(urls)
 }
 
@@ -413,7 +414,7 @@ const cacheBGM = async () => {
     // Fanfare BGMs
     urls.push(...[1, 2, 3, 4, 5].map(id => getPath(id, "bgm", "fanfare", "mp3")))
 
-    console.log(`Caching ${urls.length} BGM assets`)
+    Logger.log(`Caching ${urls.length} BGM assets`)
     await cacheURLs(urls)
 }
 
@@ -438,7 +439,7 @@ const cacheFurniture = async () => {
             urls.push(getPath(api_id, "furniture", "reward", "png") + version)
     }
 
-    console.log(`Caching ${urls.length} furniture assets`)
+    Logger.log(`Caching ${urls.length} furniture assets`)
     await cacheURLs(urls)
     urls = []
 
@@ -463,12 +464,12 @@ const cacheFurniture = async () => {
         }
     }
 
-    console.log(`Caching ${urls.length} furniture pictures`)
+    Logger.log(`Caching ${urls.length} furniture pictures`)
     await cacheURLs(urls)
 }
 
 const cacheServerName = async () => {
-    console.log("Caching 3 server name assets")
+    Logger.log("Caching 3 server name assets")
     await cacheURLs([
         `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_t.png`,
         `kcs2/resources/world/${SERVER.split("/")[2].split(".").map(k => k.padStart(3, 0)).join("_")}_s.png`,
@@ -488,7 +489,7 @@ const cacheUseItem = async () => {
         if(api_id < 49 && api_id != 10)
             urls.push(`kcs2/resources/useitem/card_/${(api_id+"").padStart(3, "0")}.png`)
     }
-    console.log(`Caching ${urls.length} use item assets`)
+    Logger.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
 }
 
@@ -506,7 +507,7 @@ const cacheNPCVoices = async () => {
     if(quotes && quotes.abyssal)
         urls.push(...Object.keys(quotes.abyssal).filter(k => quotes.abyssal[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9998/${id}.mp3`))
 
-    console.log(`Caching ${urls.length} use item assets`)
+    Logger.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
 }
 
@@ -570,7 +571,7 @@ const cacheVoices = async () => {
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
 
-    console.log(`Caching ${urls.length} use item assets`)
+    Logger.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
 }
 
@@ -614,7 +615,7 @@ const cleanup = async () => {
     del("/kcs2/resources/ship/text_remodel_mes")
     */
 
-    console.log(`Cleaned ${cleared.sound} unused sound folders, ${cleared.shipcg} unused ship CGs`)
+    Logger.log(`Cleaned ${cleared.sound} unused sound folders, ${cleared.shipcg} unused ship CGs`)
 }
 
 const resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409, 5509, 1517, 9695, 9255, 5325, 3691, 5519, 6949, 5607, 9539, 4133, 7795, 5465, 2659, 6381, 6875, 4019, 9195, 5645, 2887, 1213, 1815, 8671, 3015, 3147, 2991, 7977, 7045, 1619, 7909, 4451, 6573, 4545, 8251, 5983, 2849, 7249, 7449, 9477, 5963, 2711, 9019, 7375, 2201, 5631, 4893, 7653, 3719, 8819, 5839, 1853, 9843, 9119, 7023, 5681, 2345, 9873, 6349, 9315, 3795, 9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815, 6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243]
