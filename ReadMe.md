@@ -3,7 +3,7 @@ KanColle Cache Proxy
 This is a local proxy meant to cache KC assets. It can be preloaded from a cache dump (linked below). This will improve loading of assets on top of browser built-in cache.
 
 ## Setup
-It's recommended that you start out from a cache dump. You can download the latest one (updated on 2020-03-07, during mini-event start) from [MEGA](https://mega.nz/#!MLRwEAQA!LRTokFd1enTCU35D6u1pS3k5eoutcX_H7WjNw521_VI) (4.2GB). If you just want the minimal files required for the gadget server block since 2020-02-25, you can download it from [GitHub releases](https://github.com/Tibowl/KCCacheProxy/releases). The compiled builds automatically contain these files, but there's a seperate zip with just the minimum cache added.
+It's recommended that you start out from a cache dump. You can download the latest one from [MEGA](https://mega.nz/#F!sOwClABa!yHldyYZr2MBqhTNYEupztg) (should be a bit over ~4GB). If you just want the minimal files required for the gadget server block since 2020-02-25, you can download it from [GitHub releases](https://github.com/Tibowl/KCCacheProxy/releases). The compiled builds automatically contain these files, but there's a seperate zip with just the minimum cache added.
 
 If you're not sure what you're doing, use these instructions: [Detailed setup instructions with screenshots](https://github.com/planetarian/KCDocumentation/blob/master/KCCacheProxy.md)
 
