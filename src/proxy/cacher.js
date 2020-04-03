@@ -27,6 +27,7 @@ function loadCached() {
         writeFileSync(CACHE_INFORMATION, "{}")
 
     cached = JSON.parse(readFileSync(CACHE_INFORMATION))
+    Logger.send("cached", Object.keys(cached).length)
 }
 loadCached()
 

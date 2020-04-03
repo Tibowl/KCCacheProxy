@@ -23,12 +23,11 @@ function send(type, ...toSend) {
     toSend.unshift(new Date())
 
     if(global.mainWindow)
-        global.mainWindow.webContents.send(type, toSend)
+        global.mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 50) recent.pop()
     recent.unshift(toSend)
 }
-
 
 function registerElectron(ipcMain) {
     const config = require("./config")
@@ -41,4 +40,4 @@ function registerElectron(ipcMain) {
     ipcMain.on("verifyCache", () => verifyCache())
 }
 
-module.exports = { log, error, registerElectron }
+module.exports = { log, error, registerElectron, send }

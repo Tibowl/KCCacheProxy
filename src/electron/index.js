@@ -79,6 +79,9 @@ app.on("activate", () => {
     }
 })
 
-require("../proxy/ipc").registerElectron(ipcMain)
-require("../proxy/config").loadConfig(app)
+const ipc = require("../proxy/ipc")
+ipc.registerElectron(ipcMain)
+const config = require("../proxy/config")
+config.loadConfig(app)
+
 require("../proxy/proxy")

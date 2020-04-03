@@ -73,18 +73,17 @@ async function setConfig(newConfig, save = false) {
     const oldConfig = config
     config = newConfig
 
-    if(newConfig.cacheLocation !== oldConfig.cacheLocation) {
-        if(save)
-            await require("./cacher").forceSave()
+    const locationChanged = newConfig.cacheLocation !== oldConfig.cacheLocation
+    if(save && locationChanged)
+        await require("./cacher").forceSave()
 
-        if (config.cacheLocation == undefined || config.cacheLocation == "default")
-            cacheLocation = join(userdata, "cache")
-        else
-            cacheLocation = config.cacheLocation
+    if (config.cacheLocation == undefined || config.cacheLocation == "default")
+        cacheLocation = join(userdata, "cache")
+    else
+        cacheLocation = config.cacheLocation
 
+    if(locationChanged)
         require("./cacher").loadCached()
-    }
-
 
     if(save)
         saveConfig()

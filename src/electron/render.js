@@ -4,7 +4,8 @@ const { ipcRenderer } = require ("electron")
 let recent = []
 
 const log = document.getElementById("log")
-function addNew(message) {
+
+function update(message) {
     while (recent.length >= 50) {
         log.removeChild(log.children[log.children.length-1])
         recent.pop()
@@ -15,6 +16,18 @@ function addNew(message) {
     const messageDate = message.shift()
     const messageType = message.shift()
 
+    switch(messageType) {
+        case "error":
+        case "log":
+            addLog(messageType, messageDate, message)
+            break
+        case "cached":
+            document.getElementById("cached").innerText = message
+            break
+    }
+}
+
+function addLog(messageType, messageDate, message) {
     const elem = document.createElement("div")
     elem.className = `loggable ${messageType}`
 
@@ -108,14 +121,13 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-ipcRenderer.on("log", (event, message) => addNew(message))
-ipcRenderer.on("error", (event, message) => addNew(message))
-ipcRenderer.on("recent", (event, message) => {
+ipcRenderer.on("update", (e, message) => update(message))
+ipcRenderer.on("recent", (e, message) => {
     recent = []
     log.innerHTML = ""
-    message.reverse().forEach(m => addNew(m))
+    message.reverse().forEach(m => update(m))
 })
-ipcRenderer.on("config", (event, message) => {
+ipcRenderer.on("config", (e, message) => {
     updateConfig(message)
 })
 
