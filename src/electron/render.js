@@ -6,13 +6,6 @@ let recent = []
 const log = document.getElementById("log")
 
 function update(message) {
-    while (recent.length >= 50) {
-        log.removeChild(log.children[log.children.length-1])
-        recent.pop()
-    }
-
-    recent.unshift(message)
-
     const messageDate = message.shift()
     const messageType = message.shift()
 
@@ -28,6 +21,12 @@ function update(message) {
 }
 
 function addLog(messageType, messageDate, message) {
+    recent.unshift(message)
+    while (recent.length >= 50) {
+        log.removeChild(log.children[log.children.length-1])
+        recent.pop()
+    }
+
     const elem = document.createElement("div")
     elem.className = `loggable ${messageType}`
 
@@ -44,7 +43,16 @@ function addLog(messageType, messageDate, message) {
 
     const msg = document.createElement("span")
     msg.className = "msg"
-    msg.innerText = message.map(k => (k && typeof k == "string") ? k : JSON.stringify(k)).join(" ")
+    msg.innerText = message.map(k => {
+        switch (typeof k) {
+            case "string":
+            case "undefined":
+                return k
+
+            default:
+                return k.toString == Object.prototype.toString ? JSON.stringify(k) : k.toString()
+        }
+    }).join(" ")
     elem.appendChild(msg)
 
     log.insertBefore(elem, log.firstChild)

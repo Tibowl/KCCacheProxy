@@ -55,7 +55,7 @@ const main = async () => {
     }
 }
 
-Logger.log(`Listening on port ${port}`)
+Logger.log(`Starting proxy on port ${port}`)
 server.listen(port)
 
 if(preloadOnStart)

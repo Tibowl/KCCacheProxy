@@ -53,7 +53,7 @@ const createWindow = () => {
     // mainWindow.webContents.openDevTools()
     mainWindow.setMenu(null)
 
-    const icon = path.join(__dirname, "icon.png")
+    const icon = path.join(__dirname, "icon.ico")
     mainWindow.setIcon(icon)
 
     const tray = new Tray(icon)
