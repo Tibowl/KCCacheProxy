@@ -11,7 +11,8 @@ It's recommended that you start out from a cache dump. You can download the late
 2. Optionally, you can import the minimal cache required to bypass from the UI. You can also change the location to store cache. If you changed the cache folder, you can reload the cached files with the `Reload cache` button.
 3. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. [Below are some details](#browserviewer-setup)) on how to do it for some viewers/chrome.
 
-#### Upgrading
+#### Upgrading from v1
+Install like above. Then in the UI you can set the cache location. You can move this folder wherever you want now. Clicking on save will load the cache at that location (if there is one). If you set up auto startup for the old version, please remove these.
 
 ### Setup using other compiled versions (legacy)
 0. Go to [Releases](https://github.com/Tibowl/KCCacheProxy/releases) and download the zip for your platform
