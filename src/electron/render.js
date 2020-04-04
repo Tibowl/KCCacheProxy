@@ -1,9 +1,5 @@
 /* eslint-disable no-undef */
-const { ipcRenderer } = require ("electron")
-
-let recent = []
-
-const log = document.getElementById("log")
+const { remote, ipcRenderer } = require ("electron")
 
 function update(message) {
     const messageDate = message.shift()
@@ -20,6 +16,8 @@ function update(message) {
     }
 }
 
+let recent = []
+const log = document.getElementById("log")
 function addLog(messageType, messageDate, message) {
     recent.unshift(message)
     while (recent.length >= 50) {
@@ -187,3 +185,5 @@ ipcRenderer.on("config", (e, message) => {
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
+
+document.title = `KCCacheProxy: v${remote.app.getVersion()}`
