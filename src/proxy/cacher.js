@@ -287,6 +287,8 @@ async function saveCached() {
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
     await writeFile(CACHE_INFORMATION, str)
     await remove(CACHE_INFORMATION + ".bak")
+
+    Logger.send("cached", Object.keys(cached).length)
     Logger.log(`Saved cached to ${CACHE_INFORMATION}.`)
 }
 

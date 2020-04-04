@@ -4,6 +4,7 @@ const consoleError = console.error
 
 console.log = log
 console.error = error
+console.trace = error
 /* eslint-enable no-console */
 
 const recent = []
@@ -31,13 +32,19 @@ function send(type, ...toSend) {
 
 function registerElectron(ipcMain) {
     const config = require("./config")
-    const { verifyCache } = require("./verifier")
+    const { verifyCache } = require("./cacheHandler")
+    const { join } = require("path")
+    const { mergeCache } = require("./cacheHandler")
 
     ipcMain.on("getRecent", () => global.mainWindow.webContents.send("recent", recent))
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", () => verifyCache())
+    ipcMain.on("importCache", () => {
+        const path = join(__dirname, "../../cache_template/cache/")
+        mergeCache(path)
+    })
 }
 
 module.exports = { log, error, registerElectron, send }

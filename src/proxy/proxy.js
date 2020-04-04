@@ -6,7 +6,7 @@ const { parse } = require("url")
 const cacher = require("./cacher")
 const Logger = require("./ipc")
 
-const { verifyCache } = require("./verifier")
+const { verifyCache } = require("./cacheHandler")
 const { getConfig } = require("./config")
 const { port, preloadOnStart } = getConfig()
 
@@ -44,7 +44,7 @@ server.on("connect", (req, socket) => {
     })
     srvSocket.on("error", (...a) => Logger.error("Srvsocket error", ...a))
 })
-server.on("error", (...a) => Logger.error("Server error", ...a))
+server.on("error", (...a) => Logger.error("Proxy server error", ...a))
 proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
 const main = async () => {

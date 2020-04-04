@@ -46,4 +46,50 @@ async function verifyCache() {
     Logger.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
 }
 
-module.exports = { verifyCache }
+async function mergeCache(source) {
+    const { readFile, exists, unlink, copyFile, ensureDir } = require("fs-extra")
+    const { join, dirname } = require("path")
+
+    const { getCacheLocation } = require("./config")
+    const Logger = require("./ipc")
+    const cacher = require("./cacher")
+
+    const newCachedFile = join(source, "cached.json")
+    if(!(await exists(newCachedFile)))
+        return Logger.error("Missing cache details")
+
+    const newCached = JSON.parse(await readFile(newCachedFile))
+
+    let skipped = 0, copied = 0
+    for(const file of Object.keys(newCached)) {
+        const newFile = newCached[file]
+        if (cacher.cached[file]) {
+            const oldFile = cacher.cached[file]
+            if (new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
+                skipped++
+                continue
+            }
+        }
+
+        const targetLocation = join(getCacheLocation(), file)
+        const sourceLocation = join(source, file)
+
+        if(!(await exists(sourceLocation))) {
+            Logger.error(`File ${file} missing in source`)
+            continue
+        }
+
+        if(await exists(targetLocation))
+            await unlink(targetLocation)
+
+        await ensureDir(dirname(targetLocation))
+        await copyFile(sourceLocation, targetLocation)
+        cacher.cached[file] = newCached[file]
+        copied++
+    }
+    await cacher.forceSave()
+
+    Logger.log(`Finished merging cache! Skipped ${skipped} files. Copied ${copied}`)
+}
+
+module.exports = { verifyCache, mergeCache }

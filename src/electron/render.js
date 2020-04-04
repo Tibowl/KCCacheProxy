@@ -78,6 +78,13 @@ const settable = {
             "type": "checkbox",
             "title": "Whenever or not window should start in system tray. Don't forget to change before restarting"
         }
+    },
+    "verifyCache": {
+        "label": "Automatically verify cache integrity",
+        "input": {
+            "type": "checkbox",
+            "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes."
+        }
     }
 }
 
@@ -119,13 +126,13 @@ function checkSaveable() {
     let foundDifferent = false
     for (const key of Object.keys(settable)) {
         const input = document.getElementById(key)
-        const value = getValue(key, input)
+        let value = getValue(key, input)
+
+        if(settable[key].ifEmpty !== undefined && input.value == "")
+            value = input.value = newConfig[key] = settable[key].ifEmpty
 
         if (value != config[key])
             foundDifferent = true
-
-        if(settable[key].ifEmpty !== undefined && input.value == "")
-            input.value = settable[key].ifEmpty
 
         newConfig[key] = value
     }
@@ -149,6 +156,16 @@ function saveConfig() {
     config = newConfig
     saveButton.disabled = true
 }
+
+function verifyCache() {
+    ipcRenderer.send("verifyCache")
+}
+document.getElementById("verifyCache").onclick = verifyCache
+
+function importCache() {
+    ipcRenderer.send("importCache")
+}
+document.getElementById("importCache").onclick = importCache
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
