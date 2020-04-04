@@ -2,7 +2,7 @@
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
   "version": "2.0.0",
-  "description": "My Electron application description",
+  "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {
     "start": "electron-forge start",
