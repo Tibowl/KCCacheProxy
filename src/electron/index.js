@@ -42,7 +42,8 @@ const createWindow = () => {
         height: 600,
         webPreferences: {
             nodeIntegration: true
-        }
+        },
+        show: !config.getConfig().startHidden
     })
 
     // and load the index.html of the app.
