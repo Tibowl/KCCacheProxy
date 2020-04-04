@@ -26,7 +26,7 @@ function send(type, ...toSend) {
     if(global.mainWindow && global.mainWindow.isVisible())
         global.mainWindow.webContents.send("update", toSend)
 
-    while (recent.length >= 50) recent.pop()
+    while (recent.length >= 500) recent.pop()
     recent.unshift(toSend)
 }
 
@@ -36,16 +36,17 @@ function sendRecent() {
 }
 
 function registerElectron(ipcMain) {
-    const config = require("./config")
-    const { verifyCache } = require("./cacheHandler")
     const { join } = require("path")
-    const { mergeCache } = require("./cacheHandler")
+
+    const config = require("./config")
+    const { verifyCache, mergeCache } = require("./cacheHandler")
 
     ipcMain.on("getRecent", () => sendRecent)
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", () => verifyCache())
+    ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("importCache", () => {
         const path = join(__dirname, "../../cache_template/cache/")
         mergeCache(path)

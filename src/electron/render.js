@@ -163,15 +163,11 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-function verifyCache() {
-    ipcRenderer.send("verifyCache")
+function createSendButton(type) {
+    document.getElementById(type).onclick = () => ipcRenderer.send(type)
 }
-document.getElementById("verifyCache").onclick = verifyCache
-
-function importCache() {
-    ipcRenderer.send("importCache")
-}
-document.getElementById("importCache").onclick = importCache
+for (const type of ["verifyCache", "importCache", "reloadCache"])
+    createSendButton(type)
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
