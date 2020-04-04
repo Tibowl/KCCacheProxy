@@ -17,7 +17,7 @@ async function verifyCache() {
     const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
 
     const responses = await mapLimit(
-        Object.entries(cacher.cached),
+        Object.entries(cacher.getCached()),
         32,
         async ([key, value]) =>  {
             try {
@@ -63,8 +63,8 @@ async function mergeCache(source) {
     let skipped = 0, copied = 0
     for(const file of Object.keys(newCached)) {
         const newFile = newCached[file]
-        if (cacher.cached[file]) {
-            const oldFile = cacher.cached[file]
+        if (cacher.getCached()[file]) {
+            const oldFile = cacher.getCached()[file]
             if (new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
                 skipped++
                 continue
@@ -84,7 +84,7 @@ async function mergeCache(source) {
 
         await ensureDir(dirname(targetLocation))
         await copyFile(sourceLocation, targetLocation)
-        cacher.cached[file] = newCached[file]
+        cacher.getCached()[file] = newCached[file]
         copied++
     }
     await cacher.forceSave()

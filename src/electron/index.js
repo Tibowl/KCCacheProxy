@@ -62,6 +62,13 @@ const createWindow = () => {
             label: "Show",
             click: () => mainWindow.show()
         }, {
+            label: "Restart",
+            click: () => {
+                app.isQuiting = true
+                app.relaunch()
+                app.quit()
+            }
+        }, {
             label: "Quit",
             click: () => {
                 app.isQuiting = true

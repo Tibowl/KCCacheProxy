@@ -45,6 +45,7 @@ wait
 
 echo 'Make electron build'
 npm run-script make
+cp make/*/*/*.exe .
 
 echo 'Cleanup...'
 rm -r KCCacheProxy

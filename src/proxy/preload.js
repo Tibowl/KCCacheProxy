@@ -581,7 +581,7 @@ const cleanup = async () => {
         "shipcg": 0
     }
     const del = (dir) => {
-        Object.keys(cacher.cached).filter(k => k.startsWith(dir)).forEach(k => delete cacher.cached[k])
+        Object.keys(cacher.getCached()).filter(k => k.startsWith(dir)).forEach(k => delete cacher.getCached()[k])
         removeSync(`./cache${dir}`)
         cacher.queueCacheSave()
     }

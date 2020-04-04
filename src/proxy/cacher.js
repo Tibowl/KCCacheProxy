@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 const { dirname, join } = require("path")
-const { ensureDirSync, ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFileSync, writeFile } = require("fs-extra")
+const { ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
 const Logger = require("./ipc")
@@ -20,12 +20,12 @@ function loadCached() {
             removeSync(CACHE_INFORMATION)
         renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
     }
-    ensureDirSync(getCacheLocation())
 
-    if(!existsSync(CACHE_INFORMATION))
-        writeFileSync(CACHE_INFORMATION, "{}")
+    if(existsSync(CACHE_INFORMATION))
+        cached = JSON.parse(readFileSync(CACHE_INFORMATION))
+    else
+        cached = {}
 
-    cached = JSON.parse(readFileSync(CACHE_INFORMATION))
     Logger.send("cached", Object.keys(cached).length)
 }
 loadCached()
@@ -286,10 +286,11 @@ async function saveCached() {
     if(await exists(CACHE_INFORMATION))
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
     await writeFile(CACHE_INFORMATION, str)
-    await remove(CACHE_INFORMATION + ".bak")
+    if(await exists(CACHE_INFORMATION + ".bak"))
+        await remove(CACHE_INFORMATION + ".bak")
 
     Logger.send("cached", Object.keys(cached).length)
     Logger.log(`Saved cached to ${CACHE_INFORMATION}.`)
 }
 
-module.exports = { cache, handleCaching , extractURL, cached, queueCacheSave, forceSave, loadCached }
+module.exports = { cache, handleCaching , extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached }
