@@ -23,10 +23,10 @@ function send(type, ...toSend) {
     toSend.unshift(type)
     toSend.unshift(new Date())
 
-    if(global.mainWindow && global.mainWindow.isVisible())
+    if(global.mainWindow && (global.mainWindow.isVisible() || type == "stats"))
         global.mainWindow.webContents.send("update", toSend)
 
-    while (recent.length >= 500) recent.pop()
+    while (recent.length >= 150) recent.pop()
     recent.unshift(toSend)
 }
 

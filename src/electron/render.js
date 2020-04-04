@@ -20,8 +20,8 @@ function update(message) {
         case "log":
             addLog(messageType, messageDate, message)
             break
-        case "cached":
-            document.getElementById("cached").innerText = message
+        case "stats":
+            updateStats(message.shift())
             break
     }
 }
@@ -64,6 +64,11 @@ function addLog(messageType, messageDate, message) {
     elem.appendChild(msg)
 
     log.insertBefore(elem, log.firstChild)
+}
+
+function updateStats(newStats) {
+    if(newStats.cached != undefined)
+        document.getElementById("cached").innerText = newStats.cached
 }
 
 const settings = document.getElementById("settings")
@@ -173,11 +178,8 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-function createSendButton(type) {
-    document.getElementById(type).onclick = () => ipcRenderer.send(type)
-}
 for (const type of ["verifyCache", "importCache", "reloadCache"])
-    createSendButton(type)
+    document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")

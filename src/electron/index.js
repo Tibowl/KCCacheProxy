@@ -35,6 +35,11 @@ if (require("electron-squirrel-startup")) {
     return autoStartup()
 }
 
+const ipc = require("../proxy/ipc")
+ipc.registerElectron(ipcMain, app)
+const config = require("../proxy/config")
+config.loadConfig(app)
+
 const createWindow = () => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -50,7 +55,8 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 
     // Open the DevTools.
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
+
     mainWindow.setMenu(null)
 
     const icon = path.join(__dirname, "icon.ico")
@@ -104,6 +110,7 @@ const createWindow = () => {
         mainWindow.hide()
 
     global.mainWindow = mainWindow
+    require("../proxy/proxy")
 }
 
 // This method will be called when Electron has finished
@@ -127,10 +134,3 @@ app.on("activate", () => {
         createWindow()
     }
 })
-
-const ipc = require("../proxy/ipc")
-ipc.registerElectron(ipcMain, app)
-const config = require("../proxy/config")
-config.loadConfig(app)
-
-require("../proxy/proxy")
