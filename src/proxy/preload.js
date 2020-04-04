@@ -31,7 +31,7 @@ const main = async () => {
 
     if(serverID <= 0) return
 
-    const kcs_const =  readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
     SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
@@ -41,7 +41,7 @@ const main = async () => {
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
     // SERVER = GADGET
-    // await cacheURLs(Object.entries(require("./cache/cached.json")).filter(k => (k[0].includes("kcscontents") || k[0].includes("gadget_html5"))).map(k => k[0].substring(1) + k[1].version))
+    // await cacheURLs(Object.entries(require(join(getCacheLocation(), "/cached.json"))).filter(k => (k[0].includes("kcscontents") || k[0].includes("gadget_html5"))).map(k => k[0].substring(1) + k[1].version))
 
     await cacheURLs([
         `kcs2/version.json?${GAME_VERSION}`,
@@ -245,10 +245,10 @@ const cacheMaps = async () => {
     await cacheURLs(urls)
     urls = []
 
-    for (const map of readdirSync("./cache/kcs2/resources/gauge")) {
+    for (const map of readdirSync(join(getCacheLocation(), "/kcs2/resources/gauge"))) {
         if(!map.endsWith(".json")) continue
 
-        const gaugeFile = JSON.parse(readFileSync(`./cache/kcs2/resources/gauge/${map}`))
+        const gaugeFile = JSON.parse(readFileSync(join(getCacheLocation(), `/kcs2/resources/gauge/${map}`)))
         // TODO append version tag
         if(gaugeFile.img) {
             urls.push(`kcs2/resources/gauge/${gaugeFile.img}.png`)
@@ -447,7 +447,7 @@ const cacheFurniture = async () => {
         const {api_id, api_active_flag, api_version} = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
         if(api_active_flag != 1) continue
-        const script = JSON.parse(readFileSync("./cache/" + getPath(api_id, "furniture", "scripts", "json")).toString().trim())
+        const script = JSON.parse(readFileSync(join(getCacheLocation, getPath(api_id, "furniture", "scripts", "json"))).toString().trim())
 
         const standard = script.standard
         if(!standard.hitarea) continue
@@ -582,11 +582,11 @@ const cleanup = async () => {
     }
     const del = (dir) => {
         Object.keys(cacher.getCached()).filter(k => k.startsWith(dir)).forEach(k => delete cacher.getCached()[k])
-        removeSync(`./cache${dir}`)
+        removeSync(join(getCacheLocation(), dir))
         cacher.queueCacheSave()
     }
 
-    for(const dir of readdirSync("./cache/kcs/sound/")) {
+    for(const dir of readdirSync(join(getCacheLocation(), "/kcs/sound/"))) {
         if(!START2.api_mst_shipgraph.some(k => dir == `kc${k.api_filename}`)
             && !dir.startsWith("kc999")) {
             cleared.sound++
@@ -594,14 +594,14 @@ const cleanup = async () => {
         }
     }
 
-    for(const file of readdirSync("./cache/kcs2/resources/ship/full/")) {
+    for(const file of readdirSync(join(getCacheLocation(), "/kcs2/resources/ship/full/"))) {
         if(!START2.api_mst_shipgraph.some(k => file.endsWith(`_${k.api_filename}.png`))) {
             cleared.shipcg++
             del(`/kcs2/resources/ship/full/${file}`)
         }
     }
 
-    for(const file of readdirSync("./cache/kcs2/resources/ship/full_dmg/")) {
+    for(const file of readdirSync(join(getCacheLocation(), "/kcs2/resources/ship/full_dmg/"))) {
         if(!START2.api_mst_shipgraph.some(k => file.endsWith(`_${k.api_filename}.png`))) {
             cleared.shipcg++
             del(`/kcs2/resources/ship/full_dmg/${file}`)

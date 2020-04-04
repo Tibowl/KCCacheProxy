@@ -23,11 +23,16 @@ function send(type, ...toSend) {
     toSend.unshift(type)
     toSend.unshift(new Date())
 
-    if(global.mainWindow)
+    if(global.mainWindow && global.mainWindow.isVisible())
         global.mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 50) recent.pop()
     recent.unshift(toSend)
+}
+
+function sendRecent() {
+    if(global.mainWindow)
+        global.mainWindow.webContents.send("recent", recent)
 }
 
 function registerElectron(ipcMain) {
@@ -36,7 +41,7 @@ function registerElectron(ipcMain) {
     const { join } = require("path")
     const { mergeCache } = require("./cacheHandler")
 
-    ipcMain.on("getRecent", () => global.mainWindow.webContents.send("recent", recent))
+    ipcMain.on("getRecent", () => sendRecent)
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
@@ -47,4 +52,4 @@ function registerElectron(ipcMain) {
     })
 }
 
-module.exports = { log, error, registerElectron, send }
+module.exports = { log, error, registerElectron, send, sendRecent }

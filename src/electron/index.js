@@ -98,6 +98,7 @@ const createWindow = () => {
 
         return false
     })
+    mainWindow.on("show", ipc.sendRecent)
 
     if (config.getConfig().startHidden)
         mainWindow.hide()
