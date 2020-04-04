@@ -7,6 +7,12 @@ body {
   color: white;
 }
 
+/* Reduce header margins */
+h1 {
+  margin-block-start: auto;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -24,6 +30,7 @@ body {
   background: rgb(95, 95, 95); 
 }
 
+/* Proxy log */
 #log {
   background-color: #000000;
 }
