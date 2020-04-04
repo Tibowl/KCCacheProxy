@@ -1,6 +1,16 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer } = require ("electron")
 
+ipcRenderer.on("update", (e, message) => update(message))
+ipcRenderer.on("recent", (e, message) => {
+    recent = []
+    log.innerHTML = ""
+    message.reverse().forEach(m => update(m))
+})
+ipcRenderer.on("config", (e, message) => {
+    updateConfig(message)
+})
+
 function update(message) {
     const messageDate = message.shift()
     const messageType = message.shift()
@@ -168,16 +178,6 @@ function createSendButton(type) {
 }
 for (const type of ["verifyCache", "importCache", "reloadCache"])
     createSendButton(type)
-
-ipcRenderer.on("update", (e, message) => update(message))
-ipcRenderer.on("recent", (e, message) => {
-    recent = []
-    log.innerHTML = ""
-    message.reverse().forEach(m => update(m))
-})
-ipcRenderer.on("config", (e, message) => {
-    updateConfig(message)
-})
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")

@@ -41,7 +41,7 @@ function registerElectron(ipcMain) {
     const config = require("./config")
     const { verifyCache, mergeCache } = require("./cacheHandler")
 
-    ipcMain.on("getRecent", () => sendRecent)
+    ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
