@@ -1,7 +1,7 @@
 const { existsSync, readFileSync, exists, writeFile, ensureDir, unlink, move } = require("fs-extra")
 const { join, dirname } = require("path")
 
-module.exports = { log, error, registerElectron, send, sendRecent, addStatAndSend, saveStats }
+module.exports = { log, error, registerElectron, send, sendRecent, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
 /* eslint-disable no-console */
 const consoleLog = console.log
@@ -35,9 +35,10 @@ function send(type, ...toSend) {
     recent.unshift(toSend)
 }
 
-let sendStats = undefined, saveStatsTimer = undefined, statsPath = "./stats.json"
+let sendStats = undefined, saveStatsTimer = undefined, statsPath = undefined
 let stats = undefined
 function addStatAndSend(statType, amount = 1) {
+    if(statsPath == undefined) return
     if(stats == undefined) loadStats()
 
     stats[statType] = (stats[statType] || 0) + amount
@@ -52,6 +53,7 @@ function addStatAndSend(statType, amount = 1) {
         saveStatsTimer = setTimeout(saveStats, 5*60*1000)
 }
 async function saveStats() {
+    if(statsPath == undefined) return
     if(saveStatsTimer) {
         clearTimeout(saveStatsTimer)
         saveStatsTimer = undefined
@@ -68,6 +70,7 @@ async function saveStats() {
     await writeFile(statsPath, JSON.stringify(stats))
 }
 function loadStats() {
+    if(statsPath == undefined) return
     if(existsSync(statsPath)) {
         try {
             stats = JSON.parse(readFileSync(statsPath).toString())

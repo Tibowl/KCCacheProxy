@@ -55,6 +55,8 @@ proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.h
 
 const main = async () => {
     cacher.loadCached()
+    if(Logger.getStatsPath() == undefined)
+        Logger.setStatsPath("./cache")
 
     Logger.log(`Starting proxy on port ${port}...`)
     server.listen(port)
