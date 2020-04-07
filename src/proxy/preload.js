@@ -25,6 +25,9 @@ const main = async () => {
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
     const serverID = getConfig().serverID || (keyInSelect(en_names) + 1)
 
+    if(cacher.getCached() == undefined)
+        cacher.loadCached()
+
     // Recommended one-time
     if(getConfig().preloader.recommended.gadget)
         await cacheGadget()
