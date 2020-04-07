@@ -48,6 +48,6 @@
         ],
         "eol-last": "error",
         "no-unused-vars": "warn",
-        "no-console": "off"
+        "no-console": "error"
     }
 }

@@ -1,28 +1,22 @@
-# Clean previous build
-rm -r build/
+echo 'Clean previous output'
+rm -r out/
 
-# Compile js files
-pkg --out-path build proxy.js
+echo 'Create folder in out path'
+mkdir -p out/KCCacheProxy/preloader
 
-# Create folder in build path
-mkdir -p build/KCCacheProxy/preloader
-
-# Update build_template cache
-cd build_template
-node ../preload
+echo 'Update cache_template cache'
+cd cache_template
+node ../src/proxy/preload
 cd ..
 
-# Copy some common files to build path
-cp -r build_template/* build/KCCacheProxy/
-cp preloader/* build/KCCacheProxy/preloader
+echo 'Compile old js version'
+pkg --out-path out src/proxy/proxy.js
 
-# Copy default config.json
-mv config.json config.json.tmp
-git checkout config.json
-mv config.json build/KCCacheProxy/config.json
-mv config.json.tmp config.json
+echo 'Copy some common files to out path'
+cp -r cache_template/* out/KCCacheProxy/
+cp preloader/* out/KCCacheProxy/preloader
 
-cd build
+cd out
 
 # Make linux package
 cp -r KCCacheProxy/ KCCacheProxy-linux/ && 
@@ -48,4 +42,10 @@ cp -r KCCacheProxy/cache/ minimum-cache/ &&
 rm -r minimum-cache &
 
 wait
+
+echo 'Make electron build'
+npm run-script make
+cp make/*/*/*.exe .
+
+echo 'Cleanup...'
 rm -r KCCacheProxy
