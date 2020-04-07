@@ -1,12 +1,14 @@
+const { mapLimit } = require("async")
+const { readFile, exists, unlink, copyFile, ensureDir } = require("fs-extra")
+const { join, dirname } = require("path")
+
+module.exports = { verifyCache, mergeCache }
+
+const { getConfig, getCacheLocation } = require("./config")
+const Logger = require("./ipc")
+const cacher = require("./cacher")
+
 async function verifyCache() {
-    const { mapLimit } = require("async")
-    const { readFile, unlink } = require("fs-extra")
-    const { join } = require("path")
-
-    const { getConfig, getCacheLocation } = require("./config")
-    const Logger = require("./ipc")
-    const cacher = require("./cacher")
-
     if(!getConfig().verifyCache) {
         Logger.error("verifyCache is not set in config! Aborted check!")
         return
@@ -47,13 +49,6 @@ async function verifyCache() {
 }
 
 async function mergeCache(source) {
-    const { readFile, exists, unlink, copyFile, ensureDir } = require("fs-extra")
-    const { join, dirname } = require("path")
-
-    const { getCacheLocation } = require("./config")
-    const Logger = require("./ipc")
-    const cacher = require("./cacher")
-
     const newCachedFile = join(source, "cached.json")
     if(!(await exists(newCachedFile)))
         return Logger.error("Missing cache details")
@@ -91,5 +86,3 @@ async function mergeCache(source) {
 
     Logger.log(`Finished merging cache! Skipped ${skipped} files. Copied ${copied}`)
 }
-
-module.exports = { verifyCache, mergeCache }

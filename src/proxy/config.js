@@ -1,7 +1,10 @@
 const { existsSync, readFileSync, writeFileSync, ensureDirSync } = require("fs-extra")
 const { join, dirname } = require("path")
 
+module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfig, preloader }
+
 const Logger = require("./ipc")
+const { forceSave, loadCached } = require("./cacher")
 
 const defaultConfig = {
     "port": 8081,
@@ -34,7 +37,8 @@ const defaultConfig = {
             "ships": false
         },
         "cleanup": true
-    }
+    },
+    "configVersion": 2
 }
 
 let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON.parse(readFileSync("./config.json"))) : defaultConfig
@@ -77,7 +81,7 @@ async function setConfig(newConfig, save = false) {
     const locationChanged = newConfig.cacheLocation !== oldConfig.cacheLocation
     if(save && locationChanged)
         try {
-            await require("./cacher").forceSave()
+            await forceSave()
         } catch (error) {
             Logger.error(error)
         }
@@ -88,7 +92,7 @@ async function setConfig(newConfig, save = false) {
         cacheLocation = config.cacheLocation
 
     if(locationChanged)
-        require("./cacher").loadCached()
+        loadCached()
 
     if(save)
         saveConfig()
@@ -104,5 +108,3 @@ function getCacheLocation() {
 
     return cacheLocation
 }
-
-module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfig, preloader }

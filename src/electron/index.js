@@ -70,14 +70,16 @@ const createWindow = () => {
             click: () => mainWindow.show()
         }, {
             label: "Restart",
-            click: () => {
+            click: async () => {
+                await ipc.saveStats()
                 app.isQuiting = true
                 app.relaunch()
                 app.quit()
             }
         }, {
             label: "Quit",
-            click: () => {
+            click: async () => {
+                await ipc.saveStats()
                 app.isQuiting = true
                 app.quit()
             }

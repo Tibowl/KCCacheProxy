@@ -66,9 +66,67 @@ function addLog(messageType, messageDate, message) {
     log.insertBefore(elem, log.firstChild)
 }
 
+const stats = {
+    "startDate"         : "date",
+
+    // Cache stats
+    "cachedFiles"       : "number",
+    "cachedSize"        : "bytes",
+    "oldCache"          : "show",
+
+    // Ignored
+    "passthrough"       : "show",
+    "passthroughHTTP"   : "number",
+    "passthroughHTTPS"  : "number",
+
+    // Cacher stats
+    "totalHandled"      : "number",
+    "inCache"           : "numberH",
+    "blocked"           : "numberH",
+    "failed"            : "numberH",
+    "notModified"       : "numberH",
+    "fetched"           : "numberH",
+    "bandwidthSaved"    : "bytes",
+}
 function updateStats(newStats) {
-    if(newStats.cached != undefined)
-        document.getElementById("cached").innerText = newStats.cached
+    for(const [key, type] of Object.entries(stats)) {
+        const value = newStats[key]
+        if(value == undefined) continue
+
+        switch (type) {
+            case "numberH":
+                document.getElementById(`${key}H`).style = value > 0 ? "" : "display:none;"
+                // eslint-disable-next-line no-fallthrough
+            case "number":
+                document.getElementById(key).innerText = value.toLocaleString()
+                break
+            case "show":
+                document.getElementById(key).style = value ? "" : "display:none;"
+                break
+            case "bytes":
+                document.getElementById(key).innerText = formatBytes(value)
+                break
+            case "date": {
+                const date = new Date(value)
+                const f = (v) => v.toString().padStart(2, 0)
+                document.getElementById(key).innerText = `${date.getFullYear()}-${f(date.getMonth() + 1)}-${f(date.getDate())}`
+                break
+            }
+            default:
+                document.getElementById(key).innerText = value
+                break
+        }
+    }
+}
+
+const sizes = ["B", "KB", "MB", "GB", "TB"]
+function formatBytes(size = 0) {
+    let ind = 0
+    while(size >= 1000 && ind < sizes.length - 1) {
+        size /= 1024
+        ind++
+    }
+    return `${size.toPrecision(3)} ${sizes[ind]}`
 }
 
 const settings = document.getElementById("settings")
@@ -113,17 +171,15 @@ function updateConfig(c) {
     settings.innerHTML = ""
     config = c
 
-    for (const key of Object.keys(settable)) {
-        const value = settable[key]
-
+    for (const [key, value] of Object.entries(settable)) {
         const label = document.createElement("label")
         label.innerText = `${value.label}: `
         settings.appendChild(label)
         settings.appendChild(document.createElement("br"))
 
         const input = document.createElement("input")
-        for (const K of Object.keys(value.input))
-            input[K] = value.input[K]
+        for (const [K, V] of Object.entries(value.input))
+            input[K] = V
 
         input.id = key
         switch(value.input.type) {
@@ -145,12 +201,12 @@ function checkSaveable() {
     newConfig = JSON.parse(JSON.stringify(config))
 
     let foundDifferent = false
-    for (const key of Object.keys(settable)) {
+    for (const [key, settings] of Object.entries(settable)) {
         const input = document.getElementById(key)
         let value = getValue(key, input)
 
-        if(settable[key].ifEmpty !== undefined && input.value == "")
-            value = input.value = newConfig[key] = settable[key].ifEmpty
+        if(settings.ifEmpty !== undefined && input.value == "")
+            value = input.value = newConfig[key] = settings.ifEmpty
 
         if (value != config[key])
             foundDifferent = true
