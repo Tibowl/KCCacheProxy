@@ -13,6 +13,7 @@ const defaultConfig = {
     "disableBrowserCache": false,
     "verifyCache": false,
     "serverID": 0,
+    "serverIP": "203.104.209.23",
     "bypassGadgetUpdateCheck": false,
     "gameVersionOverwrite": "false",
     "preloadOnStart": false,

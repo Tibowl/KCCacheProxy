@@ -10,7 +10,7 @@ const { verifyCache } = require("./cacheHandler")
 const { getConfig } = require("./config")
 const { port, preloadOnStart } = getConfig()
 
-const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/"]
+const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
 const proxy = createProxyServer()
 const server = createServer(async (req, res) => {

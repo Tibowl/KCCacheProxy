@@ -12,7 +12,7 @@ let cached
 module.exports = { cache, handleCaching , extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached }
 
 const Logger = require("./ipc")
-const { getConfig, getCacheLocation } = require("./config")
+const { getConfig, getCacheLocation, saveConfig } = require("./config")
 
 /**
  * Get cache statistics
@@ -127,8 +127,10 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         Logger.log("Not modified", file)
         Logger.addStatAndSend("notModified")
 
-        cached[file].version = version
-        queueCacheSave()
+        if(cached[file].version != version) {
+            cached[file].version = version
+            queueCacheSave()
+        }
 
         return response({
             "status": 200,
@@ -217,9 +219,13 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
             return handleCaching(req, res, true)
         }
 
-        const gvo = getConfig().gameVersionOverwrite
+        let gvo = getConfig().gameVersionOverwrite
         if(file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
-            contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
+            if(gvo == "kca")
+                gvo = await getKCAVersion(getConfig().serverIP)
+
+            if(gvo)
+                contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
         }
 
         if(file && isBlacklisted(file)) {
@@ -273,6 +279,12 @@ async function handleCaching(req, res, forceCache = false) {
     if(getConfig().bypassGadgetUpdateCheck)
         invalidatedMainVersion = true
 
+    if(file.startsWith("/kcs2/") && getConfig().serverIP !== req.headers.host) {
+        getConfig().serverIP = req.headers.host
+        Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
+        saveConfig()
+    }
+
     // Return cached if version matches
     const cachedFile = cached[file]
     let lastmodified = undefined
@@ -311,6 +323,28 @@ async function handleCaching(req, res, forceCache = false) {
     return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
+async function getKCAVersion(host) {
+    const url = `http://${host}/kca/version.json`
+    const { file, cacheFile } = extractURL(url)
+
+    Logger.addStatAndSend("totalHandled")
+
+    const kcafile = cached[file]
+    let lastmodified = undefined
+    if(kcafile && await exists(cacheFile))
+        lastmodified = kcafile.lastmodified
+
+    const result = await cache(cacheFile, file, url, "", lastmodified)
+
+    if(!result.contents) return false
+    if(result.status !== 200) return false
+
+    try {
+        return JSON.parse(result.contents.toString()).api.api_start2
+    } catch (error) {
+        return false
+    }
+}
 /**
  * Parse an URL
  * @param {string} url URL to parse

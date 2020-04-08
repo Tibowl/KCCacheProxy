@@ -216,13 +216,13 @@ const settable = {
         }
     },
     "gameVersionOverwrite": {
-        "label": "Overwrite game version ('false' to disable)",
+        "label": "Overwrite game version ('false' to disable, 'kca' to use KCA version)",
         "ifEmpty": "false",
         "input": {
             "type": "text",
-            "title": "Overwrite game version. Entering 'false' will use cached game version. You'll need to save to apply changes"
+            "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes"
         },
-        "verify": (v) => v == "false" || v.match(/^\d\.\d\.\d\.\d$/),
+        "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
         "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
     }
 }
