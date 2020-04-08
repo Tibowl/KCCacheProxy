@@ -8,15 +8,18 @@ const { getConfig, getCacheLocation } = require("./config")
 const Logger = require("./ipc")
 const cacher = require("./cacher")
 
-async function verifyCache() {
+/**
+ * Verifies cache, will delete if "delete" in argv or parameter set
+ *
+ * @param {boolean} [deleteinvalid] Delete invalid files
+ */
+async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")) {
     if(!getConfig().verifyCache) {
         Logger.error("verifyCache is not set in config! Aborted check!")
         return
     }
 
     Logger.log("Verifying cache... This might take a while")
-
-    const deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")
 
     const responses = await mapLimit(
         Object.entries(cacher.getCached()),
@@ -48,6 +51,10 @@ async function verifyCache() {
     Logger.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
 }
 
+/**
+ * Merges specified folder in current cache
+ * @param {string} source Folder to merge from
+ */
 async function mergeCache(source) {
     const newCachedFile = join(source, "cached.json")
     if(!(await exists(newCachedFile)))

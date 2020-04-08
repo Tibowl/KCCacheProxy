@@ -14,16 +14,30 @@ console.trace = error
 
 const recent = []
 
+/**
+ * Log a message/object/etc to normal log
+ * @param  {...any} input Stuff to log to normal log
+ */
 function log(...input) {
     consoleLog(...input)
     send("log", ...input)
 }
 
+/**
+ * Log an error/message/object/etc to error
+ * @param  {...any} input Stuff to log to error log
+ */
 function error(...input) {
     consoleError(...input)
     send("error", ...input)
 }
 
+/** @typedef {"stats" | "log" | "error"} UpdateTypes */
+/**
+ * Send an update to render process
+ * @param {UpdateTypes} type Type of message
+ * @param  {...any} toSend Message to send
+ */
 function send(type, ...toSend) {
     toSend.unshift(type)
     toSend.unshift(new Date())
@@ -37,6 +51,11 @@ function send(type, ...toSend) {
 
 let sendStats = undefined, saveStatsTimer = undefined, statsPath = undefined
 let stats = undefined
+/**
+ * Update a stat and queue sending
+ * @param {string} statType Type of stat
+ * @param {number} amount Amount to increase
+ */
 function addStatAndSend(statType, amount = 1) {
     if(statsPath == undefined) return
     if(stats == undefined) loadStats()
@@ -52,6 +71,9 @@ function addStatAndSend(statType, amount = 1) {
     if (!saveStatsTimer)
         saveStatsTimer = setTimeout(saveStats, 5*60*1000)
 }
+/**
+ * Save stats to disk
+ */
 async function saveStats() {
     if(statsPath == undefined) return
     if(saveStatsTimer) {
@@ -69,6 +91,9 @@ async function saveStats() {
 
     await writeFile(statsPath, JSON.stringify(stats))
 }
+/**
+ * Load stats from disk
+ */
 function loadStats() {
     if(statsPath == undefined) return
     if(existsSync(statsPath)) {
@@ -94,12 +119,18 @@ function loadStats() {
         "startDate": new Date().getTime()
     }
 }
-
+/**
+ * Send most recent messages
+ */
 function sendRecent() {
     if(global.mainWindow)
         global.mainWindow.webContents.send("recent", recent)
 }
-
+/**
+ * Register electron listeners and load stats from disk
+ * @param {import("electron").ipcMain} ipcMain Connection with render process
+ * @param {import("electron").App} app Electron app
+ */
 function registerElectron(ipcMain, app) {
     statsPath = join(app.getPath("userData"), "ProxyData", "stats.json")
     loadStats()

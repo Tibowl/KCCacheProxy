@@ -11,6 +11,10 @@ ipcRenderer.on("config", (e, message) => {
     updateConfig(message)
 })
 
+/**
+ * Handle a message
+ * @param {[Date, import("../proxy/ipc").UpdateTypes, ...]} message Update message
+ */
 function update(message) {
     const messageDate = message.shift()
     const messageType = message.shift()
@@ -28,6 +32,12 @@ function update(message) {
 
 let recent = []
 const log = document.getElementById("log")
+/**
+ * Add a log element to log
+ * @param {"error"|"log"} messageType Type of message, determinates color
+ * @param {Date} messageDate Date of message
+ * @param {any[]} message Rest of message, array gets mapped and joined together
+ */
 function addLog(messageType, messageDate, message) {
     recent.unshift(message)
     while (recent.length >= 50) {
@@ -66,6 +76,8 @@ function addLog(messageType, messageDate, message) {
     log.insertBefore(elem, log.firstChild)
 }
 
+/** @typedef {"date"|"number"|"numberH"|"bytes"|"show"} Render */
+/** @type {Object.<string, Render>} */
 const stats = {
     "startDate"         : "date",
 
@@ -88,6 +100,10 @@ const stats = {
     "fetched"           : "numberH",
     "bandwidthSaved"    : "bytes",
 }
+/**
+ * Update the value of a stat or multiple stats in UI
+ * @param newStats Updated stats, <key, value> with key in stats
+ */
 function updateStats(newStats) {
     for(const [key, type] of Object.entries(stats)) {
         const value = newStats[key]
@@ -120,6 +136,10 @@ function updateStats(newStats) {
 }
 
 const sizes = ["B", "KB", "MB", "GB", "TB"]
+/**
+ * Formats bytes to 3 digits + B/KB/MB/GB/TB
+ * @param {number} size Size in bytes
+ */
 function formatBytes(size = 0) {
     let ind = 0
     while(size >= 1000 && ind < sizes.length - 1) {
@@ -132,6 +152,20 @@ function formatBytes(size = 0) {
 const settings = document.getElementById("settings")
 let config = undefined
 
+/**
+ * @typedef {Object} SettableInput
+ * @property {"number" | "text" | "checkbox"} type
+ * @property {string} title
+ * @property {number} [min]
+ * @property {number} [max]
+ * */
+/**
+ * @typedef {Object} Settable
+ * @property {string} label
+ * @property {string} [ifEmpty]
+ * @property {SettableInput} input
+ * */
+/** @type {Object.<string, Settable>} */
 const settable = {
     "port": {
         "label": "Port",
@@ -197,6 +231,9 @@ function updateConfig(c) {
 
 const saveButton = document.getElementById("save")
 let newConfig = config
+/**
+ * Check if anything needs to be saved in new config
+ */
 function checkSaveable() {
     newConfig = JSON.parse(JSON.stringify(config))
 
@@ -228,6 +265,9 @@ function checkSaveable() {
     }
 }
 
+/**
+ * Save config
+ */
 function saveConfig() {
     ipcRenderer.send("setConfig", newConfig)
     config = newConfig

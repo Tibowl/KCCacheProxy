@@ -3,6 +3,9 @@ const { dirname, join } = require("path")
 const { ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
+/** @typedef {import("http").IncomingMessage} IncomingMessage */
+/** @typedef {import("http").ServerResponse} ServerResponse */
+
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
 let cached
@@ -11,6 +14,9 @@ module.exports = { cache, handleCaching , extractURL, getCached: () => cached, q
 const Logger = require("./ipc")
 const { getConfig, getCacheLocation } = require("./config")
 
+/**
+ * Get cache statistics
+ */
 function getCacheStats() {
     const stats = {
         cachedFiles: 0,
@@ -28,6 +34,10 @@ function getCacheStats() {
 
     return stats
 }
+
+/**
+ * Load cache from config getCacheLocation
+ */
 function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
     Logger.log(`Loading cached from ${CACHE_INFORMATION}.`)
@@ -51,6 +61,15 @@ let invalidatedMainVersion = false
 let saveCachedTimeout = undefined, saveCachedCount = 0
 const currentlyLoadingCache = {}
 
+/**
+ *
+ * @param {string} cacheFile Location of where to cache file
+ * @param {string} file File from URL
+ * @param {string} url Full URL
+ * @param {string} version Version tag from URL
+ * @param {string} lastmodified Last modified in current cache
+ * @param {Object} [headers] Headers to use in fetch
+ */
 async function cache(cacheFile, file, url, version, lastmodified, headers = {}) {
     if(currentlyLoadingCache[file])
         return await new Promise((resolve) => currentlyLoadingCache[file].push(resolve))
@@ -177,6 +196,16 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     return rep
 }
 
+/**
+ * Send a file to user
+ * @param {IncomingMessage} req Proxy request
+ * @param {ServerResponse} res Proxy response
+ * @param {string} cacheFile Cache file location
+ * @param {string} contents Contents of file, if undefined, will be loaded from cacheFile
+ * @param {string} file File path
+ * @param {string} cachedFile Cache metadata
+ * @param {boolean} forceCache Bypass verification check, forcefully send cached file
+ */
 async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
     if (res) {
         if(contents == undefined)
@@ -226,6 +255,12 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     }
 }
 
+/**
+ * Handle caching of a request and send response
+ * @param {IncomingMessage} req Request of user
+ * @param {ServerResponse} res Response of server
+ * @param {boolean} forceCache Bypass verification
+ */
 async function handleCaching(req, res, forceCache = false) {
     const { url, headers } = req
     const { file, cacheFile, version } = extractURL(url)
@@ -268,6 +303,10 @@ async function handleCaching(req, res, forceCache = false) {
     return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
+/**
+ * Parse an URL
+ * @param {string} url URL to parse
+ */
 function extractURL(url) {
     let version = ""
     let file = "/" + url.match(/^https?:\/\/\d+\.\d+\.\d+\.\d+\/(.*)$/)[1]
@@ -282,15 +321,26 @@ function extractURL(url) {
 }
 
 const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
+/**
+ * Check if a file is blacklisted from cache
+ * @param {string} file File to check
+ */
 function isBlacklisted(file) {
     return blacklisted.some(k => file.startsWith(k))
 }
 
 const invalidated = ["/kcs2/version.json", "/kcs2/js/main.js"]
+/**
+ * Check if a file should be invalidated if blacklisted files didn't load
+ * @param {string} file File to check
+ */
 function isInvalidated(file) {
     return invalidatedMainVersion && invalidated.some(k => file == k)
 }
 
+/**
+ * Queue cache save
+ */
 function queueCacheSave() {
     if (++saveCachedCount < 25) {
         if (saveCachedTimeout)
@@ -299,6 +349,9 @@ function queueCacheSave() {
     }
 }
 
+/**
+ * Save cache and clear queued cache save
+ */
 async function forceSave() {
     if (saveCachedTimeout)
         clearTimeout(saveCachedTimeout)
@@ -309,6 +362,9 @@ async function forceSave() {
     saveCachedCount = 0
 }
 
+/**
+ * Save cache
+ */
 async function saveCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
     const str = JSON.stringify(cached)

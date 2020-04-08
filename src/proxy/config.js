@@ -45,6 +45,10 @@ let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON
 let cacheLocation = config.cacheLocation
 
 let app = undefined, userdata = "."
+/**
+ * Load config from electron folder
+ * @param {import("electron").app} electronApp Electron app
+ */
 function loadConfig(electronApp) {
     app = electronApp // Prevent compiling electron stuff in small versions
 
@@ -61,6 +65,9 @@ function loadConfig(electronApp) {
     setConfig(config)
 }
 
+/**
+ * Save config to disk
+ */
 function saveConfig() {
     const configLocation = join(userdata, "config.json")
     Logger.log(`Saving config to ${configLocation}`)
@@ -69,11 +76,19 @@ function saveConfig() {
     writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 4))
 }
 
+/**
+ * Load preloader config
+ */
 function preloader() {
     if(config == defaultConfig)
         config = {serverID: -1, preloader: {recommended: { gadget: true }}}
 }
 
+/**
+ * Update config, will reload cache if changed
+ * @param {any} newConfig New config
+ * @param {boolean} save Write to disk
+ */
 async function setConfig(newConfig, save = false) {
     const oldConfig = config
     config = newConfig
@@ -98,10 +113,16 @@ async function setConfig(newConfig, save = false) {
         saveConfig()
 }
 
+/**
+ * Get config
+ */
 function getConfig() {
     return config
 }
 
+/**
+ * Get location of cache folder
+ */
 function getCacheLocation() {
     if (cacheLocation == undefined || cacheLocation == "default")
         return "./cache/"
