@@ -234,6 +234,7 @@ function updateConfig(c) {
     settings.innerHTML = ""
     config = c
 
+    // Add settings UI
     for (const [key, value] of Object.entries(settable)) {
         const label = document.createElement("label")
         label.innerText = `${value.label}: `
@@ -256,6 +257,10 @@ function updateConfig(c) {
         input.onchange = checkSaveable
         label.appendChild(input)
     }
+
+    // Add hidden buttons
+    document.getElementById("preload").style = config.showPreloadButton ? "" : "display:none"
+
 }
 
 const saveButton = document.getElementById("save")
@@ -308,7 +313,7 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-for (const type of ["verifyCache", "importCache", "reloadCache"])
+for (const type of ["verifyCache", "importCache", "reloadCache", "preload"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
 ipcRenderer.send("getRecent")

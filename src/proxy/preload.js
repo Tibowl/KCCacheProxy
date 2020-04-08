@@ -19,7 +19,7 @@ let GAME_VERSION = ""
 let VERSIONS = {}
 let START2 = {}
 
-const main = async () => {
+const run = async () => {
     Logger.log("Select your server:")
 
     const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
@@ -92,6 +92,8 @@ const main = async () => {
 
     if(getConfig().preloader.cleanup)
         await cleanup()
+
+    cacher.forceSave()
 }
 
 const cacheURLs = async (urls) => {
@@ -450,7 +452,7 @@ const cacheFurniture = async () => {
         const {api_id, api_active_flag, api_version} = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
         if(api_active_flag != 1) continue
-        const script = JSON.parse(readFileSync(join(getCacheLocation, getPath(api_id, "furniture", "scripts", "json"))).toString().trim())
+        const script = JSON.parse(readFileSync(join(getCacheLocation(), getPath(api_id, "furniture", "scripts", "json"))).toString().trim())
 
         const standard = script.standard
         if(!standard.hitarea) continue
@@ -636,4 +638,7 @@ const getPath = (id, eors, type, ext, filename) => {
 
     return `kcs2/resources/${eors}/${type}/${pad(id, eors)}${suffix}_${create(id, `${eors}_${type}`)}${uniqueKey}.${ext}`
 }
-main()
+if (require.main === module)
+    run()
+
+module.exports = { run }

@@ -145,6 +145,7 @@ function registerElectron(ipcMain, app) {
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", () => verifyCache())
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
+    ipcMain.on("preload", () => require("./preload").run())
     ipcMain.on("importCache", () => {
         const path = join(__dirname, "../../cache_template/cache/")
         mergeCache(path)

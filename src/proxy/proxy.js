@@ -62,7 +62,7 @@ const main = async () => {
     server.listen(port)
 
     if(preloadOnStart)
-        require("./preload")
+        require("./preload").run()
 
     // Verify cache
     if (process.argv.length > 2) {
