@@ -62,7 +62,7 @@ let saveCachedTimeout = undefined, saveCachedCount = 0
 const currentlyLoadingCache = {}
 
 /**
- *
+ * Save a file to cache
  * @param {string} cacheFile Location of where to cache file
  * @param {string} file File from URL
  * @param {string} url Full URL
@@ -201,7 +201,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * @param {IncomingMessage} req Proxy request
  * @param {ServerResponse} res Proxy response
  * @param {string} cacheFile Cache file location
- * @param {string} contents Contents of file, if undefined, will be loaded from cacheFile
+ * @param {string|Buffer} contents Contents of file, if undefined, will be loaded from cacheFile
  * @param {string} file File path
  * @param {string} cachedFile Cache metadata
  * @param {boolean} forceCache Bypass verification check, forcefully send cached file
@@ -215,6 +215,11 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
             Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
             Logger.addStatAndSend("bandwidthSaved", -contents.length)
             return handleCaching(req, res, true)
+        }
+
+        const gvo = getConfig().gameVersionOverwrite
+        if(file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
+            contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
         }
 
         if(file && isBlacklisted(file)) {
@@ -265,12 +270,15 @@ async function handleCaching(req, res, forceCache = false) {
     const { url, headers } = req
     const { file, cacheFile, version } = extractURL(url)
 
+    if(getConfig().bypassGadgetUpdateCheck)
+        invalidatedMainVersion = true
+
     // Return cached if version matches
     const cachedFile = cached[file]
     let lastmodified = undefined
     if(cachedFile && await exists(cacheFile) && !forceCache) {
         // Allowing single ? for bugged _onInfoLoadComplete
-        if((cachedFile.version == version || version == "" || version == "?") && !isBlacklisted(file) && !isInvalidated(file)) {
+        if((cachedFile.version == version || version == "" || version == "?") && (getConfig().bypassGadgetUpdateCheck || !isBlacklisted(file)) && !isInvalidated(file)) {
             const contents = await read(cacheFile)
             Logger.addStatAndSend("inCache")
             Logger.addStatAndSend("bandwidthSaved", contents.length)

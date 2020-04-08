@@ -13,6 +13,8 @@ const defaultConfig = {
     "disableBrowserCache": false,
     "verifyCache": false,
     "serverID": 0,
+    "bypassGadgetUpdateCheck": false,
+    "gameVersionOverwrite": "false",
     "preloadOnStart": false,
     "preloader": {
         "maxSimulPreload": 4,
@@ -41,6 +43,8 @@ const defaultConfig = {
     "configVersion": 2
 }
 
+/** @typedef {defaultConfig} config */
+/** @type {config} */
 let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON.parse(readFileSync("./config.json"))) : defaultConfig
 let cacheLocation = config.cacheLocation
 
@@ -57,9 +61,13 @@ function loadConfig(electronApp) {
 
     Logger.log(`Loading config from: ${configLocation}`)
 
-    if (existsSync(configLocation))
-        config = Object.assign({}, defaultConfig, JSON.parse(readFileSync(configLocation)))
-    else
+    if (existsSync(configLocation)) {
+        const loadedConfig = JSON.parse(readFileSync(configLocation))
+        config = Object.assign({}, defaultConfig, loadedConfig)
+
+        if(JSON.stringify(config) !== JSON.stringify(loadedConfig)) // Save new defaults
+            saveConfig()
+    } else
         config = defaultConfig
 
     setConfig(config)

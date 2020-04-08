@@ -150,6 +150,7 @@ function formatBytes(size = 0) {
 }
 
 const settings = document.getElementById("settings")
+/** @type {undefined | import("./../proxy/config").config} */
 let config = undefined
 
 /**
@@ -163,6 +164,7 @@ let config = undefined
  * @typedef {Object} Settable
  * @property {string} label
  * @property {string} [ifEmpty]
+ * @property {(value) => boolean} [verify]
  * @property {SettableInput} input
  * */
 /** @type {Object.<string, Settable>} */
@@ -198,9 +200,36 @@ const settable = {
             "type": "checkbox",
             "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes."
         }
+    },
+    "disableBrowserCache": {
+        "label": "Disable browser caching",
+        "input": {
+            "type": "checkbox",
+            "title": "Whenever or not the proxy should tell the browser to cache the files or not. You'll need to save to apply changes."
+        }
+    },
+    "bypassGadgetUpdateCheck": {
+        "label": "Bypass checking for gadget updates on gadget server",
+        "input": {
+            "type": "checkbox",
+            "title": "Whenever or not the proxy should check for updates of files on gadget server. You'll need to save to apply changes."
+        }
+    },
+    "gameVersionOverwrite": {
+        "label": "Overwrite game version ('false' to disable)",
+        "ifEmpty": "false",
+        "input": {
+            "type": "text",
+            "title": "Overwrite game version. Entering 'false' will use cached game version. You'll need to save to apply changes"
+        },
+        "verify": (v) => v == "false" || v.match(/^\d\.\d\.\d\.\d\$/),
+        "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
     }
 }
-
+/**
+ * Update config
+ * @param {import("./../proxy/config").config} c Config file
+ */
 function updateConfig(c) {
     settings.innerHTML = ""
     config = c
@@ -244,6 +273,11 @@ function checkSaveable() {
 
         if(settings.ifEmpty !== undefined && input.value == "")
             value = input.value = newConfig[key] = settings.ifEmpty
+
+        if(settings.verify !== undefined && !settings.verify(value)) {
+            addLog("error", new Date(), [settings.verifyError])
+            value = input.value = newConfig[key] = config[key]
+        }
 
         if (value != config[key])
             foundDifferent = true
