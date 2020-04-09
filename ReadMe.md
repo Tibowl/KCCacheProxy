@@ -22,9 +22,9 @@ Install like above. Then in the UI you can set the cache location. You can move 
 
 ### Setup using node (legacy)
 0. This proxy requires [Node](https://nodejs.org/en/), and optionally git to clone this repository (or download zip at top right, unzip it somewhere).
-1. Install dependencies with npm by running `npm i --only=production` in the folder with `package.json`. 
+1. Install dependencies with npm by running `npm i --only=production` in the folder with `package.json`.
 2. (Optional) Extract the downloaded cache dump, so you'll have a folder `cache` with `cached.json` in it respectively to where you unzipped/cloned the repository (if there's a file `./proxy.js` then there should be `./cache/cached.json`).
-3. You can start the proxy server with `node proxy`. 
+3. You can start the proxy server with `node proxy`.
 4. Depending on browser/viewer used, set it up to use `localhost:8081` as HTTP proxy. [Below are some details](#browserviewer-setup)) on how to do it for some viewers/chrome.
 
 **NOTE** for technical people: You can **NOT** run both the preloader and proxy server at the same time, unless you run the preloader via the proxy on startup.
@@ -47,13 +47,12 @@ Below are some instructions for some viewers/browsers available
 [With pictures](https://github.com/planetarian/KCDocumentation/blob/master/KCCacheProxy.md#enabling-proxy-for-chromekc3)
 
 1. To use this in chrome, an extension like [Proxy SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif)
-2. Download [these settings](https://raw.githubusercontent.com/Tibowl/KCCacheProxy/master/misc/OmegaOptions.bak).
-3. Import these by:
+2. Import some settings by:
     1. Open options of said extension (from drop down menu)
     2. Go to `Import/Export`
-    3. Click on `Restore from file` [Preview](https://i.imgur.com/iElvOuY.png)
-    4. Open the file you just downloaded
-4. Close the options tab and enable the `Auto Switch` profile in the dropdown menu. [Preview](https://i.imgur.com/Z32Ga5J.png)
+    3. Enter `https://raw.githubusercontent.com/Tibowl/KCCacheProxy/master/misc/OmegaOptions.bak` in `Restore from online`
+    4. Click on `Restore`. [Preview](https://i.imgur.com/LkFFooX.png)
+3. Close the options tab and enable the `Auto Switch` profile in the dropdown menu. [Preview](https://i.imgur.com/Z32Ga5J.png)
 
 ### Electronic Observer
 1. Open settings via File -> Settings.
