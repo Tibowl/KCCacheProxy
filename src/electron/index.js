@@ -35,6 +35,12 @@ if (require("electron-squirrel-startup")) {
     return autoStartup()
 }
 
+// Prevent multiple instances
+if (!app.requestSingleInstanceLock()) {
+    app.quit()
+    return
+}
+
 const ipc = require("../proxy/ipc")
 ipc.registerElectron(ipcMain, app)
 const config = require("../proxy/config")
@@ -134,5 +140,16 @@ app.on("activate", () => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow()
+    }
+})
+
+app.on("second-instance", () => {
+    // Someone tried to run a second instance, we should focus our window.
+    /** @type {BrowserWindow} */
+    const mainWindow = global.mainWindow
+
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.show()
     }
 })
