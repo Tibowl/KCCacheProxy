@@ -167,7 +167,7 @@ const cacheGadget = async () => {
 }
 
 const cacheStatic = async () => {
-    const urls = JSON.parse(readFileSync("./preloader/urls.json"))
+    const urls = require("./preloader/urls.json")
 
     if(INCLUDE_RARE)
         for(let i = 0; i < 50; i++) {
@@ -184,7 +184,7 @@ const cacheStatic = async () => {
 }
 
 const cacheAssets = async () => {
-    const assets = JSON.parse(readFileSync("./preloader/assets.json"))
+    const assets = require("./preloader/assets.json")
     for(const type of Object.keys(assets)) {
         const urls = assets[type].map(k => `kcs2/img/${type}/${k}?version=${VERSIONS[type]}`)
         Logger.log(`Caching ${urls.length} of assets type ${type}`)
