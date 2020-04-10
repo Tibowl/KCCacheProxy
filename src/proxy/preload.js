@@ -1,5 +1,4 @@
 const { eachLimit } = require("async")
-const { keyInSelect } = require("readline-sync")
 const fetch = require("node-fetch")
 const { readdirSync, readFileSync, removeSync } = require("fs-extra")
 const { join } = require("path")
@@ -20,11 +19,6 @@ let VERSIONS = {}
 let START2 = {}
 
 const run = async () => {
-    Logger.log("Select your server:")
-
-    const en_names = ["Yokosuka Naval District", "Kure Naval District", "Sasebo Naval District", "Maizuru Naval District", "Ominato Guard District", "Truk Anchorage", "Lingga Anchorage", "Rabaul Naval Base", "Shortland Anchorage", "Buin Naval Base", "Tawi-Tawi Anchorage", "Palau Anchorage", "Brunei Anchorage", "Hitokappu Bay Anchorage", "Paramushir Anchorage", "Sukumo Bay Anchorage", "Kanoya Airfield", "Iwagawa Airfield", "Saiki Bay Anchorage", "Hashirajima Anchorage"]
-    const serverID = getConfig().serverID || (keyInSelect(en_names) + 1)
-
     if(cacher.getCached() == undefined)
         cacher.loadCached()
 
@@ -32,14 +26,14 @@ const run = async () => {
     if(getConfig().preloader.recommended.gadget)
         await cacheGadget()
 
-    if(serverID <= 0) return
+    if(!getConfig().serverIP) return
 
     const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
-    SERVER = kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
+    SERVER = `http://${getConfig().serverIP}/` //kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
     Logger.log("Game version: " + GAME_VERSION)
-    Logger.log(`${en_names[serverID-1]}: ${SERVER.split("/")[2]}`)
+    Logger.log(`Server IP: ${SERVER.split("/")[2]}`)
     Logger.log("Loading api_start2...")
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
@@ -99,7 +93,7 @@ const run = async () => {
 const cacheURLs = async (urls) => {
     await eachLimit(urls, getConfig().preloader.maxSimulPreload || 8, async (url) => {
         const full = SERVER + url
-        Logger.log(full)
+        // Logger.log(full)
         await cacher.handleCaching({
             url: full,
             headers: {
@@ -283,7 +277,7 @@ const cacheShips = async () => {
         const mst_ship = START2.api_mst_ship.find(k => k.api_id == api_id)
         if(!ship.api_battle_n) {
             // Seasonal
-            if(api_id == 5358) continue
+            if([5358, 5433, 5434].includes(api_id)) continue
 
             types.push("character_full", "character_up")
             if(INCLUDE_RARE)
@@ -437,7 +431,7 @@ const cacheFurniture = async () => {
             urls.push(getPath(api_id, "furniture", "movable", "json") + version)
             urls.push(getPath(api_id, "furniture", "movable", "png") + version)
             urls.push(getPath(api_id, "furniture", "thumbnail", "png") + version)
-        } else {
+        } else if(![8, 32, 43, 62, 121, 131, 134, 150, 153, 163, 167, 169, 173, 177, 190, 191].includes(api_id)){
             urls.push(getPath(api_id, "furniture", "normal", "png") + version)
         }
         if(INCLUDE_RARE)
@@ -512,7 +506,7 @@ const cacheNPCVoices = async () => {
     if(quotes && quotes.abyssal)
         urls.push(...Object.keys(quotes.abyssal).filter(k => quotes.abyssal[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9998/${id}.mp3`))
 
-    Logger.log(`Caching ${urls.length} use item assets`)
+    Logger.log(`Caching ${urls.length} voice lines`)
     await cacheURLs(urls)
 }
 

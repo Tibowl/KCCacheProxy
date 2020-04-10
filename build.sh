@@ -2,7 +2,7 @@ echo 'Clean previous output'
 rm -r out/
 
 echo 'Create folder in out path'
-mkdir -p out/KCCacheProxy/preloader
+mkdir -p out/KCCacheProxy/
 
 echo 'Update cache_template cache'
 cd cache_template
@@ -14,7 +14,6 @@ pkg --out-path out src/proxy/proxy.js
 
 echo 'Copy some common files to out path'
 cp -r cache_template/* out/KCCacheProxy/
-cp preloader/* out/KCCacheProxy/preloader
 
 cd out
 

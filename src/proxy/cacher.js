@@ -209,61 +209,61 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * @param {boolean} forceCache Bypass verification check, forcefully send cached file
  */
 async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
-    if (res) {
-        if(contents == undefined)
-            contents = await read(cacheFile)
+    if (!res) return
 
-        if(!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
-            Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
-            Logger.addStatAndSend("bandwidthSaved", -contents.length)
-            return handleCaching(req, res, true)
-        }
+    if(contents == undefined)
+        contents = await read(cacheFile)
 
-        let gvo = getConfig().gameVersionOverwrite
-        if(file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
-            if(gvo == "kca")
-                gvo = await getKCAVersion(getConfig().serverIP)
-
-            if(gvo)
-                contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
-        }
-
-        if(file && isBlacklisted(file)) {
-            res.setHeader("Server", "nginx")
-            if(!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
-                res.setHeader("Cache-Control", "no-store")
-            else
-                res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-        } else {
-            // Copy KC server headers
-            res.setHeader("Server", "nginx")
-            res.setHeader("X-DNS-Prefetch-Control", "off")
-
-            if(getConfig().disableBrowserCache || isInvalidated(file)) {
-                res.setHeader("Cache-Control", "no-store")
-                res.setHeader("Pragma", "no-cache")
-            } else {
-                res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-                res.setHeader("Pragma", "public")
-            }
-        }
-
-        // TODO switch or some table
-        if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html"))
-            res.setHeader("Content-Type", "text/html")
-        else if(cacheFile.endsWith(".png"))
-            res.setHeader("Content-Type", "image/png")
-        else if(cacheFile.endsWith(".json"))
-            res.setHeader("Content-Type", "application/json")
-        else if(cacheFile.endsWith(".css"))
-            res.setHeader("Content-Type", "text/css")
-        else if(cacheFile.endsWith(".mp3"))
-            res.setHeader("Content-Type", "audio/mpeg")
-        else if(cacheFile.endsWith(".js"))
-            res.setHeader("Content-Type", "application/x-javascript")
-
-        res.end(contents)
+    if(!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
+        Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
+        Logger.addStatAndSend("bandwidthSaved", -contents.length)
+        return handleCaching(req, res, true)
     }
+
+    let gvo = getConfig().gameVersionOverwrite
+    if(file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
+        if(gvo == "kca")
+            gvo = await getKCAVersion(getConfig().serverIP)
+
+        if(gvo)
+            contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
+    }
+
+    if(file && isBlacklisted(file)) {
+        res.setHeader("Server", "nginx")
+        if(!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
+            res.setHeader("Cache-Control", "no-store")
+        else
+            res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+    } else {
+        // Copy KC server headers
+        res.setHeader("Server", "nginx")
+        res.setHeader("X-DNS-Prefetch-Control", "off")
+
+        if(getConfig().disableBrowserCache || isInvalidated(file)) {
+            res.setHeader("Cache-Control", "no-store")
+            res.setHeader("Pragma", "no-cache")
+        } else {
+            res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+            res.setHeader("Pragma", "public")
+        }
+    }
+
+    // TODO switch or some table
+    if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html"))
+        res.setHeader("Content-Type", "text/html")
+    else if(cacheFile.endsWith(".png"))
+        res.setHeader("Content-Type", "image/png")
+    else if(cacheFile.endsWith(".json"))
+        res.setHeader("Content-Type", "application/json")
+    else if(cacheFile.endsWith(".css"))
+        res.setHeader("Content-Type", "text/css")
+    else if(cacheFile.endsWith(".mp3"))
+        res.setHeader("Content-Type", "audio/mpeg")
+    else if(cacheFile.endsWith(".js"))
+        res.setHeader("Content-Type", "application/x-javascript")
+
+    res.end(contents)
 }
 
 /**
@@ -291,6 +291,8 @@ async function handleCaching(req, res, forceCache = false) {
     if(cachedFile && await exists(cacheFile) && !forceCache) {
         // Allowing single ? for bugged _onInfoLoadComplete
         if((cachedFile.version == version || version == "" || version == "?") && (getConfig().bypassGadgetUpdateCheck || !isBlacklisted(file)) && !isInvalidated(file)) {
+            if(res == undefined)
+                return
             const contents = await read(cacheFile)
             Logger.addStatAndSend("inCache")
             Logger.addStatAndSend("bandwidthSaved", contents.length)
@@ -303,17 +305,15 @@ async function handleCaching(req, res, forceCache = false) {
 
     // Not in cache or version mismatch, need to check with server
     const result = await cache(cacheFile, file, url, version, lastmodified, headers)
+    if(res == undefined)
+        return
 
     if(!result.contents) {
-        if(!res) return
-
         res.statusCode = result.status
         return res.end()
     }
 
     if(result.status >= 500 && result.contents) {
-        if(!res) return
-
         res.statusCode = result.status
         return res.end(result.contents)
     }
