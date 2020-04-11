@@ -10,6 +10,22 @@ body {
 /* Reduce header margins */
 h1 {
   margin-block-start: auto;
+  margin-block-end: auto;
+}
+
+/* Update notification */
+#update {
+  color:crimson;
+  font-size: 1.5rem;
+}
+#newVersion {
+  font-weight: bold;
+}
+#openBrowser {
+  color:aqua;
+  font-size: 1rem;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Stats */

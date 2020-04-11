@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain } = require("electron")
+const { app, BrowserWindow, Tray, Menu, shell, Notification, ipcMain } = require("electron")
 const path = require("path")
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -46,7 +46,44 @@ ipc.registerElectron(ipcMain, app)
 const config = require("../proxy/config")
 config.loadConfig(app)
 
-const createWindow = () => {
+async function checkVersion() {
+    if (!config.getConfig().checkForUpdates) return
+    ipc.log("Version check: Automatically checking for new versions...")
+
+    const result = await ipc.checkVersion(false)
+    if(result.error)
+        return ipc.error(`Version check: Failed to automatically check for updates ${result.error}`)
+
+    const v = app.getVersion(), nv = result.release.tag_name
+    if (`v${v}` == nv) {
+        ipc.log("Version check: Up to date!")
+        return
+    }
+    ipc.log(`Version check: New version found! v${v} -> ${nv}`)
+
+    if(global.mainWindow)
+        global.mainWindow.webContents.send("version", result)
+
+    if(config.getConfig().lastVersionCheck == nv && config.getConfig().lastVersionCheckTime > new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
+        return
+
+    const notification = new Notification({
+        title: "KCCacheProxy: New version",
+        body: `A new version has been released! You are currently on v${v} while ${nv} is out. Click to open releases page`,
+        icon: path.join(__dirname, "icon.ico")
+    })
+    notification.once("click", () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases"))
+    notification.show()
+
+    config.getConfig().lastVersionCheck = nv
+    config.getConfig().lastVersionCheckTime = new Date().getTime()
+    config.saveConfig()
+}
+
+
+function createWindow() {
+    const icon = path.join(__dirname, "icon.ico")
+
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 800,
@@ -65,7 +102,6 @@ const createWindow = () => {
 
     mainWindow.setMenu(null)
 
-    const icon = path.join(__dirname, "icon.ico")
     mainWindow.setIcon(icon)
 
     const tray = new Tray(icon)
@@ -118,7 +154,11 @@ const createWindow = () => {
         mainWindow.hide()
 
     global.mainWindow = mainWindow
+
     require("../proxy/proxy")
+
+    setTimeout(checkVersion, 3 * 1000)
+    setInterval(checkVersion, 6 * 60 * 60 * 1000)
 }
 
 // This method will be called when Electron has finished

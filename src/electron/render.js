@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const { remote, ipcRenderer } = require ("electron")
+const { remote, ipcRenderer, shell } = require ("electron")
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
@@ -9,6 +9,36 @@ ipcRenderer.on("recent", (e, message) => {
 })
 ipcRenderer.on("config", (e, message) => {
     updateConfig(message)
+})
+ipcRenderer.on("version", (e, {manual, error, release}) => {
+    if(error) {
+        addLog("error", new Date(), error)
+        if(manual)
+            alert(`Failed to check for updates: ${error}`)
+        return
+    }
+
+    const v = remote.app.getVersion()
+    if (`v${v}` == release.tag_name) {
+        if(manual)
+            addLog("log", new Date(), "Version check: Up to date!")
+        return
+    }
+
+    if(manual) {
+        addLog("log", new Date(), `Version check: New version found! v${v} -> ${release.tag_name}`)
+
+        // Show prompt after page is redrawn
+        requestAnimationFrame(() =>
+            setImmediate(() => {
+                if(confirm(`A new version has been found! v${v} -> ${release.tag_name}\n\nDo you want to open the release page in browser?`))
+                    shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases/")
+            }))
+    }
+
+    document.getElementById("update").style = ""
+    document.getElementById("newVersion").innerText = release.tag_name
+    document.getElementById("openBrowser").onclick = () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases/")
 })
 
 /**
@@ -22,7 +52,7 @@ function update(message) {
     switch(messageType) {
         case "error":
         case "log":
-            addLog(messageType, messageDate, message)
+            addLog(messageType, messageDate, ...message)
             break
         case "stats":
             updateStats(message.shift())
@@ -38,7 +68,7 @@ const log = document.getElementById("log")
  * @param {Date} messageDate Date of message
  * @param {any[]} message Rest of message, array gets mapped and joined together
  */
-function addLog(messageType, messageDate, message) {
+function addLog(messageType, messageDate, ...message) {
     recent.unshift(message)
     while (recent.length >= 50) {
         log.removeChild(log.children[log.children.length-1])
@@ -280,7 +310,7 @@ function checkSaveable() {
             value = input.value = newConfig[key] = settings.ifEmpty
 
         if(settings.verify !== undefined && !settings.verify(value)) {
-            addLog("error", new Date(), [settings.verifyError])
+            addLog("error", new Date(), settings.verifyError)
             value = input.value = newConfig[key] = config[key]
         }
 
@@ -313,10 +343,10 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-for (const type of ["verifyCache", "importCache", "reloadCache", "preload"])
+for (const type of ["verifyCache", "importCache", "reloadCache", "preload", "checkVersion"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
 
-document.title = `KCCacheProxy: v${remote.app.getVersion()}`
+document.title = document.getElementById("mainTitle").innerText = `KCCacheProxy: v${remote.app.getVersion()}`

@@ -1,7 +1,8 @@
 const { existsSync, readFileSync, exists, writeFile, ensureDir, unlink, move } = require("fs-extra")
 const { join, dirname } = require("path")
+const fetch = require("node-fetch")
 
-module.exports = { log, error, registerElectron, send, sendRecent, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
+module.exports = { log, error, registerElectron, send, sendRecent, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
 /* eslint-disable no-console */
 const consoleLog = console.log
@@ -127,6 +128,17 @@ function sendRecent() {
         global.mainWindow.webContents.send("recent", recent)
 }
 /**
+ * Check latest version
+ */
+async function checkVersion(manual) {
+    try {
+        const releases = await (await fetch("https://api.github.com/repos/Tibowl/KCCacheProxy/releases")).json()
+        return {manual, release: releases.find(r => !r.prerelease)}
+    } catch (error) {
+        return {manual, error: error.toString()}
+    }
+}
+/**
  * Register electron listeners and load stats from disk
  * @param {import("electron").ipcMain} ipcMain Connection with render process
  * @param {import("electron").App} app Electron app
@@ -144,6 +156,7 @@ function registerElectron(ipcMain, app) {
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", () => verifyCache())
+    ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", () => require("./preload").run())
     ipcMain.on("importCache", () => {

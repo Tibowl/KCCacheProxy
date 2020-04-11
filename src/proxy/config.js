@@ -9,6 +9,7 @@ const { forceSave, loadCached } = require("./cacher")
 const defaultConfig = {
     "port": 8081,
     "cacheLocation": "default",
+    "checkForUpdates": true,
     "startHidden": false,
     "disableBrowserCache": false,
     "verifyCache": false,

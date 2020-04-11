@@ -7,7 +7,12 @@
     <script defer src="render.js"></script>
   </head>
   <body>
-    <h1>KCCacheProxy</h1>
+    <h1 id="mainTitle">KCCacheProxy</h1>
+    <div id="update" style="display:none">
+      You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
+      <a id="openBrowser">Open releases page</a>
+    </div>
+    <button id="checkVersion">Check for updates</button>
     <h2>Stats:</h2>
     Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
       <span id="oldCache" class="info" title="Note: This IS inaccurate since your cache was made in an old version">*</span><br>
