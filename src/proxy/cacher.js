@@ -9,7 +9,7 @@ const { promisify } = require("util")
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
 let cached
-module.exports = { cache, handleCaching , extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached }
+module.exports = { cache, handleCaching, extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached }
 
 const Logger = require("./ipc")
 const { getConfig, getCacheLocation, saveConfig } = require("./config")
@@ -351,7 +351,7 @@ async function getKCAVersion(host) {
  */
 function extractURL(url) {
     let version = ""
-    let file = "/" + url.match(/^https?:\/\/\d+\.\d+\.\d+\.\d+\/(.*)$/)[1]
+    let file = "/" + url.match(/^https?:\/\/.*?\/(.*)$/)[1]
     if (url.includes("?")) {
         version = url.substring(url.indexOf("?"))
         file = file.substring(0, file.indexOf("?"))
