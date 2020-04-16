@@ -42,7 +42,6 @@ ipcRenderer.on("version", (e, {manual, error, release}) => {
     document.getElementById("update").style = ""
     document.getElementById("newVersion").innerText = release.tag_name
     document.getElementById("openReleases").onclick = () => shell.openExternal(`${BASEURL}/releases/`)
-    document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
 })
 
 /**
@@ -370,6 +369,8 @@ function saveConfig() {
 
 for (const type of ["verifyCache", "importCache", "reloadCache", "preload", "checkVersion"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
+
+document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
