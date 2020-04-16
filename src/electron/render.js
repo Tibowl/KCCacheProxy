@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require ("electron")
+const { join } = require("path")
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
@@ -196,6 +197,7 @@ let config = undefined
  * @property {string} [ifEmpty]
  * @property {(value) => boolean} [verify]
  * @property {SettableInput} input
+ * @property {Electron.OpenDialogOptions} [dialog]
  * */
 /** @type {Object.<string, Settable>} */
 const settable = {
@@ -215,6 +217,10 @@ const settable = {
         "input": {
             "type": "text",
             "title": "Cache location used by proxy. You'll need to save to apply changes"
+        },
+        "dialog": {
+            "title": "Select Cache folder",
+            "properties": ["openDirectory"]
         }
     },
     "startHidden": {
@@ -276,7 +282,7 @@ function updateConfig(c) {
             input[K] = V
 
         input.id = key
-        switch(value.input.type) {
+        switch (value.input.type) {
             case "checkbox":
                 input.checked = config[key]
                 break
@@ -286,11 +292,25 @@ function updateConfig(c) {
         }
         input.onchange = checkSaveable
         label.appendChild(input)
+
+        if (value.dialog) {
+            value.dialog.defaultPath = config[key]
+            if(key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
+                value.dialog.defaultPath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+
+            const dialogButton = document.createElement("button")
+            dialogButton.innerText = "..."
+            dialogButton.onclick = () => remote.dialog.showOpenDialog(value.dialog).then((v) => {
+                if(v.canceled) return
+                input.value = v.filePaths[0]
+                checkSaveable()
+            })
+            label.appendChild(dialogButton)
+        }
     }
 
     // Add hidden buttons
     document.getElementById("preload").style = config.showPreloadButton ? "" : "display:none"
-
 }
 
 const saveButton = document.getElementById("save")
