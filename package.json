@@ -1,7 +1,7 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
       "packagerConfig": {
         "icon": "src/electron/icon.png",
         "ignore": [
-          ".*\\.(zip|sh|md|bat)",
+          ".*\\.(zip|sh|md|bat|gif)",
           "^/cache($|/)"
         ]
       },
@@ -30,7 +30,9 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "KCCacheProxy"
+            "name": "KCCacheProxy",
+            "loadingGif": "./src/electron/installer.gif",
+            "iconUrl": "https://raw.githubusercontent.com/Tibowl/KCCacheProxy/master/src/electron/icon.ico"
           }
         },
         {
