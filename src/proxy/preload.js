@@ -570,7 +570,7 @@ const cacheVoices = async () => {
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
 
-    Logger.log(`Caching ${urls.length} use item assets`)
+    Logger.log(`Caching ${urls.length} voice lines`)
     await cacheURLs(urls)
 }
 
