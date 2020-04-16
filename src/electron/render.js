@@ -2,6 +2,8 @@
 const { remote, ipcRenderer, shell } = require ("electron")
 const { join } = require("path")
 
+const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
+
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
     recent = []
@@ -33,13 +35,14 @@ ipcRenderer.on("version", (e, {manual, error, release}) => {
         requestAnimationFrame(() =>
             setImmediate(() => {
                 if(confirm(`A new version has been found! v${v} -> ${release.tag_name}\n\nDo you want to open the release page in browser?`))
-                    shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases/")
+                    shell.openExternal(`${BASEURL}/releases/`)
             }))
     }
 
     document.getElementById("update").style = ""
     document.getElementById("newVersion").innerText = release.tag_name
-    document.getElementById("openBrowser").onclick = () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases/")
+    document.getElementById("openReleases").onclick = () => shell.openExternal(`${BASEURL}/releases/`)
+    document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
 })
 
 /**
@@ -187,13 +190,13 @@ let config = undefined
 /**
  * @typedef {Object} SettableInput
  * @property {"number" | "text" | "checkbox"} type
- * @property {string} title
  * @property {number} [min]
  * @property {number} [max]
  * */
 /**
  * @typedef {Object} Settable
  * @property {string} label
+ * @property {string} title
  * @property {string} [ifEmpty]
  * @property {(value) => boolean} [verify]
  * @property {SettableInput} input
@@ -204,19 +207,19 @@ const settable = {
     "port": {
         "label": "Port",
         "ifEmpty": "8081",
+        "title": "Port used by proxy. You'll need to save and restart to apply changes.",
         "input": {
             "type": "number",
             "min": 1,
             "max": 65536,
-            "title": "Port used by proxy. You'll need to save and restart to apply changes."
         }
     },
     "cacheLocation": {
         "label": "Cache location",
         "ifEmpty": "default",
+        "title": "Cache location used by proxy. You'll need to save to apply changes",
         "input": {
-            "type": "text",
-            "title": "Cache location used by proxy. You'll need to save to apply changes"
+            "type": "text"
         },
         "dialog": {
             "title": "Select Cache folder",
@@ -225,38 +228,38 @@ const settable = {
     },
     "startHidden": {
         "label": "Start in system tray",
+        "title": "Whenever or not window should start in system tray. Don't forget to change before restarting",
         "input": {
-            "type": "checkbox",
-            "title": "Whenever or not window should start in system tray. Don't forget to change before restarting"
+            "type": "checkbox"
         }
     },
     "verifyCache": {
         "label": "Automatically verify cache integrity",
+        "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes.",
         "input": {
-            "type": "checkbox",
-            "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes."
+            "type": "checkbox"
         }
     },
     "disableBrowserCache": {
         "label": "Disable browser caching",
+        "title": "Whenever or not the proxy should tell the browser to cache the files or not. You'll need to save to apply changes.",
         "input": {
-            "type": "checkbox",
-            "title": "Whenever or not the proxy should tell the browser to cache the files or not. You'll need to save to apply changes."
+            "type": "checkbox"
         }
     },
     "bypassGadgetUpdateCheck": {
         "label": "Bypass checking for gadget updates on gadget server",
+        "title": "Whenever or not the proxy should check for updates of files on gadget server. You'll need to save to apply changes.",
         "input": {
-            "type": "checkbox",
-            "title": "Whenever or not the proxy should check for updates of files on gadget server. You'll need to save to apply changes."
+            "type": "checkbox"
         }
     },
     "gameVersionOverwrite": {
         "label": "Overwrite game version ('false' to disable, 'kca' to use KCA version)",
         "ifEmpty": "false",
+        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes",
         "input": {
-            "type": "text",
-            "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes"
+            "type": "text"
         },
         "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
         "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
@@ -274,6 +277,8 @@ function updateConfig(c) {
     for (const [key, value] of Object.entries(settable)) {
         const label = document.createElement("label")
         label.innerText = `${value.label}: `
+        if(value.title)
+            label.title = value.title
         settings.appendChild(label)
         settings.appendChild(document.createElement("br"))
 
