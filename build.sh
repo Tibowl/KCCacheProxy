@@ -42,6 +42,8 @@ rm -r minimum-cache &
 
 wait
 
+cp minimum-cache.zip ../minimum-cache.zip
+
 echo 'Make electron build'
 npm run-script make
 cp make/*/*/*.exe .

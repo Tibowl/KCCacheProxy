@@ -17,7 +17,7 @@ const defaultConfig = {
     "bypassGadgetUpdateCheck": false,
     "gameVersionOverwrite": "false",
     "preloadOnStart": false,
-    "showPreloadButton": false,
+    "showExtraButtons": false,
     "preloader": {
         "maxSimulPreload": 4,
         "recommended": {

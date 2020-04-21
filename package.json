@@ -1,7 +1,7 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {
@@ -22,7 +22,8 @@
       "packagerConfig": {
         "icon": "src/electron/icon.png",
         "ignore": [
-          ".*\\.(zip|sh|md|bat|gif)",
+          ".*\\.(sh|md|bat|gif)",
+          "^/cache_template($|/)",
           "^/cache($|/)"
         ]
       },
@@ -53,12 +54,14 @@
     }
   },
   "dependencies": {
+    "adm-zip": "^0.4.14",
     "async": "^3.2.0",
     "auto-launch": "^5.0.5",
     "electron-squirrel-startup": "^1.0.0",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "node-stream-zip": "^1.9.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.50",

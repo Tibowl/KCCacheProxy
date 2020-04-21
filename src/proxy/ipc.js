@@ -149,18 +149,16 @@ function registerElectron(ipcMain, app) {
     send("stats", stats)
 
     const config = require("./config")
-    const { verifyCache, mergeCache } = require("./cacheHandler")
+    const { verifyCache, mergeCache, createDiff } = require("./cacheHandler")
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
     ipcMain.on("saveConfig", () => config.saveConfig())
-    ipcMain.on("verifyCache", () => verifyCache())
+    ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
     ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", () => require("./preload").run())
-    ipcMain.on("importCache", () => {
-        const path = join(__dirname, "../../cache_template/cache/")
-        mergeCache(path)
-    })
+    ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))
+    ipcMain.on("createDiff", (e, source, target) => createDiff(source, target))
 }

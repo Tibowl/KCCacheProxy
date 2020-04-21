@@ -506,7 +506,7 @@ const cacheNPCVoices = async () => {
     if(quotes && quotes.abyssal)
         urls.push(...Object.keys(quotes.abyssal).filter(k => quotes.abyssal[k] != "" && !k.includes("_old")).map(id => `kcs/sound/kc9998/${id}.mp3`))
 
-    Logger.log(`Caching ${urls.length} voice lines`)
+    Logger.log(`Caching ${urls.length} NPC/event/abyssal voice lines`)
     await cacheURLs(urls)
 }
 
@@ -570,7 +570,7 @@ const cacheVoices = async () => {
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
 
-    Logger.log(`Caching ${urls.length} voice lines`)
+    Logger.log(`Caching ${urls.length} ship voice lines`)
     await cacheURLs(urls)
 }
 

@@ -7,7 +7,15 @@
     <script defer src="render.js"></script>
   </head>
   <body>
-    <h1 id="mainTitle">KCCacheProxy</h1>
+    <div id="title">
+      <h1 id="mainTitle">KCCacheProxy</h1>
+      <div id="support">
+        <span class="align"></span>
+        <a href='https://ko-fi.com/A0A81MOVN' class="link">
+          <img height='30' style='border:0px;height:30px;' src='./support.png' border='0' alt='Support me at ko-fi.com' />
+        </a>
+      </div>
+    </div>
     <div id="update" style="display:none">
       You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
       <a id="openReleases">Open releases page</a>
@@ -31,13 +39,15 @@
       </li>
       <li>Saved <span id="bandwidthSaved">0 B</span> of bandwidth.</li>
     </ul>
-    <div class="h2"><h2 style="display: inline;">Settings: </h2><a id="openConfigWiki">More information</a></div>
+    <div class="h2"><h2 style="display: inline;">Settings: </h2><a id="openConfigWiki" url="./wiki/Configuration">More information</a></div>
     <div id="settings"></div>
     <button id="save" disabled>Save</button>
     <button id="verifyCache">Verify entire cache (might take a bit)</button>
     <button id="importCache">Import built-in basic cache dump</button>
+    <button id="importCustomCache">Import cache dump</button>
     <button id="reloadCache">Reload cache</button>
     <button style="display:none" id="preload">Preload</button>
+    <button style="display:none" id="createDiff">Create diff</button>
     <h2>Proxy log:</h2>
     <div id="log"></div>
   </body>

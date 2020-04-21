@@ -314,7 +314,8 @@ function updateConfig(c) {
     }
 
     // Add hidden buttons
-    document.getElementById("preload").style = config.showPreloadButton ? "" : "display:none"
+    document.getElementById("preload").style = config.showExtraButtons ? "" : "display:none"
+    document.getElementById("createDiff").style = config.showExtraButtons ? "" : "display:none"
 }
 
 const saveButton = document.getElementById("save")
@@ -367,9 +368,70 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
-for (const type of ["verifyCache", "importCache", "reloadCache", "preload", "checkVersion"])
+for (const type of ["importCache", "reloadCache", "preload", "checkVersion"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
+document.getElementById("createDiff").onclick = async () => {
+    const source = await remote.dialog.showOpenDialog({
+        title: "Select old cache or cached.json",
+        filters: [{
+            name: "Valid files",
+            extensions: ["zip", "json"]
+        }],
+        properties: ["openFile"]
+    })
+    if (source.canceled) return
+
+    addLog("log", new Date(), source.filePaths[0])
+
+    const n = new Date(), f = d => d.toString().padStart(2, 0)
+    const target = await remote.dialog.showSaveDialog({
+        title: "Select new zip",
+        defaultPath: `cache-diff-${n.getFullYear()}-${f(n.getMonth()+1)}-${f(n.getDate())}.zip`,
+        filters: [{
+            name: ".zip files",
+            extensions: ["zip"]
+        }],
+        properties: []
+    })
+    //  if (target.canceled) return
+
+    addLog("log", new Date(), target.filePath)
+
+    ipcRenderer.send("createDiff", source.filePaths[0], target.filePath)
+}
+
+document.getElementById("importCustomCache").onclick = async () => {
+    const response = await remote.dialog.showOpenDialog({
+        title: "Select cache zip",
+        filters: [{
+            name: ".zip files",
+            extensions: ["zip"]
+        }],
+        properties: ["openFile"]
+    })
+    if (response.canceled) return
+    ipcRenderer.send("importCache", response.filePaths[0])
+}
+
+document.getElementById("verifyCache").onclick = async () => {
+    const response = await remote.dialog.showMessageBox({
+        title: "Delete invalid files?",
+        buttons: ["Cancel", "Delete", "Keep"],
+        message: "Delete invalid files?",
+        detail: "Cached files created in an old version might count as invalid and will be deleted."
+    })
+    if(!response.response) return
+    ipcRenderer.send("verifyCache", response.response == 1)
+}
+
+for(const elem of document.getElementsByClassName("link")) {
+    elem.onclick = (e) => {
+        e.preventDefault()
+        if (elem.href)
+            shell.openExternal(elem.href)
+    }
+}
 document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
 
 ipcRenderer.send("getRecent")
