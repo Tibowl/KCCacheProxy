@@ -281,7 +281,7 @@ const cacheShips = async () => {
 
             types.push("character_full", "character_up")
             if(INCLUDE_RARE)
-                types.push("card", "character_full_dmg", "character_up_dmg")
+                types.push("card", "character_full_dmg", "character_up_dmg") // "card_dmg"
         } else if(ship.api_boko_d && mst_ship && mst_ship.api_name != "") {
             // Friendly
             types.push(

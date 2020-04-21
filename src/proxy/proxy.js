@@ -8,7 +8,7 @@ const Logger = require("./ipc")
 
 const { verifyCache } = require("./cacheHandler")
 const { getConfig } = require("./config")
-const { port, preloadOnStart } = getConfig()
+const { hostname, port, preloadOnStart } = getConfig()
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
@@ -58,8 +58,8 @@ const main = async () => {
     if(Logger.getStatsPath() == undefined)
         Logger.setStatsPath("./stats.json")
 
-    Logger.log(`Starting proxy on port ${port}...`)
-    server.listen(port)
+    Logger.log(`Starting proxy on ${hostname} with port ${port}...`)
+    server.listen(port, hostname)
 
     if(preloadOnStart)
         require("./preload").run()

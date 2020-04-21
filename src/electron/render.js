@@ -213,6 +213,14 @@ const settable = {
             "max": 65536,
         }
     },
+    "hostname": {
+        "label": "Hostname",
+        "ifEmpty": "127.0.0.1",
+        "title": "Hostname used by proxy. You'll need to save and restart to apply changes.",
+        "input": {
+            "type": "text"
+        }
+    },
     "cacheLocation": {
         "label": "Cache location",
         "ifEmpty": "default",

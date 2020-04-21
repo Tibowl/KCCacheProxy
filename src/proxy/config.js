@@ -8,6 +8,7 @@ const { forceSave, loadCached } = require("./cacher")
 
 const defaultConfig = {
     "port": 8081,
+    "hostname": "127.0.0.1",
     "cacheLocation": "default",
     "checkForUpdates": true,
     "startHidden": false,
