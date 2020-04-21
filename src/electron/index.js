@@ -51,7 +51,7 @@ async function checkVersion() {
     ipc.log("Version check: Automatically checking for new versions...")
 
     const result = await ipc.checkVersion(false)
-    if(result.error)
+    if (result.error)
         return ipc.error(`Version check: Failed to automatically check for updates ${result.error}`)
 
     const v = app.getVersion(), nv = result.release.tag_name
@@ -61,10 +61,10 @@ async function checkVersion() {
     }
     ipc.log(`Version check: New version found! v${v} -> ${nv}`)
 
-    if(global.mainWindow)
+    if (global.mainWindow)
         global.mainWindow.webContents.send("version", result)
 
-    if(config.getConfig().lastVersionCheck == nv && config.getConfig().lastVersionCheckTime > new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
+    if (config.getConfig().lastVersionCheck == nv && config.getConfig().lastVersionCheckTime > new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
         return
 
     const notification = new Notification({
@@ -136,7 +136,7 @@ function createWindow() {
 
     mainWindow.on("closed", () => global.mainWindow = null)
     mainWindow.on("close", (event) => {
-        if(!app.isQuiting){
+        if (!app.isQuiting){
             event.preventDefault()
             tray.displayBalloon({
                 "noSound": true,

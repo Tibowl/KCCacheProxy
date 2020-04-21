@@ -16,7 +16,7 @@ const cacher = require("./cacher")
  * @param {boolean} [deleteinvalid] Delete invalid files
  */
 async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")) {
-    if(!getConfig().verifyCache) {
+    if (!getConfig().verifyCache) {
         Logger.error("verifyCache is not set in config! Aborted check!")
         return
     }
@@ -28,18 +28,18 @@ async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase(
         32,
         async ([key, value]) =>  {
             try {
-                if(value.length == undefined) return 0
+                if (value.length == undefined) return 0
                 const file = join(getCacheLocation(), key)
                 const contents = await readFile(file)
 
-                if(contents.length != value.length) {
+                if (contents.length != value.length) {
                     Logger.error(key, "length doesn't match!", contents.length, value.length)
-                    if(deleteinvalid)
+                    if (deleteinvalid)
                         unlink(file)
                     return 0
                 }
                 return 1
-            } catch(e) {
+            } catch (e) {
                 return -1
             }
         }
@@ -68,7 +68,7 @@ async function mergeCache(source) {
     const fetchCached = new Promise((resolve, reject) => {
         let found = false
         zip.on("entry", entry => {
-            if(entry.name.endsWith("cached.json") && !found) {
+            if (entry.name.endsWith("cached.json") && !found) {
                 Logger.log("Found cached.json")
                 found = true
                 resolve({
@@ -101,16 +101,16 @@ async function mergeCache(source) {
         const newCached = JSON.parse(data)
 
         let newerLocally = 0, same = 0, copied = 0, errored = 0, versionChange = 0
-        for(const file of Object.keys(newCached).sort()) {
+        for (const file of Object.keys(newCached).sort()) {
             const newFile = newCached[file]
             if (cacher.getCached()[file]) {
                 const oldFile = cacher.getCached()[file]
-                if(new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
+                if (new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
                     newerLocally++
                     continue
                 }
                 if (oldFile.length == newFile.length && oldFile.lastmodified == newFile.lastmodified) {
-                    if(oldFile.version == newFile.version)
+                    if (oldFile.version == newFile.version)
                         same++
                     else {
                         versionChange++
@@ -133,7 +133,7 @@ async function mergeCache(source) {
                 break
             }
 
-            if(await exists(targetLocation))
+            if (await exists(targetLocation))
                 await unlink(targetLocation)
 
             await ensureDir(dirname(targetLocation))
@@ -159,7 +159,7 @@ async function createDiff(source, target) {
     Logger.log(source, "->", target)
     let oldCached
 
-    if(source.endsWith(".zip")) {
+    if (source.endsWith(".zip")) {
         const zip = new StreamZip({
             file: source,
             storeEntries: true
@@ -167,7 +167,7 @@ async function createDiff(source, target) {
 
         oldCached = await new Promise((resolve, reject) => {
             zip.on("entry", entry => {
-                if(entry.name.endsWith("cached.json")) {
+                if (entry.name.endsWith("cached.json")) {
                     Logger.log("Found cached.json")
                     resolve(zip.entryDataSync(entry))
                     zip.close()
@@ -184,17 +184,17 @@ async function createDiff(source, target) {
     const zip = new AdmZip()
 
     let olderCurrently = 0, same = 0, news = 0, total = 0, versionChange = 0
-    for(const file of Object.keys(cacher.getCached()).sort()) {
+    for (const file of Object.keys(cacher.getCached()).sort()) {
         const newFile = cacher.getCached()[file]
         const oldFile = oldCached[file]
 
         if (oldFile) {
-            if(new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
+            if (new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
                 olderCurrently++
                 continue
             }
             if (oldFile.length == newFile.length && oldFile.lastmodified == newFile.lastmodified) {
-                if(oldFile.version == newFile.version)
+                if (oldFile.version == newFile.version)
                     same++
                 else {
                     versionChange++

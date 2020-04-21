@@ -68,7 +68,7 @@ function loadConfig(electronApp) {
         const loadedConfig = JSON.parse(readFileSync(configLocation))
         config = Object.assign({}, defaultConfig, loadedConfig)
 
-        if(JSON.stringify(config) !== JSON.stringify(loadedConfig)) // Save new defaults
+        if (JSON.stringify(config) !== JSON.stringify(loadedConfig)) // Save new defaults
             saveConfig()
     } else
         config = defaultConfig
@@ -91,7 +91,7 @@ function saveConfig() {
  * Load preloader config
  */
 function preloader() {
-    if(config == defaultConfig)
+    if (config == defaultConfig)
         config = {serverIP: false, preloader: {recommended: { gadget: true }}}
 }
 
@@ -105,7 +105,7 @@ async function setConfig(newConfig, save = false) {
     config = newConfig
 
     const locationChanged = newConfig.cacheLocation !== oldConfig.cacheLocation
-    if(save && locationChanged)
+    if (save && locationChanged)
         try {
             await forceSave()
         } catch (error) {
@@ -117,10 +117,10 @@ async function setConfig(newConfig, save = false) {
     else
         cacheLocation = config.cacheLocation
 
-    if(locationChanged)
+    if (locationChanged)
         loadCached()
 
-    if(save)
+    if (save)
         saveConfig()
 }
 

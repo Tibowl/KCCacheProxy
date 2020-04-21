@@ -18,7 +18,7 @@ const server = createServer(async (req, res) => {
 
     Logger.log(method + ": " + url)
 
-    if(method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
+    if (method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
         Logger.addStatAndSend("passthroughHTTP")
         Logger.addStatAndSend("passthrough")
         return proxy.web(req, res, {
@@ -55,18 +55,18 @@ proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.h
 
 const main = async () => {
     cacher.loadCached()
-    if(Logger.getStatsPath() == undefined)
+    if (Logger.getStatsPath() == undefined)
         Logger.setStatsPath("./stats.json")
 
     Logger.log(`Starting proxy on ${hostname} with port ${port}...`)
     server.listen(port, hostname)
 
-    if(preloadOnStart)
+    if (preloadOnStart)
         require("./preload").run()
 
     // Verify cache
     if (process.argv.length > 2) {
-        if(process.argv.find(k => k.toLowerCase() == "verifycache"))
+        if (process.argv.find(k => k.toLowerCase() == "verifycache"))
             verifyCache()
     }
 }

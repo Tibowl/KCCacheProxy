@@ -24,9 +24,9 @@ function getCacheStats() {
         oldCache: false
     }
 
-    for(const v of Object.values(cached)) {
+    for (const v of Object.values(cached)) {
         stats.cachedFiles++
-        if(v.length != undefined)
+        if (v.length != undefined)
             stats.cachedSize += v.length
         else
             stats.oldCache = true
@@ -42,13 +42,13 @@ function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
     Logger.log(`Loading cached from ${CACHE_INFORMATION}.`)
 
-    if(existsSync(CACHE_INFORMATION + ".bak")) {
-        if(existsSync(CACHE_INFORMATION))
+    if (existsSync(CACHE_INFORMATION + ".bak")) {
+        if (existsSync(CACHE_INFORMATION))
             removeSync(CACHE_INFORMATION)
         renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
     }
 
-    if(existsSync(CACHE_INFORMATION))
+    if (existsSync(CACHE_INFORMATION))
         cached = JSON.parse(readFileSync(CACHE_INFORMATION))
     else
         cached = {}
@@ -71,7 +71,7 @@ const currentlyLoadingCache = {}
  * @param {Object} [headers] Headers to use in fetch
  */
 async function cache(cacheFile, file, url, version, lastmodified, headers = {}) {
-    if(currentlyLoadingCache[file])
+    if (currentlyLoadingCache[file])
         return await new Promise((resolve) => currentlyLoadingCache[file].push(resolve))
 
     currentlyLoadingCache[file] = []
@@ -86,7 +86,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     const options = { method: "GET", headers }
 
     // Request to only send full file if it has changed since last request
-    if(lastmodified)
+    if (lastmodified)
         options.headers["If-Modified-Since"] = lastmodified
     else
         delete options.headers["If-Modified-Since"]
@@ -98,7 +98,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         data = await fetch(url, options)
     } catch (error) {
         // Server denied request/network failed,
-        if(lastmodified) {
+        if (lastmodified) {
             Logger.error("Fetch failed, using cached version", error)
             Logger.addStatAndSend("blocked")
             invalidatedMainVersion = true
@@ -118,8 +118,8 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         }
     }
 
-    if(data.status == 304) {
-        if(!lastmodified)
+    if (data.status == 304) {
+        if (!lastmodified)
             // Not modified, but we don't have cached data to update
             return response({ "status": data.status })
 
@@ -127,7 +127,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         Logger.log("Not modified", file)
         Logger.addStatAndSend("notModified")
 
-        if(cached[file].version != version) {
+        if (cached[file].version != version) {
             cached[file].version = version
             queueCacheSave()
         }
@@ -140,7 +140,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
 
     // Send cached data for forbidden requests.
     // This bypasses the foreign ip block added on 2020-02-25
-    if(data.status == 403 && lastmodified) {
+    if (data.status == 403 && lastmodified) {
         Logger.log("HTTP 403: Forbidden, using cached data")
         Logger.addStatAndSend("blocked")
         // Invalidate main.js and version.json versions since they might be outdated
@@ -153,7 +153,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     }
 
     // These won't have useful responses
-    if(data.status >= 400) {
+    if (data.status >= 400) {
         Logger.log("HTTP error ", data.status, url)
         Logger.addStatAndSend("failed")
 
@@ -172,10 +172,10 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     const queueSave = async () => {
         await ensureDir(dirname(cacheFile))
 
-        if(await exists(cacheFile + ".tmp"))
+        if (await exists(cacheFile + ".tmp"))
             await remove(cacheFile + ".tmp")
         await writeFile(cacheFile + ".tmp", contents)
-        if(await exists(cacheFile))
+        if (await exists(cacheFile))
             await remove(cacheFile)
         await move(cacheFile + ".tmp", cacheFile)
 
@@ -191,7 +191,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         response(rep)
     }
 
-    if(cached[file])
+    if (cached[file])
         cached[file].length = (+data.headers.get("content-length")) || contents.length
     queueSave()
 
@@ -211,27 +211,27 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
 async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
     if (!res) return
 
-    if(contents == undefined)
+    if (contents == undefined)
         contents = await read(cacheFile)
 
-    if(!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
+    if (!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
         Logger.error(cacheFile, "length doesn't match!", contents.length, cachedFile.length)
         Logger.addStatAndSend("bandwidthSaved", -contents.length)
         return handleCaching(req, res, true)
     }
 
     let gvo = getConfig().gameVersionOverwrite
-    if(file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
-        if(gvo == "kca")
+    if (file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
+        if (gvo == "kca")
             gvo = await getKCAVersion(getConfig().serverIP)
 
-        if(gvo)
+        if (gvo)
             contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
     }
 
-    if(file && isBlacklisted(file)) {
+    if (file && isBlacklisted(file)) {
         res.setHeader("Server", "nginx")
-        if(!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
+        if (!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
             res.setHeader("Cache-Control", "no-store")
         else
             res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
@@ -240,7 +240,7 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
         res.setHeader("Server", "nginx")
         res.setHeader("X-DNS-Prefetch-Control", "off")
 
-        if(getConfig().disableBrowserCache || isInvalidated(file)) {
+        if (getConfig().disableBrowserCache || isInvalidated(file)) {
             res.setHeader("Cache-Control", "no-store")
             res.setHeader("Pragma", "no-cache")
         } else {
@@ -252,15 +252,15 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     // TODO switch or some table
     if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html"))
         res.setHeader("Content-Type", "text/html")
-    else if(cacheFile.endsWith(".png"))
+    else if (cacheFile.endsWith(".png"))
         res.setHeader("Content-Type", "image/png")
-    else if(cacheFile.endsWith(".json"))
+    else if (cacheFile.endsWith(".json"))
         res.setHeader("Content-Type", "application/json")
-    else if(cacheFile.endsWith(".css"))
+    else if (cacheFile.endsWith(".css"))
         res.setHeader("Content-Type", "text/css")
-    else if(cacheFile.endsWith(".mp3"))
+    else if (cacheFile.endsWith(".mp3"))
         res.setHeader("Content-Type", "audio/mpeg")
-    else if(cacheFile.endsWith(".js"))
+    else if (cacheFile.endsWith(".js"))
         res.setHeader("Content-Type", "application/x-javascript")
 
     res.end(contents)
@@ -276,10 +276,10 @@ async function handleCaching(req, res, forceCache = false) {
     const { url, headers } = req
     const { file, cacheFile, version } = extractURL(url)
 
-    if(getConfig().bypassGadgetUpdateCheck)
+    if (getConfig().bypassGadgetUpdateCheck)
         invalidatedMainVersion = true
 
-    if(file.startsWith("/kcs2/") && getConfig().serverIP !== req.headers.host) {
+    if (file.startsWith("/kcs2/") && getConfig().serverIP !== req.headers.host) {
         getConfig().serverIP = req.headers.host
         Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
         saveConfig()
@@ -288,10 +288,10 @@ async function handleCaching(req, res, forceCache = false) {
     // Return cached if version matches
     const cachedFile = cached[file]
     let lastmodified = undefined
-    if(cachedFile && await exists(cacheFile) && !forceCache) {
+    if (cachedFile && await exists(cacheFile) && !forceCache) {
         // Allowing single ? for bugged _onInfoLoadComplete
-        if((cachedFile.version == version || version == "" || version == "?") && (getConfig().bypassGadgetUpdateCheck || !isBlacklisted(file)) && !isInvalidated(file)) {
-            if(res == undefined)
+        if ((cachedFile.version == version || version == "" || version == "?") && (getConfig().bypassGadgetUpdateCheck || !isBlacklisted(file)) && !isInvalidated(file)) {
+            if (res == undefined)
                 return
             const contents = await read(cacheFile)
             Logger.addStatAndSend("inCache")
@@ -305,20 +305,20 @@ async function handleCaching(req, res, forceCache = false) {
 
     // Not in cache or version mismatch, need to check with server
     const result = await cache(cacheFile, file, url, version, lastmodified, headers)
-    if(res == undefined)
+    if (res == undefined)
         return
 
-    if(!result.contents) {
+    if (!result.contents) {
         res.statusCode = result.status
         return res.end()
     }
 
-    if(result.status >= 500 && result.contents) {
+    if (result.status >= 500 && result.contents) {
         res.statusCode = result.status
         return res.end(result.contents)
     }
 
-    if(!result.downloaded)
+    if (!result.downloaded)
         Logger.addStatAndSend("bandwidthSaved", result.contents.length)
     return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
@@ -331,13 +331,13 @@ async function getKCAVersion(host) {
 
     const kcafile = cached[file]
     let lastmodified = undefined
-    if(kcafile && await exists(cacheFile))
+    if (kcafile && await exists(cacheFile))
         lastmodified = kcafile.lastmodified
 
     const result = await cache(cacheFile, file, url, "", lastmodified)
 
-    if(!result.contents) return false
-    if(result.status !== 200) return false
+    if (!result.contents) return false
+    if (result.status !== 200) return false
 
     try {
         return JSON.parse(result.contents.toString()).api.api_start2
@@ -356,7 +356,7 @@ function extractURL(url) {
         version = url.substring(url.indexOf("?"))
         file = file.substring(0, file.indexOf("?"))
     }
-    if(file.endsWith("/")) file += "index.html"
+    if (file.endsWith("/")) file += "index.html"
 
     const cacheFile = join(getCacheLocation(), file)
     return { file, cacheFile, version }
@@ -410,14 +410,14 @@ async function forceSave() {
 async function saveCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
     const str = JSON.stringify(cached)
-    if(str.length == 2)
+    if (str.length == 2)
         return Logger.log(`Cache is empty, not saved to ${CACHE_INFORMATION}`)
 
     await ensureDir(getCacheLocation())
-    if(await exists(CACHE_INFORMATION))
+    if (await exists(CACHE_INFORMATION))
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
     await writeFile(CACHE_INFORMATION, str)
-    if(await exists(CACHE_INFORMATION + ".bak"))
+    if (await exists(CACHE_INFORMATION + ".bak"))
         await remove(CACHE_INFORMATION + ".bak")
 
     Logger.send("stats", getCacheStats())

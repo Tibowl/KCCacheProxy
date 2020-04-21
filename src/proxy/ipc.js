@@ -43,7 +43,7 @@ function send(type, ...toSend) {
     toSend.unshift(type)
     toSend.unshift(new Date())
 
-    if(global.mainWindow && (global.mainWindow.isVisible() || type == "stats"))
+    if (global.mainWindow && (global.mainWindow.isVisible() || type == "stats"))
         global.mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 150) recent.pop()
@@ -58,8 +58,8 @@ let stats = undefined
  * @param {number} amount Amount to increase
  */
 function addStatAndSend(statType, amount = 1) {
-    if(statsPath == undefined) return
-    if(stats == undefined) loadStats()
+    if (statsPath == undefined) return
+    if (stats == undefined) loadStats()
 
     stats[statType] = (stats[statType] || 0) + amount
 
@@ -76,18 +76,18 @@ function addStatAndSend(statType, amount = 1) {
  * Save stats to disk
  */
 async function saveStats() {
-    if(statsPath == undefined) return
-    if(saveStatsTimer) {
+    if (statsPath == undefined) return
+    if (saveStatsTimer) {
         clearTimeout(saveStatsTimer)
         saveStatsTimer = undefined
     }
 
     await ensureDir(dirname(statsPath))
 
-    if(await exists(statsPath + ".old"))
+    if (await exists(statsPath + ".old"))
         await unlink(statsPath + ".old")
 
-    if(await exists(statsPath))
+    if (await exists(statsPath))
         await move(statsPath, statsPath + ".old")
 
     await writeFile(statsPath, JSON.stringify(stats))
@@ -96,8 +96,8 @@ async function saveStats() {
  * Load stats from disk
  */
 function loadStats() {
-    if(statsPath == undefined) return
-    if(existsSync(statsPath)) {
+    if (statsPath == undefined) return
+    if (existsSync(statsPath)) {
         try {
             stats = JSON.parse(readFileSync(statsPath).toString())
             return
@@ -106,7 +106,7 @@ function loadStats() {
         }
     }
 
-    if(existsSync(statsPath + ".old")) {
+    if (existsSync(statsPath + ".old")) {
         try {
             stats = JSON.parse(readFileSync(statsPath + ".old").toString())
             log("Recovered stats from old file")
@@ -124,7 +124,7 @@ function loadStats() {
  * Send most recent messages
  */
 function sendRecent() {
-    if(global.mainWindow)
+    if (global.mainWindow)
         global.mainWindow.webContents.send("recent", recent)
 }
 /**

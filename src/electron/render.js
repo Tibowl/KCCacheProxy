@@ -14,27 +14,27 @@ ipcRenderer.on("config", (e, message) => {
     updateConfig(message)
 })
 ipcRenderer.on("version", (e, {manual, error, release}) => {
-    if(error) {
+    if (error) {
         addLog("error", new Date(), error)
-        if(manual)
+        if (manual)
             alert(`Failed to check for updates: ${error}`)
         return
     }
 
     const v = remote.app.getVersion()
     if (`v${v}` == release.tag_name) {
-        if(manual)
+        if (manual)
             addLog("log", new Date(), "Version check: Up to date!")
         return
     }
 
-    if(manual) {
+    if (manual) {
         addLog("log", new Date(), `Version check: New version found! v${v} -> ${release.tag_name}`)
 
         // Show prompt after page is redrawn
         requestAnimationFrame(() =>
             setImmediate(() => {
-                if(confirm(`A new version has been found! v${v} -> ${release.tag_name}\n\nDo you want to open the release page in browser?`))
+                if (confirm(`A new version has been found! v${v} -> ${release.tag_name}\n\nDo you want to open the release page in browser?`))
                     shell.openExternal(`${BASEURL}/releases/`)
             }))
     }
@@ -52,7 +52,7 @@ function update(message) {
     const messageDate = message.shift()
     const messageType = message.shift()
 
-    switch(messageType) {
+    switch (messageType) {
         case "error":
         case "log":
             addLog(messageType, messageDate, ...message)
@@ -138,9 +138,9 @@ const stats = {
  * @param newStats Updated stats, <key, value> with key in stats
  */
 function updateStats(newStats) {
-    for(const [key, type] of Object.entries(stats)) {
+    for (const [key, type] of Object.entries(stats)) {
         const value = newStats[key]
-        if(value == undefined) continue
+        if (value == undefined) continue
 
         switch (type) {
             case "numberH":
@@ -175,7 +175,7 @@ const sizes = ["B", "KB", "MB", "GB", "TB"]
  */
 function formatBytes(size = 0) {
     let ind = 0
-    while(size >= 1000 && ind < sizes.length - 1) {
+    while (size >= 1000 && ind < sizes.length - 1) {
         size /= 1024
         ind++
     }
@@ -284,7 +284,7 @@ function updateConfig(c) {
     for (const [key, value] of Object.entries(settable)) {
         const label = document.createElement("label")
         label.innerText = `${value.label}: `
-        if(value.title)
+        if (value.title)
             label.title = value.title
         settings.appendChild(label)
         settings.appendChild(document.createElement("br"))
@@ -307,13 +307,13 @@ function updateConfig(c) {
 
         if (value.dialog) {
             value.dialog.defaultPath = config[key]
-            if(key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
+            if (key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
                 value.dialog.defaultPath = join(remote.app.getPath("userData"), "ProxyData", "cache")
 
             const dialogButton = document.createElement("button")
             dialogButton.innerText = "..."
             dialogButton.onclick = () => remote.dialog.showOpenDialog(value.dialog).then((v) => {
-                if(v.canceled) return
+                if (v.canceled) return
                 input.value = v.filePaths[0]
                 checkSaveable()
             })
@@ -339,10 +339,10 @@ function checkSaveable() {
         const input = document.getElementById(key)
         let value = getValue(key, input)
 
-        if(settings.ifEmpty !== undefined && input.value == "")
+        if (settings.ifEmpty !== undefined && input.value == "")
             value = input.value = newConfig[key] = settings.ifEmpty
 
-        if(settings.verify !== undefined && !settings.verify(value)) {
+        if (settings.verify !== undefined && !settings.verify(value)) {
             addLog("error", new Date(), settings.verifyError)
             value = input.value = newConfig[key] = config[key]
         }
@@ -429,11 +429,11 @@ document.getElementById("verifyCache").onclick = async () => {
         message: "Delete invalid files?",
         detail: "Cached files created in an old version might count as invalid and will be deleted."
     })
-    if(!response.response) return
+    if (!response.response) return
     ipcRenderer.send("verifyCache", response.response == 1)
 }
 
-for(const elem of document.getElementsByClassName("link")) {
+for (const elem of document.getElementsByClassName("link")) {
     elem.onclick = (e) => {
         e.preventDefault()
         if (elem.href)
