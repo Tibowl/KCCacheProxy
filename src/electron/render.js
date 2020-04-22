@@ -390,8 +390,6 @@ document.getElementById("createDiff").onclick = async () => {
     })
     if (source.canceled) return
 
-    addLog("log", new Date(), source.filePaths[0])
-
     const n = new Date(), f = d => d.toString().padStart(2, 0)
     const target = await remote.dialog.showSaveDialog({
         title: "Select new zip",
@@ -402,9 +400,7 @@ document.getElementById("createDiff").onclick = async () => {
         }],
         properties: []
     })
-    //  if (target.canceled) return
-
-    addLog("log", new Date(), target.filePath)
+    if (target.canceled) return
 
     ipcRenderer.send("createDiff", source.filePaths[0], target.filePath)
 }
