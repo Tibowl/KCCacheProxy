@@ -321,9 +321,8 @@ function updateConfig(c) {
         }
     }
 
-    // Add hidden buttons
-    document.getElementById("preload").style = config.showExtraButtons ? "" : "display:none"
-    document.getElementById("createDiff").style = config.showExtraButtons ? "" : "display:none"
+    // Add hidden button section
+    document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
 }
 
 const saveButton = document.getElementById("save")
@@ -437,6 +436,8 @@ for (const elem of document.getElementsByClassName("link")) {
     }
 }
 document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
+document.getElementById("openFAQ").onclick = () => shell.openExternal(`${BASEURL}/wiki/FAQ`)
+document.getElementById("openCacheDump").onclick = () => shell.openExternal(`${BASEURL}/wiki/Installation-and-setup#using-cache-dumps`)
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")

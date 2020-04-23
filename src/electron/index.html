@@ -11,11 +11,12 @@
       <h1 id="mainTitle">KCCacheProxy</h1>
       <div id="support">
         <span class="align"></span>
-        <a href='https://ko-fi.com/A0A81MOVN' class="link">
-          <img height='30' style='border:0px;height:30px;' src='./support.png' border='0' alt='Support me at ko-fi.com' />
+        <a href="https://ko-fi.com/A0A81MOVN" class="link">
+          <img height="30" style="border:0px;height:30px;" src="./support.png" border="0" alt="Support me at ko-fi.com" />
         </a>
       </div>
     </div>
+    <a id="openFAQ">FAQ</a><br>
     <div id="update" style="display:none">
       You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
       <a id="openReleases">Open releases page</a>
@@ -46,8 +47,11 @@
     <button id="verifyCache">Verify entire cache (might take a bit)</button>
     <button id="importCache">Import built-in basic cache dump</button>
     <button id="importCustomCache">Import cache dump</button>
-    <button style="display:none" id="preload">Preload</button>
-    <button style="display:none" id="createDiff">Create diff</button>
+    <a id="openCacheDump">Where/how to get cache dumps</a>
+    <div style="display:none" id="extraButtons">
+      <button id="preload">Preload</button>
+      <button id="createDiff">Create diff</button>
+    </div>
     <h2>Proxy log:</h2>
     <div id="log"></div>
   </body>
