@@ -46,6 +46,16 @@ h2, .h2 {
 #newVersion {
   font-weight: bold;
 }
+#save:enabled {
+  animation: blinker 1s linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+@keyframes blinker {
+  to {
+    background-color: green;
+  }
+}
 
 /* Stats */
 .info {
