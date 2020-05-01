@@ -1,58 +1,69 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>KCCacheProxy</title>
-    <link rel="stylesheet" href="index.css">
-    <script defer src="render.js"></script>
-  </head>
-  <body>
-    <div id="title">
-      <h1 id="mainTitle">KCCacheProxy</h1>
-      <div id="support">
-        <span class="align"></span>
-        <a href="https://ko-fi.com/A0A81MOVN" class="link">
-          <img height="30" style="border:0px;height:30px;" src="./support.png" border="0" alt="Support me at ko-fi.com" />
-        </a>
-      </div>
+
+<head>
+  <meta charset="UTF-8">
+  <title>KCCacheProxy</title>
+  <link rel="stylesheet" href="index.css">
+  <script defer src="render.js"></script>
+</head>
+
+<body>
+  <div id="title">
+    <h1 id="mainTitle">KCCacheProxy</h1>
+    <div id="support">
+      <span class="align"></span>
+      <a href="https://ko-fi.com/A0A81MOVN" class="link">
+        <img height="30" style="border:0px;height:30px;" src="./support.png" border="0" alt="Support me at ko-fi.com" />
+      </a>
     </div>
-    <a id="openFAQ">FAQ</a><br>
-    <div id="update" style="display:none">
-      You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
-      <a id="openReleases">Open releases page</a>
-    </div>
-    <button id="checkVersion">Check for updates</button>
-    <h2>Stats:</h2>
-    Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
-      <span id="oldCache" class="info" title="Note: This IS inaccurate since your cache was made in an old version">*</span><br>
-    Since installation (<span id="startDate"></span>):<br>
-    <ul>
-      <li style="display:none" id="passthrough"><span class="info" title="These are passed through, not dropped">Ignored</span> <span id="passthroughHTTP">0</span> HTTP requests and <span id="passthroughHTTPS">0</span> HTTPS requests.</li>
-      <li>Handled <span id="totalHandled">0</span> requests
-        <ul>
-          <li style="display:none" id="inCacheH"><span id="inCache">0</span> found in cache</li>
-          <li style="display:none" id="notModifiedH"><span id="notModified">0</span> changed version tag, but weren't modified
-            <span class="info" title="Note: These aren't included in the 'found in cache' count. These were loaded from cache, but still required to be checked if not modified from KC servers.">*</span></li>
-          <li style="display:none" id="fetchedH"><span id="fetched">0</span> had to be downloaded from KC servers</li>
-          <li style="display:none" id="blockedH"><span id="blocked">0</span> blocked by KC servers</li>
-          <li style="display:none" id="failedH"><span id="failed">0</span> failed to load</li>
-        </ul>
-      </li>
-      <li>Saved <span id="bandwidthSaved">0 B</span> of bandwidth.</li>
-    </ul>
-    <div class="h2"><h2 style="display: inline;">Settings: </h2><a id="openConfigWiki">More information</a></div>
-    <div id="settings"></div>
-    <button id="save" disabled>Save</button><br>
-    <button id="reloadCache">Reload cache</button>
-    <button id="verifyCache">Verify entire cache (might take a bit)</button>
-    <button id="importCache">Import built-in basic cache dump</button>
-    <button id="importCustomCache">Import cache dump</button>
-    <a id="openCacheDump">Where/how to get cache dumps</a>
-    <div style="display:none" id="extraButtons">
-      <button id="preload">Preload</button>
-      <button id="createDiff">Create diff</button>
-    </div>
-    <h2>Proxy log:</h2>
-    <div id="log"></div>
-  </body>
+  </div>
+  <a id="openFAQ">FAQ / Troubleshooting</a><br>
+  <div id="update" style="display:none">
+    You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
+    <a id="openReleases">Open releases page</a>
+  </div>
+  <button id="checkVersion">Check for updates</button>
+  <h2>Stats:</h2>
+  Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
+  <span id="oldCache" class="info"
+    title="Note: This IS inaccurate since your cache was made in an old version">*</span><br>
+  Since installation (<span id="startDate"></span>):<br>
+  <ul>
+    <li style="display:none" id="passthrough"><span class="info"
+        title="These are passed through, not dropped">Ignored</span> <span id="passthroughHTTP">0</span> HTTP requests
+      and <span id="passthroughHTTPS">0</span> HTTPS requests.</li>
+    <li>Handled <span id="totalHandled">0</span> requests
+      <ul>
+        <li style="display:none" id="inCacheH"><span id="inCache">0</span> found in cache</li>
+        <li style="display:none" id="notModifiedH"><span id="notModified">0</span> changed version tag, but weren't
+          modified
+          <span class="info"
+            title="Note: These aren't included in the 'found in cache' count. These were loaded from cache, but still required to be checked if not modified from KC servers.">*</span>
+        </li>
+        <li style="display:none" id="fetchedH"><span id="fetched">0</span> had to be downloaded from KC servers</li>
+        <li style="display:none" id="blockedH"><span id="blocked">0</span> blocked by KC servers</li>
+        <li style="display:none" id="failedH"><span id="failed">0</span> failed to load</li>
+      </ul>
+    </li>
+    <li>Saved <span id="bandwidthSaved">0 B</span> of bandwidth.</li>
+  </ul>
+  <div class="h2">
+    <h2 style="display: inline;">Settings: </h2><a id="openConfigWiki">More information</a>
+  </div>
+  <div id="settings"></div>
+  <button id="save" disabled>Save</button><br>
+  <button id="reloadCache">Reload cache</button>
+  <button id="verifyCache">Verify entire cache (might take a bit)</button>
+  <button id="importCache">Import built-in basic cache dump</button>
+  <button id="importCustomCache">Import cache dump</button>
+  <a id="openCacheDump">Where/how to get cache dumps</a>
+  <div style="display:none" id="extraButtons">
+    <button id="preload">Preload</button>
+    <button id="createDiff">Create diff</button>
+  </div>
+  <h2>Proxy log:</h2>
+  <div id="log"></div>
+</body>
+
 </html>
