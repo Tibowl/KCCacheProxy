@@ -100,7 +100,7 @@ async function mergeCache(source) {
         const { baseFolder, data } = await fetchCached
         const newCached = JSON.parse(data)
 
-        let newerLocally = 0, same = 0, copied = 0, errored = 0, versionChange = 0
+        let newerLocally = 0, same = 0, copied = 0, skipped = 0, versionChange = 0
         for (const file of Object.keys(newCached).sort()) {
             const newFile = newCached[file]
             if (cacher.getCached()[file]) {
@@ -128,8 +128,8 @@ async function mergeCache(source) {
             const entry = zip.entry(sourceLocation)
 
             if (!entry) {
-                Logger.error(`File ${sourceLocation} is missing in zip`)
-                errored++
+                // Logger.error(`File ${sourceLocation} is missing in zip`)
+                skipped++
                 break
             }
 
@@ -145,7 +145,7 @@ async function mergeCache(source) {
 
         await loadRest
         zip.close()
-        Logger.log(`Finished merging cache! Copied ${copied} files, updated version tag of ${versionChange} files. ${newerLocally} were newer locally, ${same} are the same, ${errored} failed.`)
+        Logger.log(`Finished merging cache! Copied ${copied} files, updated version tag of ${versionChange} files. ${newerLocally} were newer locally, ${same} are the same, ${skipped} skipped.`)
     } catch (error) {
         return Logger.error(error)
     }
