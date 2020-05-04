@@ -33,6 +33,8 @@ function error(...input) {
     send("error", ...input)
 }
 
+let sendHelp = false
+
 /** @typedef {"stats" | "log" | "error" | "help"} UpdateTypes */
 /**
  * Send an update to render process
@@ -40,6 +42,7 @@ function error(...input) {
  * @param  {...any} toSend Message to send
  */
 function send(type, ...toSend) {
+    if (type == "help" && !sendHelp) return
     toSend.unshift(type)
     toSend.unshift(new Date())
 
@@ -47,7 +50,7 @@ function send(type, ...toSend) {
         global.mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 150) recent.pop()
-    recent.unshift(toSend)
+    if (type != "help") recent.unshift(toSend)
 }
 
 let sendStats = undefined, saveStatsTimer = undefined, statsPath = undefined
@@ -161,5 +164,8 @@ function registerElectron(ipcMain, app) {
     ipcMain.on("preload", () => require("./preload").run())
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))
     ipcMain.on("createDiff", (e, source, target) => createDiff(source, target))
-    ipcMain.on("startHelp", (e) => clearMain())
+    ipcMain.on("startHelp", () => {
+        sendHelp = true
+        clearMain()
+    })
 }
