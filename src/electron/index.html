@@ -18,12 +18,35 @@
       </a>
     </div>
   </div>
-  <a id="openFAQ">FAQ / Troubleshooting</a><br>
   <div id="update" style="display:none">
     You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
     <a id="openReleases">Open releases page</a>
   </div>
-  <button id="checkVersion">Check for updates</button>
+  <button id="checkVersion">Check for updates</button><br>
+  <button id="startHelp">Having troubles? Start the troubleshooter</button>
+  <a id="openFAQ">FAQ</a>
+  <br>
+  <div id="help" style="display:none;">
+    <h2>Troubleshooter</h2>
+    <div id="not-started">
+      Please refresh your game and wait a bit, game might take a bit to load.<br>
+    </div>
+
+    <div id="loading">
+      <b>Potentional issues:</b>
+      <ul>
+        <li id="no-connection">Nothing is coming through the proxy, double check settings for your viewer.</li>
+        <li id="no-connection-with-gadget">Gadget server isn't coming through the proxy, double check settings for your viewer.</li>
+        <li id="no-cache">You don't have the minimum cache installed, click on <code>Import built-in basic cache dump</code>.</li>
+        <li id="no-index">Game in maintenance or no KC server going through proxy, double check settings for your viewer.</li>
+        <li id="no-main">Game is not being loaded from proxy, try clearing browser cache.</li>
+        <li id="no-version">It looks like the game isn't getting started, try clearing browser cache.</li>
+      </ul>
+    </div>
+    <div id="done">
+      Everything looks fine from here. If you are still having issues contact me on Discord via <a href="https://discord.gg/J7nBD6U" class="link">https://discord.gg/J7nBD6U</a>.
+    </div>
+  </div>
   <h2>Stats:</h2>
   Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
   <span id="oldCache" class="info"

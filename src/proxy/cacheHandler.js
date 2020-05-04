@@ -4,7 +4,7 @@ const { join, dirname } = require("path")
 const AdmZip = require("adm-zip")
 const StreamZip = require("node-stream-zip")
 
-module.exports = { verifyCache, mergeCache, createDiff }
+module.exports = { verifyCache, mergeCache, createDiff, clearMain }
 
 const { getConfig, getCacheLocation } = require("./config")
 const Logger = require("./ipc")
@@ -34,12 +34,16 @@ async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase(
 
                 if (contents.length != value.length) {
                     Logger.error(key, "length doesn't match!", contents.length, value.length)
-                    if (deleteinvalid)
-                        unlink(file)
+                    if (deleteinvalid) {
+                        await unlink(file)
+                        delete cacher.getCached()[key]
+                    }
                     return 0
                 }
                 return 1
             } catch (e) {
+                if (deleteinvalid)
+                    delete cacher.getCached()[key]
                 return -1
             }
         }
@@ -103,7 +107,9 @@ async function mergeCache(source) {
         let newerLocally = 0, same = 0, copied = 0, skipped = 0, versionChange = 0
         for (const file of Object.keys(newCached).sort()) {
             const newFile = newCached[file]
-            if (cacher.getCached()[file]) {
+            const targetLocation = join(getCacheLocation(), file)
+
+            if (cacher.getCached()[file] && await exists(targetLocation)) {
                 const oldFile = cacher.getCached()[file]
                 if (new Date(oldFile.lastmodified) > new Date(newFile.lastmodified)) {
                     newerLocally++
@@ -122,7 +128,6 @@ async function mergeCache(source) {
 
             await loadRest
 
-            const targetLocation = join(getCacheLocation(), file)
             const sourceLocation = baseFolder + file.substring(1)
 
             const entry = zip.entry(sourceLocation)
@@ -219,4 +224,14 @@ async function createDiff(source, target) {
     zip.writeZip(target)
 
     Logger.log(`Finished creating diff! ${total} total changes, of which ${news} new files. ${versionChange} changed version. ${same} are exactly the same. ${olderCurrently} are newer in old cache?! `)
+}
+
+async function clearMain() {
+    for (const key of cacher.invalidated) {
+        const file = join(getCacheLocation(), key)
+        if (await exists(file)) {
+            await unlink(file)
+            Logger.log(`Deleted ${file} - as it could potentionally cause issues`)
+        }
+    }
 }

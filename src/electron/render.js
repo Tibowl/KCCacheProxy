@@ -10,9 +10,7 @@ ipcRenderer.on("recent", (e, message) => {
     log.innerHTML = ""
     message.reverse().forEach(m => update(m))
 })
-ipcRenderer.on("config", (e, message) => {
-    updateConfig(message)
-})
+ipcRenderer.on("config", (e, message) => updateConfig(message))
 ipcRenderer.on("version", (e, {manual, error, release}) => {
     if (error) {
         addLog("error", new Date(), error)
@@ -59,6 +57,9 @@ function update(message) {
             break
         case "stats":
             updateStats(message.shift())
+            break
+        case "help":
+            updateHelp(message.shift())
             break
     }
 }
@@ -375,6 +376,71 @@ function saveConfig() {
     saveButton.disabled = true
 }
 
+/** @type {Set<string>} */
+let helpSequence = undefined
+const help = {
+    startedHelp: {
+        show: ["not-started", "loading", "no-connection"]
+    },
+    connected: {
+        hide: ["no-connection"],
+        show: ["no-connection-with-gadget"]
+    },
+    gadgetFail: {
+        hide: ["no-connection-with-gadget", "not-started"],
+        show: ["no-cache"]
+    },
+    gadgetHit: {
+        hide: ["no-connection-with-gadget", "no-cache"],
+        show: ["no-index"]
+    },
+    indexHit: {
+        hide: ["no-index", "not-started"],
+        show: ["no-main"]
+    },
+    mainHit: {
+        hide: ["no-main"],
+        show: ["no-version"]
+    },
+    versionHit: {
+        hide: ["no-version"],
+        show: ["done"]
+    }
+}
+/**
+ * Update help information
+ */
+function updateHelp(toUpdate) {
+    if (toUpdate == "startedHelp") {
+        ipcRenderer.send("startHelp")
+        helpSequence = new Set()
+    }
+    const len = helpSequence.size
+    if (!helpSequence) return
+    if (toUpdate) helpSequence.add(toUpdate)
+    if (helpSequence.size <= len) return
+    document.getElementById("help").style = ""
+
+    ;["not-started",
+      "loading",
+      "no-connection",
+      "no-connection-with-gadget",
+      "no-cache",
+      "no-index",
+      "no-main",
+      "no-version",
+      "done"].forEach(el => document.getElementById(el).style = "display: none;")
+
+    for (const item of helpSequence) {
+        if (help[item].show)
+            help[item].show.forEach((el) => document.getElementById(el).style = "")
+        if (help[item].hide)
+            help[item].hide.forEach((el) => document.getElementById(el).style = "display: none;")
+    }
+
+    if (helpSequence.has("mainHit") && helpSequence.has("versionHit"))
+        document.getElementById("loading").style = "display: none;"
+}
 for (const type of ["importCache", "reloadCache", "preload", "checkVersion"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
@@ -426,6 +492,10 @@ document.getElementById("verifyCache").onclick = async () => {
     })
     if (!response.response) return
     ipcRenderer.send("verifyCache", response.response == 1)
+}
+
+document.getElementById("startHelp").onclick = () => {
+    updateHelp("startedHelp")
 }
 
 for (const elem of document.getElementsByClassName("link")) {

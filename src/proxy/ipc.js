@@ -33,7 +33,7 @@ function error(...input) {
     send("error", ...input)
 }
 
-/** @typedef {"stats" | "log" | "error"} UpdateTypes */
+/** @typedef {"stats" | "log" | "error" | "help"} UpdateTypes */
 /**
  * Send an update to render process
  * @param {UpdateTypes} type Type of message
@@ -149,7 +149,7 @@ function registerElectron(ipcMain, app) {
     send("stats", stats)
 
     const config = require("./config")
-    const { verifyCache, mergeCache, createDiff } = require("./cacheHandler")
+    const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
@@ -161,4 +161,5 @@ function registerElectron(ipcMain, app) {
     ipcMain.on("preload", () => require("./preload").run())
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))
     ipcMain.on("createDiff", (e, source, target) => createDiff(source, target))
+    ipcMain.on("startHelp", (e) => clearMain())
 }

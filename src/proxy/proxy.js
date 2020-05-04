@@ -17,8 +17,11 @@ const server = createServer(async (req, res) => {
     const { method, url } = req
 
     Logger.log(method + ": " + url)
+    Logger.send("help", "connected")
 
     if (method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
+        if (url.includes("/kcs2/index.php"))
+            Logger.send("help", "indexHit")
         Logger.addStatAndSend("passthroughHTTP")
         Logger.addStatAndSend("passthrough")
         return proxy.web(req, res, {

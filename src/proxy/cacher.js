@@ -8,8 +8,11 @@ const { promisify } = require("util")
 
 const move = promisify(rename), read = promisify(readFile), remove = promisify(unlink)
 
+const invalidated = ["/kcs2/version.json", "/kcs2/js/main.js"]
+const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
+
 let cached
-module.exports = { cache, handleCaching, extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached }
+module.exports = { cache, handleCaching, extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached, invalidated}
 
 const Logger = require("./ipc")
 const { getConfig, getCacheLocation, saveConfig } = require("./config")
@@ -157,6 +160,9 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         Logger.log("HTTP error ", data.status, url)
         Logger.addStatAndSend("failed")
 
+        if (file == "/gadget_html5/js/kcs_const.js")
+            Logger.send("help", "gadgetFail")
+
         return response(data)
     }
 
@@ -221,12 +227,22 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     }
 
     let gvo = getConfig().gameVersionOverwrite
-    if (file && gvo !== "false" && file == "/gadget_html5/js/kcs_const.js") {
-        if (gvo == "kca")
-            gvo = await getKCAVersion(getConfig().serverIP)
+    if (file) {
+        const helpSends = {
+            "/gadget_html5/js/kcs_const.js": "gadgetHit",
+            "/kcs2/js/main.js": "mainHit",
+            "/kcs2/version.json": "versionHit"
+        }
+        if (helpSends[file])
+            Logger.send("help", helpSends[file])
 
-        if (gvo)
-            contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
+        if (file == "/gadget_html5/js/kcs_const.js" && gvo !== "false") {
+            if (gvo == "kca")
+                gvo = await getKCAVersion(getConfig().serverIP)
+
+            if (gvo)
+                contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
+        }
     }
 
     if (file && isBlacklisted(file)) {
@@ -362,7 +378,6 @@ function extractURL(url) {
     return { file, cacheFile, version }
 }
 
-const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
 /**
  * Check if a file is blacklisted from cache
  * @param {string} file File to check
@@ -371,7 +386,6 @@ function isBlacklisted(file) {
     return blacklisted.some(k => file.startsWith(k))
 }
 
-const invalidated = ["/kcs2/version.json", "/kcs2/js/main.js"]
 /**
  * Check if a file should be invalidated if blacklisted files didn't load
  * @param {string} file File to check
