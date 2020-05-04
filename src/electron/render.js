@@ -494,8 +494,10 @@ document.getElementById("verifyCache").onclick = async () => {
     ipcRenderer.send("verifyCache", response.response == 1)
 }
 
-document.getElementById("startHelp").onclick = () => {
-    updateHelp("startedHelp")
+document.getElementById("startHelp").onclick = () => updateHelp("startedHelp")
+document.getElementById("stopHelp").onclick = () => {
+    helpSequence = undefined
+    document.getElementById("help").style = "display:none;"
 }
 
 for (const elem of document.getElementsByClassName("link")) {
