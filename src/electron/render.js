@@ -385,6 +385,15 @@ function saveConfig() {
     updateHidden()
 }
 
+let cacheReload
+function reload() {
+    if (cacheReload) clearTimeout(cacheReload)
+    cacheReload = setTimeout(() => {
+        ipcRenderer.send("setConfig", config)
+        ipcRenderer.send("reloadModCache")
+        cacheReload = undefined
+    }, 2000)
+}
 function updateHidden() {
     // Add hidden areas
     document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
@@ -403,24 +412,34 @@ function updateHidden() {
             child.innerText = text
             elem.appendChild(child)
         }
-        const addButton = function(text, callback) {
+        const addButton = function(text, callback, disabled = false) {
             const button = document.createElement("button")
             button.innerText = text
+            button.disabled = disabled
             button.onclick = callback
             elem.appendChild(button)
+        }
+        const move = function(direction) {
+            const ind = config.mods.indexOf(mod)
+            config.mods.splice(ind, 1)
+            config.mods.splice(ind+direction, 0, mod)
+
+            reload()
+            updateHidden()
         }
         if (existsSync(mod))
             try {
                 const modData = JSON.parse(readFileSync(mod))
+
+                addButton("↓", () => move(1), config.mods[config.mods.length-1] === mod)
+                addButton("↑", () => move(-1), config.mods[0] === mod)
+
                 add("b", modData.name)
                 add("span", " v.")
                 add("b", modData.version)
                 add("span", " by ")
                 add("span", modData.authors.join(", "))
                 add("span", " ")
-
-            // TODO: addButton("↑")
-            // TODO: addButton("↓")
             } catch (error) {
                 addLog("error", error)
                 elem.innerText = "Failed to load metadata: "
@@ -437,7 +456,7 @@ function updateHidden() {
         addButton("Remove", () => {
             const ind = config.mods.indexOf(mod)
             config.mods.splice(ind, 1)
-            ipcRenderer.send("setConfig", config)
+            reload()
             updateHidden()
         })
     }
@@ -567,12 +586,17 @@ document.getElementById("addMod").onclick = async () => {
         title: "Select a mod metadata file",
         filters: [{
             name: "Mod metadata",
+            defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
             extensions: ["mod.json"]
         }],
         properties: ["openFile"]
     })
     if (response.canceled) return
 
+    if (config.mods.includes(response.filePaths[0])) {
+        addLog("error", new Date(), "Already added")
+        return
+    }
     config.mods.push(response.filePaths[0])
     ipcRenderer.send("setConfig", config)
     ipcRenderer.send("reloadModCache")
@@ -598,7 +622,6 @@ document.getElementById("extractSpritesheet").onclick = async () => {
         properties: ["openFile"]
     })
     if (source.canceled) return
-
 
     const target = await remote.dialog.showOpenDialog({
         title: "Select a folder to extract to",
