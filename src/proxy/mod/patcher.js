@@ -26,7 +26,7 @@ async function reloadModCache() {
     modCache = {}
 
     for (const mod of getConfig().mods) {
-        const modDir = join(mod, "..")
+        const modDir = mod.replace(/\.mod\.json$/, "")
         Logger.log("Preparing", modDir)
         await prepareDir(modDir)
     }
@@ -40,15 +40,31 @@ async function prepareDir(dir, path = []) {
         if (stats.isDirectory())
             await prepareDir(join(dir, f), [...path, f])
         else if (stats.isFile() && f.endsWith(".png")) {
-            const type = path[path.length-1]
-            const target = "/" + path.slice(0, path.length-1).join("/")
+            let type = path[path.length-1]
+            let target, targetName = f
+
+            if (type !== "original" && type !== "patched") {
+                if (f.startsWith("original")) type = "original"
+                else if (f.startsWith("patched")) type = "patched"
+                else {
+                    Logger.error(`Invalid path ${join(dir, f)}`)
+                    return
+                }
+
+                targetName = targetName.replace(/^(original|patched)/, "")
+                target = "/" + path.join("/")
+            } else
+                target = "/" + path.slice(0, path.length-1).join("/")
+
             if (!modCache[target])
                 modCache[target] = {}
             if (!modCache[target][type])
                 modCache[target][type] = {}
+
+            // Logger.log(target, type, f)
             const img = await Jimp.read(join(dir, f))
             // eslint-disable-next-line require-atomic-updates
-            modCache[target][type][f] = {
+            modCache[target][type][targetName] = {
                 img, hash: img.pHash()
             }
         }
@@ -70,9 +86,17 @@ async function patch(file, contents, cacheFile, cachedFile) {
     if (modCache === undefined)
         await reloadModCache()
 
-    return await patchAsset(file, contents, cacheFile, cachedFile)
+    return await getModified(file, contents, cacheFile, cachedFile)
 }
 
+
+/**
+ * @typedef PatchObject
+ * @property {import("jimp")} imgOriginal
+ * @property {import("jimp")} imgPatched
+ * @property {string} hash
+ * @property {string} name
+ */
 
 /**
  * Patch an asset, returns patched asset
@@ -82,18 +106,10 @@ async function patch(file, contents, cacheFile, cachedFile) {
  * @param {string} cacheFile Cache file location
  * @param {any} cachedFile Cache metadata
  */
-
-async function patchAsset(file, contents, cacheFile, cachedFile) {
+async function getModified(file, contents, cacheFile, cachedFile) {
     const startTime = Date.now()
 
     // Get relevant patches
-    /**
-    * @typedef PatchObject
-    * @property {import("jimp")} imgOriginal
-    * @property {import("jimp")} imgPatched
-    * @property {string} hash
-    * @property {string} name
-    */
     /** @type {PatchObject[]} */
     const patches = []
     const patchHashes = []
@@ -119,21 +135,56 @@ async function patchAsset(file, contents, cacheFile, cachedFile) {
 
     const cached = await checkCached(file, patchHash, cachedFile.lastmodified)
     if (cached) return cached
+
     Logger.log(`Need to repatch ${file}`)
 
-    const spritesheet = await Jimp.read(contents)
+    const spritesheet = await patchAsset(cacheFile,  await Jimp.read(contents), patches)
 
+    const output = await spritesheet.getBufferAsync(Jimp.MIME_PNG)
+    cacheModded(file, output, patchHash, cachedFile.lastmodified)
+    Logger.log(`Patching ${file} took ${Date.now() - startTime} ms`)
+    return output
+}
+
+/**
+ *
+ * @param {string} cacheFile Cache file location
+ * @property {import("jimp")} spritesheet
+ * @param {PatchObject[]} patches
+ */
+async function patchAsset(cacheFile, spritesheet, patches) {
     const spritesheetMeta = cacheFile.replace(/\.png$/, ".json")
-    if (!await exists(spritesheetMeta))
+    if (!await exists(spritesheetMeta)) {
+        const potentionalPatches = patches.filter(patch => patch.imgOriginal.getWidth() == spritesheet.getWidth() && patch.imgOriginal.getHeight() == spritesheet.getHeight())
+        if (potentionalPatches.length == 0) return spritesheet
+        const oriHash = spritesheet.pHash()
+        for (const { hash, imgOriginal, imgPatched } of potentionalPatches) {
+            const dist = Jimp.compareHashes(oriHash, hash)
+            if (dist > 0.01) continue
+            const diff = Jimp.diff(imgOriginal, spritesheet)
+            if (diff.percent > 0.01) continue
+
+            return imgPatched
+        }
+
         return spritesheet
+    }
+
     const meta = JSON.parse(await readFile(spritesheetMeta))
 
     for (const {frame: {x, y, w, h}} of Object.values(meta.frames)) {
         if (patches.length == 0) break
+
+        const potentionalPatches = patches.filter(patch => patch.imgOriginal.getWidth() == w && patch.imgOriginal.getHeight() == h)
+        if (potentionalPatches.length == 0) continue
+
         const toReplace = spritesheet.clone().crop(x, y, w, h)
         const oriHash = toReplace.pHash()
 
-        for (const [k, { hash, imgOriginal, imgPatched }] of Object.entries(patches)) {
+        for (const [k, patchInfo] of Object.entries(patches)) {
+            if (!potentionalPatches.includes(patchInfo)) continue
+            const { hash, imgOriginal, imgPatched } = patchInfo
+
             const dist = Jimp.compareHashes(oriHash, hash)
             if (dist > 0.01) continue
             const diff = Jimp.diff(imgOriginal, toReplace)
@@ -144,12 +195,7 @@ async function patchAsset(file, contents, cacheFile, cachedFile) {
             break
         }
     }
-
-    const output = await spritesheet.getBufferAsync(Jimp.MIME_PNG)
-
-    cacheModded(file, output, patchHash, cachedFile.lastmodified)
-    Logger.log(`Patching ${file} took ${Date.now() - startTime} ms`)
-    return output
+    return spritesheet
 }
 
 module.exports = { patch, reloadModCache }

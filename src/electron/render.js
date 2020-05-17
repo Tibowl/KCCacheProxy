@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require ("electron")
 const { join } = require("path")
-const { readFileSync } = require("fs-extra")
+const { readFileSync, existsSync } = require("fs-extra")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
 
@@ -409,20 +409,27 @@ function updateHidden() {
             button.onclick = callback
             elem.appendChild(button)
         }
-        try {
-            const modData = JSON.parse(readFileSync(mod))
-            add("b", modData.name)
-            add("span", " v.")
-            add("b", modData.version)
-            add("span", " by ")
-            add("span", modData.authors.join(", "))
-            add("span", " ")
+        if (existsSync(mod))
+            try {
+                const modData = JSON.parse(readFileSync(mod))
+                add("b", modData.name)
+                add("span", " v.")
+                add("b", modData.version)
+                add("span", " by ")
+                add("span", modData.authors.join(", "))
+                add("span", " ")
 
             // TODO: addButton("↑")
             // TODO: addButton("↓")
-        } catch (error) {
-            addLog("error", error)
-            elem.innerText = "Failed to load metadata: "
+            } catch (error) {
+                addLog("error", error)
+                elem.innerText = "Failed to load metadata: "
+                const path = document.createElement("code")
+                path.innerText = mod
+                elem.appendChild(path)
+            }
+        else  {
+            elem.innerText = "Missing file (moved or deleted?): "
             const path = document.createElement("code")
             path.innerText = mod
             elem.appendChild(path)
