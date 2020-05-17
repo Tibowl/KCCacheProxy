@@ -57,13 +57,23 @@ server.on("connect", (req, socket) => {
 server.on("error", (...a) => Logger.error("Proxy server error", ...a))
 proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
+const listen = () => {
+    Logger.log(`Starting proxy on ${hostname} with port ${port}...`)
+    server.listen(port, hostname)
+}
+
 const main = async () => {
     cacher.loadCached()
     if (Logger.getStatsPath() == undefined)
         Logger.setStatsPath("./stats.json")
 
-    Logger.log(`Starting proxy on ${hostname} with port ${port}...`)
-    server.listen(port, hostname)
+    if (enableModder)
+        setImmediate(async () => {
+            await reloadModCache()
+            listen()
+        })
+    else
+        listen()
 
     if (preloadOnStart)
         require("./preload").run()
@@ -73,10 +83,6 @@ const main = async () => {
         if (process.argv.find(k => k.toLowerCase() == "verifycache"))
             verifyCache()
     }
-
-    if (enableModder) setTimeout(() => {
-        reloadModCache()
-    }, 1000)
 }
 
 main()

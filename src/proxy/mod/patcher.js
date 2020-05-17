@@ -1,5 +1,5 @@
 const { join } = require("path")
-const { readdir, stat, exists, readFile } = require("fs-extra")
+const { readdir, stat, exists, readFile, writeFile } = require("fs-extra")
 const Jimp = require("./jimp")
 const crypto = require("crypto")
 
@@ -9,8 +9,9 @@ const { cacheModded, checkCached } = require("./patchedcache")
 
 /**
  * @typedef {Object} Patched
- * @property {import("jimp")} img
- * @property {any} hash
+ * @property {string} path
+ * @property {number} [w]
+ * @property {number} [h]
  */
 /**
  * @typedef {Object} Patch
@@ -27,27 +28,34 @@ async function reloadModCache() {
 
     for (const mod of getConfig().mods) {
         const modDir = mod.replace(/\.mod\.json$/, "")
+
+        const meta = JSON.parse(await readFile(mod))
+
         Logger.log("Preparing", modDir)
-        await prepareDir(modDir)
+        await prepareDir(modDir, meta)
+
+        await writeFile(mod, JSON.stringify(meta, undefined, 2))
     }
 
     Logger.log("Preparing mod images took", Date.now() - startTime, "ms")
 }
 
-async function prepareDir(dir, path = []) {
+async function prepareDir(dir, modMeta, path = []) {
     await Promise.all((await readdir(dir)).map(async f => {
-        const stats = await stat(join(dir, f))
+        const filePath = join(dir, f)
+        const stats = await stat(filePath)
+
         if (stats.isDirectory())
-            await prepareDir(join(dir, f), [...path, f])
+            await prepareDir(filePath, modMeta, [...path, f])
         else if (stats.isFile() && f.endsWith(".png")) {
             let type = path[path.length-1]
-            let target, targetName = f
+            let target, targetName = f + (modMeta.name||"") + (modMeta.version||"")
 
             if (type !== "original" && type !== "patched") {
                 if (f.startsWith("original")) type = "original"
                 else if (f.startsWith("patched")) type = "patched"
                 else {
-                    Logger.error(`Invalid path ${join(dir, f)}`)
+                    Logger.error(`Invalid path ${filePath}`)
                     return
                 }
 
@@ -61,12 +69,7 @@ async function prepareDir(dir, path = []) {
             if (!modCache[target][type])
                 modCache[target][type] = {}
 
-            // Logger.log(target, type, f)
-            const img = await Jimp.read(join(dir, f))
-            // eslint-disable-next-line require-atomic-updates
-            modCache[target][type][targetName] = {
-                img, hash: img.pHash()
-            }
+            modCache[target][type][targetName] = { path: filePath }
         }
     }))
 }
@@ -92,9 +95,8 @@ async function patch(file, contents, cacheFile, cachedFile) {
 
 /**
  * @typedef PatchObject
- * @property {import("jimp")} imgOriginal
- * @property {import("jimp")} imgPatched
- * @property {string} hash
+ * @property {string | Buffer} original
+ * @property {string | Buffer} patched
  * @property {string} name
  */
 
@@ -112,23 +114,25 @@ async function getModified(file, contents, cacheFile, cachedFile) {
     // Get relevant patches
     /** @type {PatchObject[]} */
     const patches = []
-    const patchHashes = []
+    const patchHashes = crypto.createHash("md5")
     const paths = file.split("/")
     while (paths.length > 1) {
         const patch = modCache[paths.join("/")]
         if (patch) {
-            for (const [name, {hash, img}] of Object.entries(patch.original))  {
+            for (const [name, {path, w, h}] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
                 if (!patch.patched[name]) {
                     Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
                     continue
                 }
-                patchHashes.push(patch.patched[name].hash)
-                patches.push({imgOriginal: img, hash, imgPatched: patch.patched[name].img, name})
+                const content = await readFile(patch.patched[name].path)
+                patchHashes.update(content)
+                patches.push({original: path, patched: content, name, w, h})
             }
         }
         paths.pop()
     }
-    const patchHash = crypto.createHash("md5").update(patchHashes.sort().join()).digest("base64")
+
+    const patchHash = patchHashes.digest("base64")
 
     // No patching required
     if (patches.length === 0) return contents
@@ -138,9 +142,9 @@ async function getModified(file, contents, cacheFile, cachedFile) {
 
     Logger.log(`Need to repatch ${file}`)
 
-    const spritesheet = await patchAsset(cacheFile,  await Jimp.read(contents), patches)
+    const spritesheet = await patchAsset(cacheFile, await Jimp.read(contents), patches)
 
-    const output = await spritesheet.getBufferAsync(Jimp.MIME_PNG)
+    const output = spritesheet.out ? spritesheet.out : await spritesheet.sc.getBufferAsync(Jimp.MIME_PNG)
     cacheModded(file, output, patchHash, cachedFile.lastmodified)
     Logger.log(`Patching ${file} took ${Date.now() - startTime} ms`)
     return output
@@ -154,20 +158,28 @@ async function getModified(file, contents, cacheFile, cachedFile) {
  */
 async function patchAsset(cacheFile, spritesheet, patches) {
     const spritesheetMeta = cacheFile.replace(/\.png$/, ".json")
+
+    patches = await Promise.all(patches.map(async p => {
+        const img = await Jimp.read(p.original)
+        return {
+            ...p,
+            w: img.getWidth(),
+            h: img.getHeight(),
+            imgOriginal: img
+        }
+    }))
+
     if (!await exists(spritesheetMeta)) {
-        const potentionalPatches = patches.filter(patch => patch.imgOriginal.getWidth() == spritesheet.getWidth() && patch.imgOriginal.getHeight() == spritesheet.getHeight())
+        const potentionalPatches = patches.filter(patch => patch.w == spritesheet.getWidth() && patch.h == spritesheet.getHeight())
         if (potentionalPatches.length == 0) return spritesheet
-        const oriHash = spritesheet.pHash()
-        for (const { hash, imgOriginal, imgPatched } of potentionalPatches) {
-            const dist = Jimp.compareHashes(oriHash, hash)
-            if (dist > 0.01) continue
+
+        for (const { imgOriginal, patched } of potentionalPatches) {
             const diff = Jimp.diff(imgOriginal, spritesheet)
             if (diff.percent > 0.01) continue
-
-            return imgPatched
+            return { out: patched }
         }
 
-        return spritesheet
+        return { sc: spritesheet}
     }
 
     const meta = JSON.parse(await readFile(spritesheetMeta))
@@ -175,27 +187,26 @@ async function patchAsset(cacheFile, spritesheet, patches) {
     for (const {frame: {x, y, w, h}} of Object.values(meta.frames)) {
         if (patches.length == 0) break
 
-        const potentionalPatches = patches.filter(patch => patch.imgOriginal.getWidth() == w && patch.imgOriginal.getHeight() == h)
+        const potentionalPatches = patches.filter(patch => patch.w == w && patch.h == h)
         if (potentionalPatches.length == 0) continue
 
+        // Clone takes quite a while
         const toReplace = spritesheet.clone().crop(x, y, w, h)
-        const oriHash = toReplace.pHash()
 
         for (const [k, patchInfo] of Object.entries(patches)) {
             if (!potentionalPatches.includes(patchInfo)) continue
-            const { hash, imgOriginal, imgPatched } = patchInfo
+            let { imgOriginal, patched } = patchInfo
 
-            const dist = Jimp.compareHashes(oriHash, hash)
-            if (dist > 0.01) continue
             const diff = Jimp.diff(imgOriginal, toReplace)
             if (diff.percent > 0.01) continue
             patches.splice(k, 1)
 
-            spritesheet.mask(new Jimp(w, h, 0x0), x, y).composite(imgPatched, x, y)
+            spritesheet.mask(new Jimp(w, h, 0x0), x, y).composite(await Jimp.read(patched), x, y)
             break
         }
     }
-    return spritesheet
+
+    return { sc: spritesheet}
 }
 
 module.exports = { patch, reloadModCache }
