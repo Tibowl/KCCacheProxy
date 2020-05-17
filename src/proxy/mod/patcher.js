@@ -1,6 +1,6 @@
 const { join } = require("path")
 const { readdir, stat, exists, readFile } = require("fs-extra")
-const Jimp = require("jimp")
+const Jimp = require("./jimp")
 const crypto = require("crypto")
 
 const Logger = require("./../ipc")

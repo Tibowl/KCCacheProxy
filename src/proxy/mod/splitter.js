@@ -1,4 +1,4 @@
-const jimp = require("jimp")
+const Jimp = require("./jimp")
 const { exists, readFile} = require("fs-extra")
 const { basename, join } = require("path")
 
@@ -44,7 +44,7 @@ async function split(spritesheet, fileLocation) {
 
 async function extractSplit(source, target) {
     const startTime = Date.now()
-    const spritesheet = await jimp.read(source)
+    const spritesheet = await Jimp.read(source)
     const splits = await split(spritesheet, source)
     await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${i+1}.png`))))
     Logger.log("Extracted in", Date.now() - startTime, "ms")
