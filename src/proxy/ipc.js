@@ -153,6 +153,8 @@ function registerElectron(ipcMain, app) {
 
     const config = require("./config")
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
+    const { extractSplit } = require("./mod/splitter")
+    const { reloadModCache } = require("./mod/patcher")
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
@@ -164,6 +166,8 @@ function registerElectron(ipcMain, app) {
     ipcMain.on("preload", () => require("./preload").run())
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))
     ipcMain.on("createDiff", (e, source, target) => createDiff(source, target))
+    ipcMain.on("extractSpritesheet", (e, source, target) => extractSplit(source, target))
+    ipcMain.on("reloadModCache", () => reloadModCache())
     ipcMain.on("startHelp", () => {
         sendHelp = true
         clearMain()

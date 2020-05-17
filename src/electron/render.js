@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require ("electron")
 const { join } = require("path")
+const { readFileSync } = require("fs-extra")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
 
@@ -271,6 +272,13 @@ const settable = {
         },
         "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
         "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
+    },
+    "enableModder": {
+        "label": "Enable assets modifier",
+        "title": "Whenever or not the proxy should process assets moddifiers. You'll need to save to apply changes.",
+        "input": {
+            "type": "checkbox"
+        }
     }
 }
 /**
@@ -322,8 +330,7 @@ function updateConfig(c) {
         }
     }
 
-    // Add hidden button section
-    document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
+    updateHidden()
 }
 
 const saveButton = document.getElementById("save")
@@ -374,6 +381,60 @@ function saveConfig() {
     ipcRenderer.send("setConfig", newConfig)
     config = newConfig
     saveButton.disabled = true
+
+    updateHidden()
+}
+
+function updateHidden() {
+    // Add hidden areas
+    document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
+    document.getElementById("modder").style = config.enableModder ? "" : "display:none"
+
+    // Modder
+    const list = document.getElementById("mods")
+    list.innerHTML = ""
+
+    for (const mod of config.mods) {
+        const elem = document.createElement("li")
+        list.appendChild(elem)
+
+        const add = function(tag, text) {
+            const child = document.createElement(tag)
+            child.innerText = text
+            elem.appendChild(child)
+        }
+        const addButton = function(text, callback) {
+            const button = document.createElement("button")
+            button.innerText = text
+            button.onclick = callback
+            elem.appendChild(button)
+        }
+        try {
+            const modData = JSON.parse(readFileSync(mod))
+            add("b", modData.name)
+            add("span", " v.")
+            add("b", modData.version)
+            add("span", " by ")
+            add("span", modData.authors.join(", "))
+            add("span", " ")
+
+            // TODO: addButton("↑")
+            // TODO: addButton("↓")
+        } catch (error) {
+            addLog("error", error)
+            elem.innerText = "Failed to load metadata: "
+            const path = document.createElement("code")
+            path.innerText = mod
+            elem.appendChild(path)
+        }
+        addButton("Remove", () => {
+            const ind = config.mods.indexOf(mod)
+            config.mods.splice(ind, 1)
+            ipcRenderer.send("setConfig", config)
+            updateHidden()
+        })
+    }
+
 }
 
 /** @type {Set<string>} */
@@ -492,6 +553,54 @@ document.getElementById("verifyCache").onclick = async () => {
     })
     if (!response.response) return
     ipcRenderer.send("verifyCache", response.response == 1)
+}
+
+document.getElementById("addMod").onclick = async () => {
+    const response = await remote.dialog.showOpenDialog({
+        title: "Select a mod metadata file",
+        filters: [{
+            name: "Mod metadata",
+            extensions: ["mod.json"]
+        }],
+        properties: ["openFile"]
+    })
+    if (response.canceled) return
+
+    config.mods.push(response.filePaths[0])
+    ipcRenderer.send("setConfig", config)
+    ipcRenderer.send("reloadModCache")
+    updateHidden()
+}
+document.getElementById("reloadMods").onclick = () => {
+    updateHidden()
+    ipcRenderer.send("reloadModCache")
+}
+document.getElementById("extractSpritesheet").onclick = async () => {
+    let cachePath = config.cacheLocation
+    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
+        cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+    cachePath = join(cachePath, "kcs2", "img")
+
+    const source = await remote.dialog.showOpenDialog({
+        title: "Select a spritesheet",
+        defaultPath: cachePath,
+        filters: [{
+            name: "Spritesheet image",
+            extensions: ["png"]
+        }],
+        properties: ["openFile"]
+    })
+    if (source.canceled) return
+
+
+    const target = await remote.dialog.showOpenDialog({
+        title: "Select a folder to extract to",
+        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        properties: ["openDirectory"]
+    })
+    if (target.canceled) return
+
+    ipcRenderer.send("extractSpritesheet", source.filePaths[0], target.filePaths[0])
 }
 
 document.getElementById("startHelp").onclick = () => updateHelp("startedHelp")

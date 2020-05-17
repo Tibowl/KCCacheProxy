@@ -20,7 +20,7 @@ h1 {
   margin-block-end: auto;
   display: inline;
 }
-h2, .h2 {
+h2, .h2, h4 {
   margin-block-start: 0.75rem;
   margin-block-end: 0.5rem;
 }

@@ -8,7 +8,8 @@ const Logger = require("./ipc")
 
 const { verifyCache } = require("./cacheHandler")
 const { getConfig } = require("./config")
-const { hostname, port, preloadOnStart } = getConfig()
+const { hostname, port, preloadOnStart, enableModder } = getConfig()
+const { reloadModCache } = require("./mod/patcher")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
@@ -72,6 +73,10 @@ const main = async () => {
         if (process.argv.find(k => k.toLowerCase() == "verifycache"))
             verifyCache()
     }
+
+    if (enableModder) setTimeout(() => {
+        reloadModCache()
+    }, 1000)
 }
 
 main()

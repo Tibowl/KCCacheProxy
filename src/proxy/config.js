@@ -19,6 +19,8 @@ const defaultConfig = {
     "gameVersionOverwrite": "false",
     "preloadOnStart": false,
     "showExtraButtons": false,
+    "enableModder": false,
+    "mods": [],
     "preloader": {
         "maxSimulPreload": 4,
         "recommended": {

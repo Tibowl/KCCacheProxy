@@ -16,6 +16,7 @@ module.exports = { cache, handleCaching, extractURL, getCached: () => cached, qu
 
 const Logger = require("./ipc")
 const { getConfig, getCacheLocation, saveConfig } = require("./config")
+const { patch } = require("./mod/patcher")
 
 /**
  * Get cache statistics
@@ -211,7 +212,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * @param {string} cacheFile Cache file location
  * @param {string|Buffer} contents Contents of file, if undefined, will be loaded from cacheFile
  * @param {string} file File path
- * @param {string} cachedFile Cache metadata
+ * @param {any} cachedFile Cache metadata
  * @param {boolean} forceCache Bypass verification check, forcefully send cached file
  */
 async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
@@ -243,6 +244,10 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
             if (gvo)
                 contents = contents.toString().replace(/(scriptVe(r|)sion\s+?=\s+?)"(.*?)"/, `$1"${gvo}"`)
         }
+    }
+
+    if (file && getConfig().enableModder) {
+        contents = await patch(file, contents, cacheFile, cachedFile)
     }
 
     if (file && isBlacklisted(file)) {
