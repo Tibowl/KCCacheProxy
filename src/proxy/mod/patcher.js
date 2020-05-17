@@ -47,7 +47,7 @@ async function prepareDir(dir, modMeta, path = []) {
 
         if (stats.isDirectory())
             await prepareDir(filePath, modMeta, [...path, f])
-        else if (stats.isFile() && f.endsWith(".png")) {
+        else if (stats.isFile()) {
             let type = path[path.length-1]
             let target, targetName = f + (modMeta.name||"") + (modMeta.version||"")
 
@@ -83,9 +83,6 @@ async function prepareDir(dir, modMeta, path = []) {
  * @param {any} cachedFile Cache metadata
  */
 async function patch(file, contents, cacheFile, cachedFile) {
-    if (!file.toLowerCase().endsWith(".png"))
-        return contents
-
     if (modCache === undefined)
         await reloadModCache()
 
@@ -119,14 +116,14 @@ async function getModified(file, contents, cacheFile, cachedFile) {
     while (paths.length > 1) {
         const patch = modCache[paths.join("/")]
         if (patch) {
-            for (const [name, {path, w, h}] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
+            for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
                 if (!patch.patched[name]) {
                     Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
                     continue
                 }
                 const content = await readFile(patch.patched[name].path)
                 patchHashes.update(content)
-                patches.push({original: path, patched: content, name, w, h})
+                patches.push({original: path, patched: content, name})
             }
         }
         paths.pop()
@@ -136,6 +133,16 @@ async function getModified(file, contents, cacheFile, cachedFile) {
 
     // No patching required
     if (patches.length === 0) return contents
+
+    if (!file.toLowerCase().endsWith(".png")) {
+        Logger.log(`Getting patch for ${file} ${patches.length}`)
+
+        for (const patch of patches)
+            if ((await readFile(patch.original)).equals(contents))
+                return patch.patched
+
+        return contents
+    }
 
     const cached = await checkCached(file, patchHash, cachedFile.lastmodified)
     if (cached) return cached
