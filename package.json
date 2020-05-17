@@ -1,7 +1,7 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.5.0-pre4",
+  "version": "2.5.0-pre5",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {

@@ -1,5 +1,5 @@
 const { join } = require("path")
-const { readdir, stat, exists, readFile, writeFile } = require("fs-extra")
+const { readdir, stat, exists, readFile } = require("fs-extra")
 const Jimp = require("./jimp")
 const crypto = require("crypto")
 
@@ -33,8 +33,6 @@ async function reloadModCache() {
 
         Logger.log("Preparing", modDir)
         await prepareDir(modDir, meta)
-
-        await writeFile(mod, JSON.stringify(meta, undefined, 2))
     }
 
     Logger.log("Preparing mod images took", Date.now() - startTime, "ms")
@@ -135,8 +133,6 @@ async function getModified(file, contents, cacheFile, cachedFile) {
     if (patches.length === 0) return contents
 
     if (!file.toLowerCase().endsWith(".png")) {
-        Logger.log(`Getting patch for ${file} ${patches.length}`)
-
         for (const patch of patches)
             if ((await readFile(patch.original)).equals(contents))
                 return patch.patched
