@@ -2,10 +2,12 @@ const { join } = require("path")
 const { readdir, stat, exists, readFile } = require("fs-extra")
 const Jimp = require("./jimp")
 const crypto = require("crypto")
+const { mapLimit } = require("async")
 
 const Logger = require("./../ipc")
-const { getConfig } = require("./../config")
-const { cacheModded, checkCached } = require("./patchedcache")
+const cacher = require("./../cacher")
+const { getConfig, getCacheLocation } = require("./../config")
+const { cacheModded, checkCached, loadCached } = require("./patchedcache")
 
 /**
  * @typedef {Object} Patched
@@ -36,6 +38,7 @@ async function reloadModCache() {
     }
 
     Logger.log("Preparing mod images took", Date.now() - startTime, "ms")
+    loadCached()
 }
 
 async function prepareDir(dir, modMeta, path = []) {
@@ -77,37 +80,13 @@ async function prepareDir(dir, modMeta, path = []) {
  *
  * @param {string} file File path
  * @param {string|Buffer} contents Contents of file
- * @param {string} cacheFile Cache file locatio
+ * @param {string} cacheFile Cache file location
  * @param {any} cachedFile Cache metadata
  */
 async function patch(file, contents, cacheFile, cachedFile) {
     if (modCache === undefined)
         await reloadModCache()
 
-    return await getModified(file, contents, cacheFile, cachedFile)
-}
-
-
-/**
- * @typedef PatchObject
- * @property {string | Buffer} original
- * @property {string | Buffer} patched
- * @property {string} name
- */
-
-/**
- * Patch an asset, returns patched asset
- *
- * @param {string} file File path
- * @param {string|Buffer} contents Contents of file
- * @param {string} cacheFile Cache file location
- * @param {any} cachedFile Cache metadata
- */
-async function getModified(file, contents, cacheFile, cachedFile) {
-    const startTime = Date.now()
-
-    // Get relevant patches
-    /** @type {PatchObject[]} */
     const patches = []
     const patchHashes = crypto.createHash("md5")
     const paths = file.split("/")
@@ -127,10 +106,34 @@ async function getModified(file, contents, cacheFile, cachedFile) {
         paths.pop()
     }
 
-    const patchHash = patchHashes.digest("base64")
-
     // No patching required
     if (patches.length === 0) return contents
+
+    const patchHash = patchHashes.digest("base64")
+
+    if (contents == undefined) contents = await readFile(cacheFile)
+
+    return await getModified(file, contents, cacheFile, cachedFile, patches, patchHash)
+}
+
+
+/**
+ * @typedef PatchObject
+ * @property {string | Buffer} original
+ * @property {string | Buffer} patched
+ * @property {string} name
+ */
+
+/**
+ * Patch an asset, returns patched asset
+ *
+ * @param {string} file File path
+ * @param {string|Buffer} contents Contents of file
+ * @param {string} cacheFile Cache file location
+ * @param {any} cachedFile Cache metadata
+ */
+async function getModified(file, contents, cacheFile, cachedFile, patches, patchHash) {
+    const startTime = Date.now()
 
     if (!file.toLowerCase().endsWith(".png")) {
         for (const patch of patches)
@@ -212,4 +215,29 @@ async function patchAsset(cacheFile, spritesheet, patches) {
     return { sc: spritesheet}
 }
 
-module.exports = { patch, reloadModCache }
+async function prepatch() {
+    const start = Date.now()
+
+    const responses = await mapLimit(
+        Object.entries(cacher.getCached()).filter(k => k[0].endsWith(".png")),
+        2,
+        async ([key, value]) =>  {
+            try {
+                const filePath = join(getCacheLocation(), key)
+                const patchedContents = await patch(key, undefined, filePath, value)
+                if (patchedContents) return 1
+                return 0
+            } catch (e) {
+                return -1
+            }
+        }
+    )
+
+    const total = responses.length,
+          checked = responses.filter(k => k > 0).length,
+          error   = responses.filter(k => k == -1).length
+
+    Logger.log(`Done after ${Date.now() - start}ms, ${checked} files have been patched out of ${total} .png files, failed to patch ${error} files`)
+}
+
+module.exports = { patch, reloadModCache, prepatch }

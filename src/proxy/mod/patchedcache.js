@@ -101,4 +101,4 @@ async function saveCached() {
 }
 
 
-module.exports = { checkCached, cacheModded }
+module.exports = { checkCached, cacheModded, loadCached }

@@ -528,7 +528,7 @@ function updateHelp(toUpdate) {
     if (helpSequence.has("mainHit") && helpSequence.has("versionHit"))
         document.getElementById("loading").style = "display: none;"
 }
-for (const type of ["importCache", "reloadCache", "preload", "checkVersion"])
+for (const type of ["importCache", "reloadCache", "preload", "checkVersion", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
 document.getElementById("createDiff").onclick = async () => {
