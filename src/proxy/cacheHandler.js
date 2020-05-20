@@ -181,7 +181,7 @@ async function createDiff(source, target) {
             zip.on("error", reject)
         })
     } else {
-        oldCached = readFile(source)
+        oldCached = await readFile(source)
     }
     oldCached = JSON.parse(oldCached)
 
