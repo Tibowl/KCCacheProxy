@@ -434,6 +434,7 @@ function updateHidden() {
                 addButton("↓", () => move(1), config.mods[config.mods.length-1] === mod)
                 addButton("↑", () => move(-1), config.mods[0] === mod)
 
+                add("span", " ")
                 add("b", modData.name)
                 add("span", " v.")
                 add("b", modData.version)
@@ -649,6 +650,7 @@ for (const elem of document.getElementsByClassName("link")) {
 document.getElementById("openConfigWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Configuration`)
 document.getElementById("openFAQ").onclick = () => shell.openExternal(`${BASEURL}/wiki/FAQ`)
 document.getElementById("openCacheDump").onclick = () => shell.openExternal(`${BASEURL}/wiki/Installation-and-setup#using-cache-dumps`)
+document.getElementById("openAssetsWiki").onclick = () => shell.openExternal(`${BASEURL}/wiki/Asset-patching`)
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
