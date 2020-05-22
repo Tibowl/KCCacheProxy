@@ -54,25 +54,25 @@
     }
   },
   "dependencies": {
-    "@jimp/custom": "^0.12.0",
-    "@jimp/plugin-crop": "^0.12.0",
-    "@jimp/plugin-mask": "^0.12.0",
-    "@jimp/png": "^0.12.0",
+    "@jimp/custom": "^0.12.1",
+    "@jimp/plugin-crop": "^0.12.1",
+    "@jimp/plugin-mask": "^0.12.1",
+    "@jimp/png": "^0.12.1",
     "adm-zip": "^0.4.14",
     "async": "^3.2.0",
     "auto-launch": "^5.0.5",
     "electron-squirrel-startup": "^1.0.0",
     "fs-extra": "^8.1.0",
-    "http-proxy": "^1.18.0",
+    "http-proxy": "^1.18.1",
     "node-fetch": "^2.6.0",
-    "node-stream-zip": "^1.9.1"
+    "node-stream-zip": "^1.11.1"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.50",
-    "@electron-forge/maker-deb": "^6.0.0-beta.50",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.50",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.50",
-    "@electron-forge/maker-zip": "^6.0.0-beta.50",
+    "@electron-forge/cli": "^6.0.0-beta.51",
+    "@electron-forge/maker-deb": "^6.0.0-beta.51",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.51",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.51",
+    "@electron-forge/maker-zip": "^6.0.0-beta.51",
     "electron": "8.1.1"
   }
 }
