@@ -46,18 +46,28 @@ function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
     Logger.log(`Loading cached from ${CACHE_INFORMATION}.`)
 
-    if (existsSync(CACHE_INFORMATION + ".bak")) {
+    try {
         if (existsSync(CACHE_INFORMATION))
-            removeSync(CACHE_INFORMATION)
-        renameSync(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
+            cached = JSON.parse(readFileSync(CACHE_INFORMATION))
+
+        return Logger.send("stats", getCacheStats())
+    } catch (error) {
+        Logger.error("Failed to load cached.json")
     }
 
-    if (existsSync(CACHE_INFORMATION))
-        cached = JSON.parse(readFileSync(CACHE_INFORMATION))
-    else
+    try {
+        if (existsSync(CACHE_INFORMATION + ".bak"))
+            cached = JSON.parse(readFileSync(CACHE_INFORMATION + ".bak"))
+
+        return Logger.send("stats", getCacheStats())
+    } catch (error) {
+        Logger.error("Failed to load cached.json.bak")
+    }
+
+    if (cached == undefined)
         cached = {}
 
-    Logger.send("stats", getCacheStats())
+    return Logger.send("stats", getCacheStats())
 }
 
 let invalidatedMainVersion = false
@@ -433,11 +443,11 @@ async function saveCached() {
         return Logger.log(`Cache is empty, not saved to ${CACHE_INFORMATION}`)
 
     await ensureDir(getCacheLocation())
+    if (await exists(CACHE_INFORMATION) && await exists(CACHE_INFORMATION + ".bak"))
+        await remove(CACHE_INFORMATION + ".bak")
     if (await exists(CACHE_INFORMATION))
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
     await writeFile(CACHE_INFORMATION, str)
-    if (await exists(CACHE_INFORMATION + ".bak"))
-        await remove(CACHE_INFORMATION + ".bak")
 
     Logger.send("stats", getCacheStats())
     Logger.log(`Saved cached to ${CACHE_INFORMATION}.`)
