@@ -277,7 +277,7 @@ const cacheShips = async () => {
         const mst_ship = START2.api_mst_ship.find(k => k.api_id == api_id)
         if (!ship.api_battle_n) {
             // Seasonal
-            if ([5358, 5433, 5434].includes(api_id)) continue
+            if ([5358, 5433, 5434, 5435, 5439].includes(api_id)) continue
 
             types.push("character_full", "character_up")
             if (INCLUDE_RARE)
