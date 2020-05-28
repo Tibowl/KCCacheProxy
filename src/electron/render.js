@@ -237,7 +237,14 @@ const settable = {
     },
     "startHidden": {
         "label": "Start in system tray",
-        "title": "Whenever or not window should start in system tray. Don't forget to change before restarting",
+        "title": "Whenever or not window should start in system tray. Don't forget to save before restarting",
+        "input": {
+            "type": "checkbox"
+        }
+    },
+    "autoStartup": {
+        "label": "Start up with system",
+        "title": "Whenever or not to start up with system. Don't forget to save",
         "input": {
             "type": "checkbox"
         }

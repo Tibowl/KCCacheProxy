@@ -145,8 +145,9 @@ async function checkVersion(manual) {
  * Register electron listeners and load stats from disk
  * @param {import("electron").ipcMain} ipcMain Connection with render process
  * @param {import("electron").App} app Electron app
+ * @param {import("auto-launch")} al Autolauncher
  */
-function registerElectron(ipcMain, app) {
+function registerElectron(ipcMain, app, al) {
     statsPath = join(app.getPath("userData"), "ProxyData", "stats.json")
     loadStats()
     send("stats", stats)
@@ -158,7 +159,7 @@ function registerElectron(ipcMain, app) {
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
-    ipcMain.on("setConfig", (e, message) => config.setConfig(message, true))
+    ipcMain.on("setConfig", (e, message) => config.setConfig(message, true, al))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
     ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))

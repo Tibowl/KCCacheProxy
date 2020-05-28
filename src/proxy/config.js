@@ -100,9 +100,10 @@ function preloader() {
 /**
  * Update config, will reload cache if changed
  * @param {any} newConfig New config
- * @param {boolean} save Write to disk
+ * @param {boolean} [save] Write to disk
+ * @param {import("auto-launch")} [al] Autolauncher
  */
-async function setConfig(newConfig, save = false) {
+async function setConfig(newConfig, save = false, al = undefined) {
     const oldConfig = config
     config = newConfig
 
@@ -113,6 +114,12 @@ async function setConfig(newConfig, save = false) {
         } catch (error) {
             Logger.error(error)
         }
+
+    if (al !== undefined)
+        if (al.isEnabled() && !newConfig.autoStartup)
+            await al.disable()
+        else if (!al.isEnabled() && newConfig.autoStartup)
+            await al.enable()
 
     if (config.cacheLocation == undefined || config.cacheLocation == "default")
         cacheLocation = join(userdata, "cache")

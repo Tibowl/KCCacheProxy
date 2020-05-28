@@ -1,6 +1,19 @@
 const { app, BrowserWindow, Tray, Menu, shell, Notification, ipcMain } = require("electron")
 const path = require("path")
 
+const AutoLaunch = require("auto-launch")
+
+const al = new AutoLaunch({
+    name: "KCCacheProxy",
+    path: app.getPath("exe"),
+})
+
+
+const ipc = require("../proxy/ipc")
+ipc.registerElectron(ipcMain, app, al)
+const config = require("../proxy/config")
+config.loadConfig(app)
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
     const autoStartup = async () => {
@@ -8,24 +21,17 @@ if (require("electron-squirrel-startup")) {
             return false
         }
 
-        const AutoLaunch = require("auto-launch")
-
-        const al = new AutoLaunch({
-            name: "KCCacheProxy",
-            path: app.getPath("exe"),
-        })
-
         switch (process.argv[1]) {
             case "--squirrel-install":
-            case "--squirrel-updated":
-                await al.enable()
+                // undefined should be handled as true
+                if (config.getConfig().autoStartup === false)
+                    await al.disable()
+                else
+                    await al.enable()
                 app.quit()
                 return
             case "--squirrel-uninstall":
                 await al.disable()
-                app.quit()
-                return
-            case "--squirrel-obsolete":
                 app.quit()
                 return
         }
@@ -40,11 +46,6 @@ if (!app.requestSingleInstanceLock()) {
     app.quit()
     return
 }
-
-const ipc = require("../proxy/ipc")
-ipc.registerElectron(ipcMain, app)
-const config = require("../proxy/config")
-config.loadConfig(app)
 
 async function checkVersion() {
     if (!config.getConfig().checkForUpdates) return
@@ -81,7 +82,7 @@ async function checkVersion() {
 }
 
 
-function createWindow() {
+async function createWindow() {
     const icon = path.join(__dirname, "icon.ico")
 
     // Create the browser window.
@@ -156,6 +157,8 @@ function createWindow() {
     global.mainWindow = mainWindow
 
     require("../proxy/proxy")
+
+    config.getConfig().autoStartup = await al.isEnabled()
 
     setTimeout(checkVersion, 3 * 1000)
     setInterval(checkVersion, 6 * 60 * 60 * 1000)
