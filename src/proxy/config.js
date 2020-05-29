@@ -115,11 +115,17 @@ async function setConfig(newConfig, save = false, al = undefined) {
             Logger.error(error)
         }
 
-    if (al !== undefined)
-        if (al.isEnabled() && !newConfig.autoStartup)
+    if (al !== undefined) {
+        const enabled = await al.isEnabled()
+
+        if (enabled && !newConfig.autoStartup) {
             await al.disable()
-        else if (!al.isEnabled() && newConfig.autoStartup)
+            Logger.log("Disabled startup")
+        } else if (!enabled && newConfig.autoStartup) {
             await al.enable()
+            Logger.log("Enabled startup")
+        }
+    }
 
     if (config.cacheLocation == undefined || config.cacheLocation == "default")
         cacheLocation = join(userdata, "cache")
