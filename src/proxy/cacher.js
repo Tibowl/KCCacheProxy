@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 const { dirname, join } = require("path")
-const { ensureDir, existsSync, exists, renameSync, rename, removeSync, unlink, readFileSync, readFile, writeFile } = require("fs-extra")
+const { ensureDir, existsSync, exists, rename, unlink, readFileSync, readFile, writeFile } = require("fs-extra")
 const { promisify } = require("util")
 
 /** @typedef {import("http").IncomingMessage} IncomingMessage */
@@ -310,7 +310,7 @@ async function handleCaching(req, res, forceCache = false) {
     if (getConfig().bypassGadgetUpdateCheck)
         invalidatedMainVersion = true
 
-    if (file.startsWith("/kcs2/") && getConfig().serverIP !== req.headers.host) {
+    if (file.startsWith("/kcs2/") && !file.startsWith("/kcs2/resources/worldselect") && getConfig().serverIP !== req.headers.host) {
         getConfig().serverIP = req.headers.host
         Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
         saveConfig()
