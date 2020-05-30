@@ -640,6 +640,23 @@ document.getElementById("extractSpritesheet").onclick = async () => {
 
     ipcRenderer.send("extractSpritesheet", source.filePaths[0], target.filePaths[0])
 }
+document.getElementById("importExternalMod").onclick = async () => {
+    const source = await remote.dialog.showOpenDialog({
+        title: "Select cache folder to import from",
+        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        properties: ["openDirectory"]
+    })
+    if (source.canceled) return
+
+    const target = await remote.dialog.showOpenDialog({
+        title: "Select a folder to export to",
+        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        properties: ["openDirectory"]
+    })
+    if (target.canceled) return
+
+    ipcRenderer.send("importExternalMod", source.filePaths[0], target.filePaths[0])
+}
 
 document.getElementById("startHelp").onclick = () => updateHelp("startedHelp")
 document.getElementById("stopHelp").onclick = () => {

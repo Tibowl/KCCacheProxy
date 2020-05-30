@@ -43,6 +43,7 @@ async function reloadModCache() {
 
 async function prepareDir(dir, modMeta, path = []) {
     await Promise.all((await readdir(dir)).map(async f => {
+        if (f.startsWith(".") || f.toLowerCase().endsWith(".md")) return
         const filePath = join(dir, f)
         const stats = await stat(filePath)
 

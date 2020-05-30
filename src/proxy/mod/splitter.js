@@ -1,7 +1,9 @@
 const Jimp = require("./jimp")
-const { exists, readFile} = require("fs-extra")
-const { basename, join } = require("path")
+const { exists, readFile, readdir, stat, ensureDir, writeFile } = require("fs-extra")
+const { basename, join, extname } = require("path")
+const { mapLimit } = require("async")
 
+const { getCacheLocation } = require("./../config")
 const Logger = require("./../ipc")
 
 /**
@@ -23,7 +25,7 @@ const Logger = require("./../ipc")
 async function split(spritesheet, fileLocation) {
     const spritesheetMeta = fileLocation.replace(/\.png$/, ".json")
     if (!await exists(spritesheetMeta))
-        return [spritesheet]
+        return [{split: spritesheet}]
 
     try {
         const meta = JSON.parse(await readFile(spritesheetMeta))
@@ -38,7 +40,7 @@ async function split(spritesheet, fileLocation) {
         })
     } catch (error) {
         Logger.error(error)
-        return [spritesheet]
+        return [{split: spritesheet}]
     }
 }
 
@@ -50,4 +52,103 @@ async function extractSplit(source, target) {
     Logger.log("Extracted in", Date.now() - startTime, "ms")
 }
 
-module.exports = { split, extractSplit }
+async function importExternalMod(source, target) {
+    const start = Date.now()
+    const queue = (await getFiles(source)).filter(k => k.startsWith("kcs"))
+    Logger.log(`Discovered ${queue.length} files`)
+
+    const results = await mapLimit(
+        queue,
+        3,
+        async (f) => {
+            const startTime = Date.now()
+
+            const fOriginal = join(getCacheLocation(), f)
+            const fPatched = join(source, f)
+
+            if (!await exists(fOriginal)) {
+                Logger.error(`${fOriginal} not in cache - skipping!`)
+                return -1
+            }
+
+            if (!f.endsWith(".png")) {
+                const cOriginal = await readFile(fOriginal)
+                const cPatched = await readFile(fPatched)
+                if (!cOriginal.equals(cPatched)) {
+                    const p = join(target, f)
+                    await ensureDir(p)
+
+                    await writeFile(join(p, `original${extname(f)}`), cOriginal)
+                    await writeFile(join(p, `patched${extname(f)}`), cPatched)
+                    return 1
+                }
+                Logger.error(`Warning: ${f} is same as source!`)
+                return 0
+            }
+
+            const sOriginal = await Jimp.read(fOriginal)
+            const sPatched = await Jimp.read(fPatched)
+
+            const aOriginal = await split(sOriginal, fOriginal)
+            const aPatched = await split(sPatched, fOriginal)
+
+            if (aOriginal.length !== aPatched.length) {
+                Logger.error("Spritesheets don't match")
+                return -1
+            }
+
+            let different = 0
+            for (let i = 0; i < aOriginal.length; i++) {
+                const iOriginal = aOriginal[i]
+                const iPatched = aPatched[i]
+
+                const diff = Jimp.diff(iOriginal.split, iPatched.split)
+                if (diff.percent < 0.01) continue
+
+                const p = join(target, f)
+                if (aOriginal.length === 1) {
+                    await ensureDir(join(p))
+
+                    await iOriginal.split.writeAsync(join(p, "original.png"))
+                    await iPatched.split.writeAsync(join(p, "patched.png"))
+
+                    Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)
+                    return 1
+                }
+
+                await ensureDir(join(p, "original"))
+                await ensureDir(join(p, "patched"))
+
+                await iOriginal.split.writeAsync(join(p, "original", `${basename(f).replace(/\.png$/, "")}_${i+1}.png`))
+                await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${i+1}.png`))
+                different++
+            }
+            Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)
+            if (different == 0)
+                Logger.error(`Warning: ${f} is same as source!`)
+            return different
+        }
+    )
+
+    const changed = results.filter(k => k > 0).length,
+          totalChanged = results.filter(k => k > 0).reduce((a,b) => a+b, 0),
+          same = results.filter(k => k == 0).length,
+          error = results.filter(k => k < 0).length
+    Logger.log(`Finished converting in ${Date.now() - start}ms. Failed ${error} files, ${same} are same as original, ${changed} files converted resulting in ${totalChanged} diff files`)
+}
+
+async function getFiles(dir, queue = [], path = []) {
+    await Promise.all((await readdir(dir)).map(async f => {
+        const filePath = join(dir, f)
+        const stats = await stat(filePath)
+
+        if (stats.isDirectory())
+            await getFiles(filePath, queue, [...path, f])
+        else if (stats.isFile())
+            queue.push([...path, f].join("/"))
+    }))
+    return queue
+}
+
+
+module.exports = { split, extractSplit, importExternalMod }
