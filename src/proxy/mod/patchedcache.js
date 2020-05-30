@@ -1,5 +1,5 @@
 const { join, dirname } = require("path")
-const { exists, readFile, remove, rename, ensureDir, writeFile, move } = require("fs-extra")
+const { exists, readFile, remove, ensureDir, writeFile, move } = require("fs-extra")
 
 const Logger = require("./../ipc")
 const { getCacheLocation } = require("./../config")
@@ -7,18 +7,32 @@ const { getCacheLocation } = require("./../config")
 let cached = undefined
 async function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "mod-cache.json")
-    Logger.log(`Loading modded cached from ${CACHE_INFORMATION}.`)
+    Logger.log(`Loading modded cached from ${CACHE_INFORMATION}`)
 
-    if (await exists(CACHE_INFORMATION + ".bak")) {
-        if (await exists(CACHE_INFORMATION))
-            await remove(CACHE_INFORMATION)
-        await rename(CACHE_INFORMATION + ".bak", CACHE_INFORMATION)
+    try {
+        if (await exists(CACHE_INFORMATION)) {
+            cached = JSON.parse(await readFile(CACHE_INFORMATION))
+            return
+        }
+    } catch (error) {
+        Logger.error("Failed to load mod-cached.json")
     }
 
-    if (await exists(CACHE_INFORMATION))
-        cached = JSON.parse(await readFile(CACHE_INFORMATION))
-    else
+    try {
+        if (await exists(CACHE_INFORMATION + ".bak")){
+            cached = JSON.parse(await readFile(CACHE_INFORMATION + ".bak"))
+            return
+        }
+    } catch (error) {
+        Logger.error("Failed to load mod-cached.json.bak")
+    }
+
+    if (cached == undefined) {
         cached = {}
+        Logger.log("No valid file found, using empty mod-cache")
+    } else {
+        Logger.log("No valid file found, not reloading mod-cache")
+    }
 }
 
 async function checkCached(file, patchHash, lastmodified) {
@@ -91,11 +105,12 @@ async function saveCached() {
         return Logger.log(`Cache is empty, not saved to ${CACHE_INFORMATION}`)
 
     await ensureDir(getCacheLocation())
-    if (await exists(CACHE_INFORMATION))
+    if (await exists(CACHE_INFORMATION)) {
+        if (await exists(CACHE_INFORMATION + ".bak"))
+            await remove(CACHE_INFORMATION + ".bak")
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
+    }
     await writeFile(CACHE_INFORMATION, str)
-    if (await exists(CACHE_INFORMATION + ".bak"))
-        await remove(CACHE_INFORMATION + ".bak")
 
     Logger.log(`Saved mod cache to ${CACHE_INFORMATION}.`)
 }

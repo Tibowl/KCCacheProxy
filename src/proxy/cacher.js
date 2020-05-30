@@ -47,25 +47,29 @@ function loadCached() {
     Logger.log(`Loading cached from ${CACHE_INFORMATION}.`)
 
     try {
-        if (existsSync(CACHE_INFORMATION))
+        if (existsSync(CACHE_INFORMATION)) {
             cached = JSON.parse(readFileSync(CACHE_INFORMATION))
-
-        return Logger.send("stats", getCacheStats())
+            return Logger.send("stats", getCacheStats())
+        }
     } catch (error) {
         Logger.error("Failed to load cached.json")
     }
 
     try {
-        if (existsSync(CACHE_INFORMATION + ".bak"))
+        if (existsSync(CACHE_INFORMATION + ".bak")) {
             cached = JSON.parse(readFileSync(CACHE_INFORMATION + ".bak"))
-
-        return Logger.send("stats", getCacheStats())
+            return Logger.send("stats", getCacheStats())
+        }
     } catch (error) {
         Logger.error("Failed to load cached.json.bak")
     }
 
-    if (cached == undefined)
+    if (cached == undefined) {
         cached = {}
+        Logger.log("No valid file found, using empty cache")
+    } else {
+        Logger.log("No valid file found, not reloading cache")
+    }
 
     return Logger.send("stats", getCacheStats())
 }
@@ -186,6 +190,12 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     }
     Logger.addStatAndSend("fetched")
 
+    const newCached = {
+        "version": version,
+        "lastmodified": data.headers.get("last-modified"),
+        "length": (+data.headers.get("content-length")) || contents.length,
+        "cache": data.headers.get("cache-control")
+    }
     const queueSave = async () => {
         await ensureDir(dirname(cacheFile))
 
@@ -196,12 +206,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
             await remove(cacheFile)
         await move(cacheFile + ".tmp", cacheFile)
 
-        cached[file] = {
-            "version": version,
-            "lastmodified": data.headers.get("last-modified"),
-            "length": (+data.headers.get("content-length")) || contents.length,
-            "cache": data.headers.get("cache-control")
-        }
+        cached[file] = newCached
         queueCacheSave()
 
         Logger.log("Saved", url)
@@ -210,7 +215,13 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
 
     if (cached[file])
         cached[file].length = (+data.headers.get("content-length")) || contents.length
-    queueSave()
+
+    // Metadata is written after writing file to prevent incorrectly loading wrong file (before written to disk)
+    // Modder requires some of these
+    if (getConfig().enableModder)
+        await queueSave()
+    else
+        queueSave()
 
     return rep
 }
@@ -443,10 +454,11 @@ async function saveCached() {
         return Logger.log(`Cache is empty, not saved to ${CACHE_INFORMATION}`)
 
     await ensureDir(getCacheLocation())
-    if (await exists(CACHE_INFORMATION) && await exists(CACHE_INFORMATION + ".bak"))
-        await remove(CACHE_INFORMATION + ".bak")
-    if (await exists(CACHE_INFORMATION))
+    if (await exists(CACHE_INFORMATION)) {
+        if (await exists(CACHE_INFORMATION + ".bak"))
+            await remove(CACHE_INFORMATION + ".bak")
         await move(CACHE_INFORMATION, CACHE_INFORMATION + ".bak")
+    }
     await writeFile(CACHE_INFORMATION, str)
 
     Logger.send("stats", getCacheStats())
