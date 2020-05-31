@@ -1,3 +1,4 @@
+/** @type {import("@jimp/core")} */
 const Jimp = require("./jimp")
 const { exists, readFile, readdir, stat, ensureDir, writeFile } = require("fs-extra")
 const { basename, join, extname } = require("path")
@@ -8,7 +9,7 @@ const Logger = require("./../ipc")
 
 /**
  * @typedef {Object} Split
- * @property {import("jimp")} split
+ * @property {import("@jimp/core").default} split
  * @property {number} x
  * @property {number} y
  * @property {number} w
@@ -22,7 +23,7 @@ const Logger = require("./../ipc")
  * @param {string} fileLocation Location of image file
  * @returns {Split[]} Array of jimps
  */
-async function split(spritesheet, fileLocation) {
+async function split(spritesheet, fileLocation, extract = true) {
     const spritesheetMeta = fileLocation.replace(/\.png$/, ".json")
     if (!await exists(spritesheetMeta))
         return [{split: spritesheet}]
@@ -31,7 +32,7 @@ async function split(spritesheet, fileLocation) {
         const meta = JSON.parse(await readFile(spritesheetMeta))
         return Object.values(meta.frames).map(frame => {
             const {frame: {x, y, w ,h}} = frame
-            const extracted = spritesheet.clone().crop(x, y, w, h)
+            const extracted = extract ? spritesheet.clone().crop(x, y, w, h) : undefined
             return {
                 x, y, w ,h,
                 split: extracted,
@@ -42,6 +43,29 @@ async function split(spritesheet, fileLocation) {
         Logger.error(error)
         return [{split: spritesheet}]
     }
+}
+
+
+async function outlines(source, target) {
+    const startTime = Date.now()
+    /** @type {import("@jimp/core").default} */
+    const spritesheet = await Jimp.read(source)
+    const splits = await split(spritesheet, source, false)
+
+    /** @type {import("@jimp/core").default} */
+    const output = new Jimp(spritesheet.getWidth(), spritesheet.getHeight(), 0x0)
+    splits.forEach(({ w, h, x, y }) => {
+        const tb = new Jimp(w+2, 1, 0xFF0000FF)
+        const lr = new Jimp(1, h+2, 0xFF0000FF)
+        output
+            .composite(tb, x-1, y-1)
+            .composite(tb, x-1, y+h)
+            .composite(lr, x-1, y-1)
+            .composite(lr, x+w, y-1)
+    })
+    output.writeAsync(target)
+
+    Logger.log(`Created outlines in ${Date.now() - startTime}ms`)
 }
 
 async function extractSplit(source, target) {
@@ -151,4 +175,4 @@ async function getFiles(dir, queue = [], path = []) {
 }
 
 
-module.exports = { split, extractSplit, importExternalMod }
+module.exports = { split, extractSplit, importExternalMod, outlines }

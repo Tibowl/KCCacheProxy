@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require ("electron")
-const { join } = require("path")
+const { join, basename } = require("path")
 const { readFileSync, existsSync } = require("fs-extra")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
@@ -639,6 +639,35 @@ document.getElementById("extractSpritesheet").onclick = async () => {
     if (target.canceled) return
 
     ipcRenderer.send("extractSpritesheet", source.filePaths[0], target.filePaths[0])
+}
+document.getElementById("outlines").onclick = async () => {
+    let cachePath = config.cacheLocation
+    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
+        cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+    cachePath = join(cachePath, "kcs2", "img")
+
+    const source = await remote.dialog.showOpenDialog({
+        title: "Select a spritesheet",
+        defaultPath: cachePath,
+        filters: [{
+            name: "Spritesheet image",
+            extensions: ["png"]
+        }],
+        properties: ["openFile"]
+    })
+    if (source.canceled) return
+
+    const target = await remote.dialog.showSaveDialog({
+        title: "Select a location to save outlines to",
+        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..", basename(source.filePaths[0])) : undefined,
+        filters: [{
+            name: "Images",
+            extensions: ["png"]
+        }]
+    })
+    if (target.canceled) return
+
+    ipcRenderer.send("outlines", source.filePaths[0], target.filePath)
 }
 document.getElementById("importExternalMod").onclick = async () => {
     const source = await remote.dialog.showOpenDialog({
