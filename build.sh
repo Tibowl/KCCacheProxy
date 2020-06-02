@@ -44,9 +44,18 @@ wait
 
 cp minimum-cache.zip ../minimum-cache.zip
 
-echo 'Make electron build'
-npm run-script make
-cp make/*/*/*.exe .
+echo 'Make x64 & ia32 electron build'
+npm run-script make -- --arch x64 &
+npm run-script make -- --arch ia32 &
+wait 
+
+for i in ./make/squirrel.windows/*/*.exe ; do 
+    p="${i/.\/make\/squirrel.windows\//}"
+    arch="${p/\/KC*/}"
+    file=${p/\.exe/}
+    cp "${i}" "./${file/*\//}-${arch}.exe" 
+done
 
 echo 'Cleanup...'
-rm -r KCCacheProxy
+rm -r KCCacheProxy*/
+rm -r make
