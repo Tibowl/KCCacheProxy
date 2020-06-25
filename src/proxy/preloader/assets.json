@@ -40,7 +40,9 @@
         "common_animation.json",
         "common_animation.png",
         "common_shogo.json",
-        "common_shogo.png"
+        "common_shogo.png",
+        "common_area_icon.json",
+        "common_area_icon.png"
     ], 
     "port": [
         "port_skin_1.json",
