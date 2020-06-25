@@ -536,7 +536,7 @@ function updateHelp(toUpdate) {
     if (helpSequence.has("mainHit") && helpSequence.has("versionHit"))
         document.getElementById("loading").style = "display: none;"
 }
-for (const type of ["importCache", "reloadCache", "preload", "checkVersion", "prepatch"])
+for (const type of ["importCache", "reloadCache", "checkVersion", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
 document.getElementById("createDiff").onclick = async () => {
@@ -587,6 +587,17 @@ document.getElementById("verifyCache").onclick = async () => {
     })
     if (!response.response) return
     ipcRenderer.send("verifyCache", response.response == 1)
+}
+
+document.getElementById("preload").onclick = async () => {
+    const response = await remote.dialog.showMessageBox({
+        title: "Include rarer files",
+        buttons: ["Cancel", "Include rarely updated files", "More common files"],
+        message: "Full scan?",
+        detail: "Doing a full scan might take a while since a lot will 404."
+    })
+    if (!response.response) return
+    ipcRenderer.send("preload", response.response == 1)
 }
 
 document.getElementById("addMod").onclick = async () => {

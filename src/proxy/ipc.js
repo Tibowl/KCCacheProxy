@@ -164,7 +164,7 @@ function registerElectron(ipcMain, app, al) {
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
     ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
-    ipcMain.on("preload", () => require("./preload").run())
+    ipcMain.on("preload", (e, rare) => require("./preload").run(rare))
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))
     ipcMain.on("createDiff", (e, source, target) => createDiff(source, target))
     ipcMain.on("extractSpritesheet", (e, source, target) => extractSplit(source, target))

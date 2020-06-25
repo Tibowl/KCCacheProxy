@@ -9,7 +9,7 @@ const { getConfig, getCacheLocation, preloader } = require("./config")
 preloader()
 
 const GADGET = "http://203.104.209.7/"
-const INCLUDE_RARE = false
+let INCLUDE_RARE = false
 
 const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
 
@@ -18,7 +18,9 @@ let GAME_VERSION = ""
 let VERSIONS = {}
 let START2 = {}
 
-const run = async () => {
+const run = async (rare = false) => {
+    INCLUDE_RARE = rare
+
     if (cacher.getCached() == undefined)
         cacher.loadCached()
 
@@ -149,7 +151,7 @@ const cacheGadget = async () => {
 
     await eachLimit(urls, getConfig().preloader.maxSimulPreload || 8, async (url) => {
         const full = GADGET + url
-        Logger.log(full)
+        // Logger.log(full)
         await cacher.handleCaching({
             url: full,
             headers: {
