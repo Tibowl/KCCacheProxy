@@ -6,6 +6,7 @@ const { mapLimit } = require("async")
 
 const { getCacheLocation } = require("./../config")
 const Logger = require("./../ipc")
+const { diff } = require("./imgdiff")
 
 /**
  * @typedef {Object} Split
@@ -72,7 +73,7 @@ async function extractSplit(source, target) {
     const startTime = Date.now()
     const spritesheet = await Jimp.read(source)
     const splits = await split(spritesheet, source)
-    await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${i+1}.png`))))
+    await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))))
     Logger.log("Extracted in", Date.now() - startTime, "ms")
 }
 
@@ -126,8 +127,7 @@ async function importExternalMod(source, target) {
                 const iOriginal = aOriginal[i]
                 const iPatched = aPatched[i]
 
-                const diff = Jimp.diff(iOriginal.split, iPatched.split)
-                if (diff.percent < 0.01) continue
+                if (diff(iOriginal.split, iPatched.split) < 0.01) continue
 
                 const p = join(target, f)
                 if (aOriginal.length === 1) {
@@ -143,8 +143,8 @@ async function importExternalMod(source, target) {
                 await ensureDir(join(p, "original"))
                 await ensureDir(join(p, "patched"))
 
-                await iOriginal.split.writeAsync(join(p, "original", `${basename(f).replace(/\.png$/, "")}_${i+1}.png`))
-                await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${i+1}.png`))
+                await iOriginal.split.writeAsync(join(p, "original", `${basename(f).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))
+                await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))
                 different++
             }
             Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)

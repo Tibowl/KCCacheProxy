@@ -8,6 +8,7 @@ const Logger = require("./../ipc")
 const cacher = require("./../cacher")
 const { getConfig, getCacheLocation } = require("./../config")
 const { cacheModded, checkCached, loadCached } = require("./patchedcache")
+const { diff } = require("./imgdiff")
 
 /**
  * @typedef {Object} Patched
@@ -160,7 +161,7 @@ async function getModified(file, contents, cacheFile, cachedFile, patches, patch
 /**
  *
  * @param {string} cacheFile Cache file location
- * @property {import("jimp")} spritesheet
+ * @property {import("@jimp/core").default} spritesheet
  * @param {PatchObject[]} patches
  */
 async function patchAsset(cacheFile, spritesheet, patches) {
@@ -181,8 +182,7 @@ async function patchAsset(cacheFile, spritesheet, patches) {
         if (potentionalPatches.length == 0) return spritesheet
 
         for (const { imgOriginal, patched } of potentionalPatches) {
-            const diff = Jimp.diff(imgOriginal, spritesheet)
-            if (diff.percent > 0.01) continue
+            if (diff(imgOriginal, spritesheet) > 0.01) continue
             return { out: patched }
         }
 
@@ -204,8 +204,7 @@ async function patchAsset(cacheFile, spritesheet, patches) {
             if (!potentionalPatches.includes(patchInfo)) continue
             let { imgOriginal, patched } = patchInfo
 
-            const diff = Jimp.diff(imgOriginal, toReplace)
-            if (diff.percent > 0.01) continue
+            if (diff(imgOriginal, toReplace) > 0.01) continue
             patches.splice(k, 1)
 
             spritesheet.mask(new Jimp(w, h, 0x0), x, y).composite(await Jimp.read(patched), x, y)
