@@ -211,7 +211,8 @@
         "alert/alert_49.png",
         "alert/alert_50.png",
         "alert/alert_51.png",
-        "alert/alert_52.png"
+        "alert/alert_52.png",
+        "alert/alert_53.png"
     ],
     "record": [
         "record_parts.json",
@@ -322,6 +323,8 @@
         "map_flagship_damage.png",
         "map_event_anime.json",
         "map_event_anime.png",
+        "map_event_anime_483.json",
+        "map_event_anime_483.png",
         "map_anchorage_repair.json",
         "map_anchorage_repair.png"
     ],
@@ -390,7 +393,19 @@
         "battle_result_event_base.json",
         "battle_result_event_base.png",
         "battle_result_sanma_fes.json",
-        "battle_result_sanma_fes.png"
+        "battle_result_sanma_fes.png",
+        "battle_result_event_e1_zuiutyyatabjupmz.json",
+        "battle_result_event_e1_zuiutyyatabjupmz.png",
+        "battle_result_event_e2_rpsayxjjcuzguzyh.json",
+        "battle_result_event_e2_rpsayxjjcuzguzyh.png",
+        "battle_result_event_e3_hsnyanyunigysrws.json",
+        "battle_result_event_e3_hsnyanyunigysrws.png",
+        "battle_result_event_e4_ssdyxizyefifbyge.json",
+        "battle_result_event_e4_ssdyxizyefifbyge.png",
+        "battle_result_event_ed1_brxdjdqbsytguqju.json",
+        "battle_result_event_ed1_brxdjdqbsytguqju.png",
+        "battle_result_event_ed1_snhtiadymrkricmu.json",
+        "battle_result_event_ed1_snhtiadymrkricmu.png"
     ],
     "jukebox": [
         "jukebox_common.json",
