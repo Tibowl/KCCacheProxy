@@ -428,6 +428,7 @@ const cacheFurniture = async () => {
     for (const mst_bgm of START2.api_mst_furniture) {
         const {api_id, api_active_flag, api_version} = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
+
         if (api_active_flag == 1) {
             urls.push(getPath(api_id, "furniture", "scripts", "json") + version)
             urls.push(getPath(api_id, "furniture", "movable", "json") + version)
@@ -436,8 +437,11 @@ const cacheFurniture = async () => {
         } else if (![8, 32, 43, 62, 121, 131, 134, 150, 153, 163, 167, 169, 173, 177, 190, 191].includes(api_id)){
             urls.push(getPath(api_id, "furniture", "normal", "png") + version)
         }
-        if (INCLUDE_RARE)
+
+        if (INCLUDE_RARE) {
             urls.push(getPath(api_id, "furniture", "reward", "png") + version)
+            urls.push(getPath(api_id, "furniture", "card", "png") + version)
+        }
     }
 
     Logger.log(`Caching ${urls.length} furniture assets`)

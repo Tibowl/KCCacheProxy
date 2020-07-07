@@ -94,7 +94,13 @@ function saveConfig() {
  */
 function preloader() {
     if (config == defaultConfig)
-        config = {serverIP: false, preloader: {recommended: { gadget: true }}}
+        config = {
+            serverIP: false,
+            preloader: {
+                maxSimulPreload: 16,
+                recommended: { gadget: true }
+            }
+        }
 }
 
 /**
