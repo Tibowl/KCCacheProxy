@@ -73,6 +73,6 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.51",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.51",
     "@electron-forge/maker-zip": "^6.0.0-beta.51",
-    "electron": "8.1.1"
+    "electron": "8.2.4"
   }
 }
