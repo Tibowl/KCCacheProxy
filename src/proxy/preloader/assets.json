@@ -154,10 +154,14 @@
         "sally_event.png",
         "sally_event_s.json",
         "sally_event_s.png",
+        "sally_event_second.json",
+        "sally_event_second.png",
         "sally_strategymap.json",
         "sally_strategymap.png",
         "sally_strategymap_s.json",
         "sally_strategymap_s.png",
+        "sally_strategymap_second.json",
+        "sally_strategymap_second.png",
         "sally_strategymap_petal.json",
         "sally_strategymap_petal.png",
         "alert/alert_1.png",
@@ -212,7 +216,8 @@
         "alert/alert_50.png",
         "alert/alert_51.png",
         "alert/alert_52.png",
-        "alert/alert_53.png"
+        "alert/alert_53.png",
+        "alert/alert_54.png"
     ],
     "record": [
         "record_parts.json",
@@ -402,10 +407,16 @@
         "battle_result_event_e3_hsnyanyunigysrws.png",
         "battle_result_event_e4_ssdyxizyefifbyge.json",
         "battle_result_event_e4_ssdyxizyefifbyge.png",
-        "battle_result_event_ed1_brxdjdqbsytguqju.json",
-        "battle_result_event_ed1_brxdjdqbsytguqju.png",
+        "battle_result_event_e5_ysezbjxwczbkwwtj.json",
+        "battle_result_event_e5_ysezbjxwczbkwwtj.png",
+        "battle_result_event_e6_bazmapzjpuifeiii.json",
+        "battle_result_event_e6_bazmapzjpuifeiii.png",
+        "battle_result_event_e7_hpzctrnpnrkdwmmn.json",
+        "battle_result_event_e7_hpzctrnpnrkdwmmn.png",
         "battle_result_event_ed1_snhtiadymrkricmu.json",
-        "battle_result_event_ed1_snhtiadymrkricmu.png"
+        "battle_result_event_ed1_snhtiadymrkricmu.png",
+        "battle_result_event_ed2_pkbcmsdahauxphgc.json",
+        "battle_result_event_ed2_pkbcmsdahauxphgc.png"
     ],
     "jukebox": [
         "jukebox_common.json",
