@@ -65,15 +65,17 @@ async function checkVersion() {
     if (global.mainWindow)
         global.mainWindow.webContents.send("version", result)
 
-    if (config.getConfig().lastVersionCheck == nv && config.getConfig().lastVersionCheckTime > new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
+    if (config.getConfig().lastVersionCheck == nv && config.getConfig().lastVersionCheckTime > new Date().getTime() - 24 * 60 * 60 * 1000)
         return
 
     const notification = new Notification({
         title: "KCCacheProxy: New version",
         body: `A new version has been released! You are currently on v${v} while ${nv} is out. Click to open releases page`,
+        timeoutType: "never",
+        silent: false,
         icon: path.join(__dirname, "icon.ico")
     })
-    notification.once("click", () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases"))
+    notification.on("click", () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases"))
     notification.show()
 
     config.getConfig().lastVersionCheck = nv
@@ -140,9 +142,9 @@ async function createWindow() {
         if (!app.isQuiting){
             event.preventDefault()
             tray.displayBalloon({
-                "noSound": true,
-                "title": "KCCacheProxy is now hidden",
-                "content": "Double click tray icon to show"
+                noSound: true,
+                title: "KCCacheProxy is now hidden",
+                content: "Double click tray icon to show"
             })
             mainWindow.hide()
         }
