@@ -45,7 +45,7 @@ const defaultConfig = {
         },
         "cleanup": true
     },
-    "configVersion": 2
+    "configVersion": 3
 }
 
 /** @typedef {defaultConfig} config */
@@ -75,7 +75,20 @@ function loadConfig(electronApp) {
     } else
         config = defaultConfig
 
-    setConfig(config)
+    let shouldSave = false
+    if (config.configVersion <= 2) {
+        Logger.log("Updating config version 2 -> 3, hopefully nothing breaks")
+
+        config.mods = config.mods.map((path) => {
+            return {
+                path
+            }
+        })
+        config.configVersion = 3
+        shouldSave = true
+    }
+
+    setConfig(config, shouldSave)
 }
 
 /**

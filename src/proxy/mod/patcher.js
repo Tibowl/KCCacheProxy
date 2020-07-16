@@ -29,10 +29,10 @@ async function reloadModCache() {
     const startTime = Date.now()
     modCache = {}
 
-    for (const mod of getConfig().mods) {
-        const modDir = mod.replace(/\.mod\.json$/, "")
+    for (const { path } of getConfig().mods) {
+        const modDir = path.replace(/\.mod\.json$/, "")
 
-        const meta = JSON.parse(await readFile(mod))
+        const meta = JSON.parse(await readFile(path))
 
         Logger.log("Preparing", modDir)
         await prepareDir(modDir, meta)

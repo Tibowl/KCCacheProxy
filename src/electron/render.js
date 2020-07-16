@@ -2,6 +2,7 @@
 const { remote, ipcRenderer, shell } = require ("electron")
 const { join, basename } = require("path")
 const { readFileSync, existsSync } = require("fs-extra")
+const fetch = require("node-fetch")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
 
@@ -419,10 +420,11 @@ function updateHidden() {
             child.innerText = text
             elem.appendChild(child)
         }
-        const addButton = function(text, callback, disabled = false) {
+        const addButton = function(text, callback, disabled = false, className = "") {
             const button = document.createElement("button")
             button.innerText = text
             button.disabled = disabled
+            button.className = className
             button.onclick = callback
             elem.appendChild(button)
         }
@@ -434,9 +436,9 @@ function updateHidden() {
             reload()
             updateHidden()
         }
-        if (existsSync(mod))
+        if (existsSync(mod.path))
             try {
-                const modData = JSON.parse(readFileSync(mod))
+                const modData = JSON.parse(readFileSync(mod.path))
 
                 addButton("↓", () => move(1), config.mods[config.mods.length-1] === mod)
                 addButton("↑", () => move(-1), config.mods[0] === mod)
@@ -448,17 +450,50 @@ function updateHidden() {
                 add("span", " by ")
                 add("span", modData.authors.join(", "))
                 add("span", " ")
+
+                if (modData.url) {
+                    addButton("Open website", () => shell.openExternal(modData.url), false)
+                    add("span", " ")
+                }
+
+                if (modData.updateUrl) {
+                    if (mod.latestVersion != undefined && mod.latestVersion != modData.version) {
+                        addButton(`v${mod.latestVersion} available!`, () => shell.openExternal(mod.url || modData.downloadUrl || modData.url || modData.updateUrl), false, "blink")
+                        add("span", " ")
+                    }
+
+                    if (mod.lastCheck == undefined || mod.lastCheck < Date.now() - 3 * 60 * 60 * 1000)
+                        try {
+                            mod.lastCheck = Date.now()
+                            addLog("log", new Date(), `Checking for updates of ${modData.name}`)
+                            fetch(modData.updateUrl)
+                                .then((result) => result.json())
+                                .then((result) => {
+                                    const oldVersion = mod.latestVersion
+                                    mod.latestVersion = result.version
+                                    mod.url = result.downloadUrl || result.url || result.updateUrl
+
+                                    if (oldVersion !== result.version)
+                                        updateHidden()
+
+                                    ipcRenderer.send("setConfig", config)
+                                })
+                        } catch (error) {
+                            addLog("error", new Date(), `Failed to check for updates of mod ${mod.name} at ${mod.updateUrl}`)
+                        }
+                }
+
             } catch (error) {
                 addLog("error", error)
                 elem.innerText = "Failed to load metadata: "
                 const path = document.createElement("code")
-                path.innerText = mod
+                path.innerText = mod.path
                 elem.appendChild(path)
             }
         else  {
             elem.innerText = "Missing file (moved or deleted?): "
             const path = document.createElement("code")
-            path.innerText = mod
+            path.innerText = mod.path
             elem.appendChild(path)
         }
         addButton("Remove", () => {
