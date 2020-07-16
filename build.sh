@@ -45,9 +45,8 @@ wait
 cp minimum-cache.zip ../minimum-cache.zip
 
 echo 'Make x64 & ia32 electron build'
-npm run-script make -- --arch x64 &
-npm run-script make -- --arch ia32 &
-wait 
+npm run-script make -- --arch x64
+npm run-script make -- --arch ia32
 
 for i in ./make/squirrel.windows/*/*.exe ; do 
     p="${i/.\/make\/squirrel.windows\//}"
