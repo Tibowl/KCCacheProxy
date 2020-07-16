@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require ("electron")
-const { join, basename } = require("path")
+const { join } = require("path")
 const { readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
 
@@ -571,6 +571,17 @@ function updateHelp(toUpdate) {
     if (helpSequence.has("mainHit") && helpSequence.has("versionHit"))
         document.getElementById("loading").style = "display: none;"
 }
+
+function getModPath() {
+    return config.mods.length > 0 ? join(config.mods[config.mods.length - 1].path, "..") : undefined
+}
+function getImgCachePath() {
+    let cachePath = config.cacheLocation
+    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
+        cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+    cachePath = join(cachePath, "kcs2", "img")
+    return cachePath
+}
 for (const type of ["importCache", "reloadCache", "checkVersion", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
@@ -640,18 +651,18 @@ document.getElementById("addMod").onclick = async () => {
         title: "Select a mod metadata file",
         filters: [{
             name: "Mod metadata",
-            defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+            defaultPath: getModPath(),
             extensions: ["mod.json"]
         }],
         properties: ["openFile"]
     })
     if (response.canceled) return
 
-    if (config.mods.includes(response.filePaths[0])) {
+    if (config.mods.map(m => m.path).includes(response.filePaths[0])) {
         addLog("error", new Date(), "Already added")
         return
     }
-    config.mods.push(response.filePaths[0])
+    config.mods.push({ path: response.filePaths[0] })
     ipcRenderer.send("setConfig", config)
     ipcRenderer.send("reloadModCache")
     updateHidden()
@@ -661,11 +672,7 @@ document.getElementById("reloadMods").onclick = () => {
     ipcRenderer.send("reloadModCache")
 }
 document.getElementById("extractSpritesheet").onclick = async () => {
-    let cachePath = config.cacheLocation
-    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
-        cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
-    cachePath = join(cachePath, "kcs2", "img")
-
+    const cachePath = getImgCachePath()
     const source = await remote.dialog.showOpenDialog({
         title: "Select a spritesheet",
         defaultPath: cachePath,
@@ -679,7 +686,7 @@ document.getElementById("extractSpritesheet").onclick = async () => {
 
     const target = await remote.dialog.showOpenDialog({
         title: "Select a folder to extract to",
-        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        defaultPath: getModPath(),
         properties: ["openDirectory"]
     })
     if (target.canceled) return
@@ -687,11 +694,7 @@ document.getElementById("extractSpritesheet").onclick = async () => {
     ipcRenderer.send("extractSpritesheet", source.filePaths[0], target.filePaths[0])
 }
 document.getElementById("outlines").onclick = async () => {
-    let cachePath = config.cacheLocation
-    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
-        cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
-    cachePath = join(cachePath, "kcs2", "img")
-
+    const cachePath = getImgCachePath()
     const source = await remote.dialog.showOpenDialog({
         title: "Select a spritesheet",
         defaultPath: cachePath,
@@ -705,7 +708,7 @@ document.getElementById("outlines").onclick = async () => {
 
     const target = await remote.dialog.showSaveDialog({
         title: "Select a location to save outlines to",
-        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..", basename(source.filePaths[0])) : undefined,
+        defaultPath: getModPath(),
         filters: [{
             name: "Images",
             extensions: ["png"]
@@ -718,14 +721,14 @@ document.getElementById("outlines").onclick = async () => {
 document.getElementById("importExternalMod").onclick = async () => {
     const source = await remote.dialog.showOpenDialog({
         title: "Select cache folder to import from",
-        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        defaultPath: getModPath(),
         properties: ["openDirectory"]
     })
     if (source.canceled) return
 
     const target = await remote.dialog.showOpenDialog({
         title: "Select a folder to export to",
-        defaultPath: config.mods.length > 0 ? join(config.mods[config.mods.length - 1], "..") : undefined,
+        defaultPath: getModPath(),
         properties: ["openDirectory"]
     })
     if (target.canceled) return
