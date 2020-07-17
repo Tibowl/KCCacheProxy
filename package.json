@@ -54,15 +54,15 @@
     }
   },
   "dependencies": {
-    "@jimp/custom": "^0.12.1",
-    "@jimp/plugin-crop": "^0.12.1",
-    "@jimp/plugin-mask": "^0.12.1",
-    "@jimp/png": "^0.12.1",
+    "@jimp/custom": "^0.14.0",
+    "@jimp/plugin-crop": "^0.14.0",
+    "@jimp/plugin-mask": "^0.14.0",
+    "@jimp/png": "^0.14.0",
     "adm-zip": "^0.4.16",
     "async": "^3.2.0",
     "auto-launch": "^5.0.5",
     "electron-squirrel-startup": "^1.0.0",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.1",
     "http-proxy": "^1.18.1",
     "node-fetch": "^2.6.0",
     "node-stream-zip": "^1.11.2"
@@ -73,6 +73,6 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.52",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.52",
     "@electron-forge/maker-zip": "^6.0.0-beta.52",
-    "electron": "^8.3.4"
+    "electron": "^8.4.0"
   }
 }

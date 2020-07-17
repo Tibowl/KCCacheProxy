@@ -38,6 +38,10 @@ h2, .h2, h4 {
   white-space: nowrap; 
 }
 
+button {
+  cursor: pointer;
+}
+
 /* Update notification */
 #update {
   color:crimson;

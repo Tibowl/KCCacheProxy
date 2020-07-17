@@ -322,9 +322,12 @@ async function handleCaching(req, res, forceCache = false) {
         invalidatedMainVersion = true
 
     if (file.startsWith("/kcs2/") && !file.startsWith("/kcs2/resources/worldselect") && getConfig().serverIP !== req.headers.host) {
-        getConfig().serverIP = req.headers.host
-        Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
-        saveConfig()
+        if (!(req.headers.host == `127.0.0.1:${getConfig().port}` || req.headers.host == `${getConfig().hostname}:${getConfig().port}`
+        || req.headers.host == "127.0.0.1" || req.headers.host == getConfig().hostname)) {
+            getConfig().serverIP = req.headers.host
+            Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
+            saveConfig()
+        }
     }
 
     // Return cached if version matches
@@ -393,7 +396,7 @@ async function getKCAVersion(host) {
  */
 function extractURL(url) {
     let version = ""
-    let file = "/" + url.match(/^https?:\/\/.*?\/(.*)$/)[1]
+    let file = "/" + url.match(/^(https?:\/\/.*?)?\/(.*)$/)[2]
     if (url.includes("?")) {
         version = url.substring(url.indexOf("?"))
         file = file.substring(0, file.indexOf("?"))

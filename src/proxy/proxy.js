@@ -17,14 +17,20 @@ const proxy = createProxyServer()
 const server = createServer(async (req, res) => {
     const { method, url } = req
 
-    Logger.log(method + ": " + url)
+    Logger.log(`${method}: ${url}`)
     Logger.send("help", "connected")
 
     if (method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
         if (url.includes("/kcs2/index.php"))
             Logger.send("help", "indexHit")
+
+        if (req.headers.host == `127.0.0.1:${port}` || req.headers.host == `${hostname}:${port}`
+        || req.headers.host == "127.0.0.1" || req.headers.host == hostname)
+            return res.end(500)
+
         Logger.addStatAndSend("passthroughHTTP")
         Logger.addStatAndSend("passthrough")
+
         return proxy.web(req, res, {
             target: `http://${req.headers.host}/`,
             timeout: getConfig().timeout
