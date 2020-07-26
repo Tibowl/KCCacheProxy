@@ -73,7 +73,7 @@ async function checkVersion() {
         body: `A new version has been released! You are currently on v${v} while ${nv} is out. Click to open releases page`,
         timeoutType: "never",
         silent: false,
-        icon: path.join(__dirname, "icon.ico")
+        icon: path.join(__dirname, process.platform === "win32" ? "icon.ico" : "icon.png")
     })
     notification.on("click", () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases"))
     notification.show()
@@ -85,7 +85,7 @@ async function checkVersion() {
 
 
 async function createWindow() {
-    const icon = path.join(__dirname, "icon.ico")
+    const icon = path.join(__dirname, process.platform === "win32" ? "icon.ico" : "icon.png")
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -96,6 +96,8 @@ async function createWindow() {
         },
         show: !config.getConfig().startHidden
     })
+
+    global.mainWindow = mainWindow
 
     // and load the index.html of the app.
     mainWindow.loadFile(path.join(__dirname, "index.html"))
@@ -112,7 +114,11 @@ async function createWindow() {
     tray.setContextMenu(Menu.buildFromTemplate([
         {
             label: "Show",
-            click: () => mainWindow.show()
+            click: () => {
+                mainWindow.show()
+                if (process.platform === "darwin")
+                    app.dock.show()
+            }
         }, {
             label: "Restart",
             click: async () => {
@@ -147,6 +153,8 @@ async function createWindow() {
                 content: "Double click tray icon to show"
             })
             mainWindow.hide()
+            if (process.platform === "darwin")
+                app.dock.hide()
         }
 
         return false
@@ -155,8 +163,6 @@ async function createWindow() {
 
     if (config.getConfig().startHidden)
         mainWindow.hide()
-
-    global.mainWindow = mainWindow
 
     require("../proxy/proxy")
 
