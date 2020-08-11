@@ -104,8 +104,17 @@ async function mergeCache(source) {
         const { baseFolder, data } = await fetchCached
         const newCached = JSON.parse(data)
 
+        let completed = 0, lastPrint = Date.now()
+        const total =  Object.keys(newCached).length
+
         let newerLocally = 0, same = 0, copied = 0, skipped = 0, versionChange = 0
         for (const file of Object.keys(newCached).sort()) {
+            completed++
+            if (Date.now() - lastPrint > 10000) {
+                Logger.log(`Current cache merge progress: ${(completed / total * 100).toFixed(1)}% (${completed.toLocaleString()}/${total.toLocaleString()})`)
+                lastPrint = Date.now()
+            }
+
             const newFile = newCached[file]
             const targetLocation = join(getCacheLocation(), file)
 
