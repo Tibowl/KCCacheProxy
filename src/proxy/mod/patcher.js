@@ -179,14 +179,14 @@ async function patchAsset(cacheFile, spritesheet, patches) {
 
     if (!await exists(spritesheetMeta)) {
         const potentionalPatches = patches.filter(patch => patch.w == spritesheet.getWidth() && patch.h == spritesheet.getHeight())
-        if (potentionalPatches.length == 0) return spritesheet
+        if (potentionalPatches.length == 0) return { sc: spritesheet }
 
         for (const { imgOriginal, patched } of potentionalPatches) {
             if (diff(imgOriginal, spritesheet) > 0.01) continue
             return { out: patched }
         }
 
-        return { sc: spritesheet}
+        return { sc: spritesheet }
     }
 
     const meta = JSON.parse(await readFile(spritesheetMeta))
@@ -212,7 +212,7 @@ async function patchAsset(cacheFile, spritesheet, patches) {
         }
     }
 
-    return { sc: spritesheet}
+    return { sc: spritesheet }
 }
 
 async function prepatch() {

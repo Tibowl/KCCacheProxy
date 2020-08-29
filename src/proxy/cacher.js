@@ -175,10 +175,23 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         Logger.log("HTTP error ", data.status, url)
         Logger.addStatAndSend("failed")
 
+        if (lastmodified) {
+            // When will/does this happen? File removed? But why would game try to access it then :thinking:
+            Logger.log("Cached version available for ", url)
+            invalidatedMainVersion = true
+            return response({
+                "status": 200,
+                "contents": await readFile(cacheFile)
+            })
+        }
+
         if (file == "/gadget_html5/js/kcs_const.js")
             Logger.send("help", "gadgetFail")
 
-        return response(data)
+        return response({
+            status: data.status,
+            contents: await data.buffer()
+        })
     }
 
     // Store contents and meta-data
@@ -358,7 +371,7 @@ async function handleCaching(req, res, forceCache = false) {
         return res.end()
     }
 
-    if (result.status >= 500 && result.contents) {
+    if (result.status >= 400 && result.contents) {
         res.statusCode = result.status
         return res.end(result.contents)
     }

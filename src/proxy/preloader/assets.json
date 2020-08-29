@@ -427,5 +427,9 @@
         "wedding_marriage_bg.png",
         "wedding_marriage.json",
         "wedding_marriage.png"
+    ],
+    "minigame": [
+        "minigame_gotsheep.json",
+        "minigame_gotsheep.png"
     ]
 }

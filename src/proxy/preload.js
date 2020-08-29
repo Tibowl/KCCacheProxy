@@ -574,8 +574,8 @@ const cacheVoices = async () => {
             vnums.push(6)
 
         // Friend fleet lines
-        if (INCLUDE_RARE)
-            vnums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246, 147, 247, 148])
+        // if (INCLUDE_RARE)
+        //     vnums.push(141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344, 145, 245, 146, 246, 147, 247, 148, 248)
 
         urls.push(...vnums.map(id => `kcs/sound/kc${api_filename}/${getFilenameByVoiceLine(api_id, id)}.mp3${getVersion(id)}`))
     }
