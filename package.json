@@ -71,7 +71,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "fs-extra": "^9.0.1",
     "http-proxy": "^1.18.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "node-stream-zip": "^1.11.2"
   },
   "devDependencies": {
