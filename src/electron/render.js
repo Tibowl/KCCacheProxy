@@ -483,6 +483,21 @@ function updateHidden() {
                         }
                 }
 
+                if (modData.requireScripts && !mod.allowScripts) {
+                    const resp = confirm(`The mod '${modData.name}' (${mod.path}) requires scripts to be enabled. Do you trust this mod?`)
+                    if (!resp) {
+                        const ind = config.mods.indexOf(mod)
+                        config.mods.splice(ind, 1)
+                        reload()
+                        updateHidden()
+                        addLog("error", new Date(), "The mod has been removed.")
+                    }
+                    mod.allowScripts = true
+
+                    ipcRenderer.send("setConfig", config)
+                    ipcRenderer.send("reloadModCache")
+                }
+
             } catch (error) {
                 addLog("error", error)
                 elem.innerText = "Failed to load metadata: "

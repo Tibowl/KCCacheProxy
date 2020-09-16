@@ -50,6 +50,21 @@ button {
 #newVersion {
   font-weight: bold;
 }
+button {
+  border-radius: 3px;
+  border: 1px solid #d6d6d6;
+  color: #d6d6d6;
+  background-color: #0a0a0a;
+  border: none;
+  padding: 3px 6px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 12px;
+  margin: 2px;
+}
+
 #save:enabled, .blink {
   animation: blinker 1s linear;
   animation-iteration-count: infinite;

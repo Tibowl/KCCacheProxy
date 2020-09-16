@@ -29,43 +29,50 @@ async function reloadModCache() {
     const startTime = Date.now()
     modCache = {}
 
-    for (const { path } of getConfig().mods) {
+    for (const { path, allowScripts } of getConfig().mods) {
         const modDir = path.replace(/\.mod\.json$/, "")
 
         const meta = JSON.parse(await readFile(path))
+        if (meta.requireScripts && !allowScripts) continue
 
         Logger.log("Preparing", modDir)
-        await prepareDir(modDir, meta)
+        await prepareDir(modDir, meta, allowScripts && meta.requireScripts)
     }
 
     Logger.log("Preparing mod images took", Date.now() - startTime, "ms")
     loadCached()
 }
 
-async function prepareDir(dir, modMeta, path = []) {
+async function prepareDir(dir, modMeta, allowScripts, path = []) {
     await Promise.all((await readdir(dir)).map(async f => {
         if (f.startsWith(".") || f.toLowerCase().endsWith(".md")) return
         const filePath = join(dir, f)
         const stats = await stat(filePath)
 
         if (stats.isDirectory())
-            await prepareDir(filePath, modMeta, [...path, f])
+            await prepareDir(filePath, modMeta, allowScripts, [...path, f])
         else if (stats.isFile()) {
             let type = path[path.length-1]
             let target, targetName = f + (modMeta.name||"") + (modMeta.version||"")
 
-            if (type !== "original" && type !== "patched") {
+            if (type !== "original" && type !== "patched" && type !== "patcher") {
                 if (f.startsWith("original")) type = "original"
                 else if (f.startsWith("patched")) type = "patched"
+                else if (f.startsWith("patcher")) type = "patcher"
                 else {
                     Logger.error(`Invalid path ${filePath}`)
                     return
                 }
 
-                targetName = targetName.replace(/^(original|patched)/, "")
+                targetName = targetName.replace(/^(original|patched|patcher)/, "")
                 target = "/" + path.join("/")
             } else
                 target = "/" + path.slice(0, path.length-1).join("/")
+
+            if (type == "patcher") {
+                if (!allowScripts) return
+                delete require.cache[require.resolve(filePath)]
+            }
 
             if (!modCache[target])
                 modCache[target] = {}
@@ -95,15 +102,23 @@ async function patch(file, contents, cacheFile, cachedFile) {
     while (paths.length > 1) {
         const patch = modCache[paths.join("/")]
         if (patch) {
-            for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
-                if (!patch.patched[name]) {
-                    Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
-                    continue
+            if (patch.patcher)
+                for (const [name, { path }] of Object.entries(patch.patcher).sort(([a], [b]) => a.localeCompare(b)))  {
+                    const content = await readFile(path)
+                    patchHashes.update(content)
+                    patches.push({patcher: require(path), name})
                 }
-                const content = await readFile(patch.patched[name].path)
-                patchHashes.update(content)
-                patches.push({original: path, patched: content, name})
-            }
+
+            if (patch.original)
+                for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
+                    if (!patch.patched[name]) {
+                        Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
+                        continue
+                    }
+                    const content = await readFile(patch.patched[name].path)
+                    patchHashes.update(content)
+                    patches.push({original: path, patched: content, name})
+                }
         }
         paths.pop()
     }
@@ -137,6 +152,21 @@ async function patch(file, contents, cacheFile, cachedFile) {
 async function getModified(file, contents, cacheFile, cachedFile, patches, patchHash) {
     const startTime = Date.now()
 
+    // Patch by patchers (scripts)
+    let patcherPatched = false
+    for (const { patcher } of patches.filter(k => k.patcher)) {
+        const result = patcher(file, contents)
+        if (result !== null) {
+            patcherPatched = true
+            contents = result
+        }
+    }
+    if (patcherPatched)
+        return contents
+
+    patches = patches.filter(k => !k.patcher)
+
+    // Patch non image files
     if (!file.toLowerCase().endsWith(".png")) {
         for (const patch of patches)
             if ((await readFile(patch.original)).equals(contents))
@@ -145,11 +175,13 @@ async function getModified(file, contents, cacheFile, cachedFile, patches, patch
         return contents
     }
 
+    // Return cached image files
     const cached = await checkCached(file, patchHash, cachedFile.lastmodified)
     if (cached) return cached
 
     Logger.log(`Need to repatch ${file}`)
 
+    // Patching sprite sheets
     const spritesheet = await patchAsset(cacheFile, await Jimp.read(contents), patches)
 
     const output = spritesheet.out ? spritesheet.out : await spritesheet.sc.getBufferAsync(Jimp.MIME_PNG)
