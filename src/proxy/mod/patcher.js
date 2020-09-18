@@ -55,10 +55,11 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
             let type = path[path.length-1]
             let target, targetName = f + (modMeta.name||"") + (modMeta.version||"")
 
-            if (type !== "original" && type !== "patched" && type !== "patcher") {
+            if (type !== "original" && type !== "patched" && type !== "patcher" && type !== "ignore") {
                 if (f.startsWith("original")) type = "original"
                 else if (f.startsWith("patched")) type = "patched"
                 else if (f.startsWith("patcher")) type = "patcher"
+                else if (f.startsWith("ignore")) return
                 else {
                     Logger.error(`Invalid path ${filePath}`)
                     return
@@ -69,7 +70,9 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
             } else
                 target = "/" + path.slice(0, path.length-1).join("/")
 
-            if (type == "patcher") {
+            if (type == "ignore")
+                return
+            else if (type == "patcher") {
                 if (!allowScripts) return
                 delete require.cache[require.resolve(filePath)]
             }
