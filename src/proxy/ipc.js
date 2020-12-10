@@ -73,7 +73,7 @@ function addStatAndSend(statType, amount = 1) {
         }, 100)
 
     if (!saveStatsTimer)
-        saveStatsTimer = setTimeout(saveStats, 5*60*1000)
+        saveStatsTimer = setTimeout(saveStats, 5 * 60 * 1000)
 }
 /**
  * Save stats to disk
@@ -136,9 +136,9 @@ function sendRecent() {
 async function checkVersion(manual) {
     try {
         const releases = await (await fetch("https://api.github.com/repos/Tibowl/KCCacheProxy/releases")).json()
-        return {manual, release: releases.find(r => !r.prerelease)}
+        return { manual, release: releases.find(r => !r.prerelease) }
     } catch (error) {
-        return {manual, error: error.toString()}
+        return { manual, error: error.toString() }
     }
 }
 /**
@@ -155,7 +155,7 @@ function registerElectron(ipcMain, app, al) {
     const config = require("./config")
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
     const { extractSplit, importExternalMod, outlines } = require("./mod/modderUtils")
-    const { reloadModCache, prepatch} = require("./mod/patcher")
+    const { reloadModCache, prepatch } = require("./mod/patcher")
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))

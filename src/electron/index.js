@@ -123,7 +123,7 @@ async function createWindow() {
             label: "Restart",
             click: async () => {
                 await ipc.saveStats()
-                app.isQuiting = true
+                app.isQuitting = true
                 app.relaunch()
                 app.quit()
             }
@@ -131,7 +131,7 @@ async function createWindow() {
             label: "Quit",
             click: async () => {
                 await ipc.saveStats()
-                app.isQuiting = true
+                app.isQuitting = true
                 app.quit()
             }
         }
@@ -145,7 +145,7 @@ async function createWindow() {
 
     mainWindow.on("closed", () => global.mainWindow = null)
     mainWindow.on("close", (event) => {
-        if (!app.isQuiting){
+        if (!app.isQuitting) {
             event.preventDefault()
             tray.displayBalloon({
                 noSound: true,

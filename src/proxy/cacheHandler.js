@@ -13,9 +13,9 @@ const cacher = require("./cacher")
 /**
  * Verifies cache, will delete if "delete" in argv or parameter set
  *
- * @param {boolean} [deleteinvalid] Delete invalid files
+ * @param {boolean} [deleteInvalid] Delete invalid files
  */
-async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase() == "delete")) {
+async function verifyCache(deleteInvalid = process.argv.find(k => k.toLowerCase() == "delete")) {
     if (!getConfig().verifyCache) {
         Logger.error("verifyCache is not set in config! Aborted check!")
         return
@@ -26,7 +26,7 @@ async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase(
     const responses = await mapLimit(
         Object.entries(cacher.getCached()),
         32,
-        async ([key, value]) =>  {
+        async ([key, value]) => {
             try {
                 if (value.length == undefined) return 0
                 const file = join(getCacheLocation(), key)
@@ -34,7 +34,7 @@ async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase(
 
                 if (contents.length != value.length) {
                     Logger.error(key, "length doesn't match!", contents.length, value.length)
-                    if (deleteinvalid) {
+                    if (deleteInvalid) {
                         await unlink(file)
                         delete cacher.getCached()[key]
                     }
@@ -42,14 +42,14 @@ async function verifyCache(deleteinvalid = process.argv.find(k => k.toLowerCase(
                 }
                 return 1
             } catch (e) {
-                if (deleteinvalid)
+                if (deleteInvalid)
                     delete cacher.getCached()[key]
                 return -1
             }
         }
     )
 
-    const total = responses.length,
+    const total   = responses.length,
           invalid = responses.filter(k => k == 0).length,
           checked = responses.filter(k => k >= 0).length,
           error   = responses.filter(k => k == -1).length
@@ -67,7 +67,7 @@ async function mergeCache(source) {
         storeEntries: true
     })
 
-    zip.on("error", err => Logger.error("An error occured while reading zip file!", err))
+    zip.on("error", err => Logger.error("An error occurred while reading zip file!", err))
 
     const fetchCached = new Promise((resolve, reject) => {
         let found = false
@@ -105,7 +105,7 @@ async function mergeCache(source) {
         const newCached = JSON.parse(data)
 
         let completed = 0, lastPrint = Date.now()
-        const total =  Object.keys(newCached).length
+        const total = Object.keys(newCached).length
 
         let newerLocally = 0, same = 0, copied = 0, skipped = 0, versionChange = 0
         for (const file of Object.keys(newCached).sort()) {
@@ -240,7 +240,7 @@ async function clearMain() {
         const file = join(getCacheLocation(), key)
         if (await exists(file)) {
             await unlink(file)
-            Logger.log(`Deleted ${file} - as it could potentionally cause issues`)
+            Logger.log(`Deleted ${file} - as it could potentially cause issues`)
         }
     }
 }

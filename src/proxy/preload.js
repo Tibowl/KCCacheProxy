@@ -30,8 +30,8 @@ const run = async (rare = false) => {
 
     if (!getConfig().serverIP) return
 
-    const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //*/ await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
-    SERVER = `http://${getConfig().serverIP}/` //kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
+    const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //* / await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
+    SERVER = `http://${getConfig().serverIP}/` // kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
     Logger.log("Game version: " + GAME_VERSION)
@@ -48,7 +48,7 @@ const run = async (rare = false) => {
     ])
     VERSIONS = JSON.parse(readFileSync(join(getCacheLocation(), "/kcs2/version.json")))
 
-    // Recommendend to keep
+    // Recommended to keep
     if (getConfig().preloader.recommended.static)
         await cacheStatic()
     if (getConfig().preloader.recommended.assets)
@@ -118,23 +118,23 @@ const cacheGadget = async () => {
 
     if (INCLUDE_RARE) {
         for (let i = 1; i <= 9; i++)
-            urls.push(`kcscontents/dictionary/01_aa/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/01_aa/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 46; i++)
-            urls.push(`kcscontents/dictionary/02_ka/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/02_ka/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 34; i++)
-            urls.push(`kcscontents/dictionary/03_sa/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/03_sa/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 25; i++)
-            urls.push(`kcscontents/dictionary/04_ta/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/04_ta/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 10; i++)
-            urls.push(`kcscontents/dictionary/05_na/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/05_na/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 13; i++)
-            urls.push(`kcscontents/dictionary/06_ha/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/06_ha/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 2; i++)
-            urls.push(`kcscontents/dictionary/07_ma/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/07_ma/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 3; i++)
-            urls.push(`kcscontents/dictionary/08_ya/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/08_ya/d${(i + "").padStart(2, "0")}.html`)
         for (let i = 1; i <= 13; i++)
-            urls.push(`kcscontents/dictionary/09_ra/d${(i+"").padStart(2, "0")}.html`)
+            urls.push(`kcscontents/dictionary/09_ra/d${(i + "").padStart(2, "0")}.html`)
 
         for (let i = 1; i <= 20; i++) {
             urls.push(`kcs2/resources/worldselect/btn_chinjyufu${i}.png`)
@@ -145,7 +145,7 @@ const cacheGadget = async () => {
             for (let m = 1; m <= 12; m++)
                 for (let i = 1; i <= 21; i++)
                     if (!(y == 13 && m < 6))
-                        urls.push(`kcscontents/information/image/rank${(y+"").padStart(2, "0")}${(m+"").padStart(2, "0")}${(i+"").padStart(2, "0")}.jpg`)
+                        urls.push(`kcscontents/information/image/rank${(y + "").padStart(2, "0")}${(m + "").padStart(2, "0")}${(i + "").padStart(2, "0")}.jpg`)
     }
     Logger.log(`Caching ${urls.length} gadget urls`)
 
@@ -167,12 +167,12 @@ const cacheStatic = async () => {
 
     if (INCLUDE_RARE)
         for (let i = 0; i < 50; i++) {
-            urls.push(`kcs2/resources/stype/etext/${(i+"").padStart(3, "0")}.png`)
-            urls.push(`kcs2/resources/stype/etext/sp${(i+"").padStart(3, "0")}.png`)
-            urls.push(`kcs2/resources/area/airunit/${(i+"").padStart(3, "0")}.png`)
-            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}_.png`)
-            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i+"").padStart(3, "0")}.png`)
-            urls.push(`kcs2/resources/area/sally/${(i+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/stype/etext/${(i + "").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/stype/etext/sp${(i + "").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/airunit/${(i + "").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i + "").padStart(3, "0")}_.png`)
+            urls.push(`kcs2/resources/area/airunit_extend_confirm/${(i + "").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/area/sally/${(i + "").padStart(3, "0")}.png`)
         }
 
     Logger.log(`Caching ${urls.length} URLs`)
@@ -188,8 +188,8 @@ const cacheAssets = async () => {
     }
 
     const urls = [
-        `kcs2/img/common/bg_map/bg_h.png${VERSIONS.map ? `?version=${VERSIONS.map}`:""}`,
-        `kcs2/img/common/bg_map/bg_y.png${VERSIONS.map ? `?version=${VERSIONS.map}`:""}`
+        `kcs2/img/common/bg_map/bg_h.png${VERSIONS.map ? `?version=${VERSIONS.map}` : ""}`,
+        `kcs2/img/common/bg_map/bg_y.png${VERSIONS.map ? `?version=${VERSIONS.map}` : ""}`
     ]
     await cacheURLs(urls)
 }
@@ -198,9 +198,9 @@ const cacheTitleCalls = async () => {
     // kcs2/resources/voice/titlecall_1/019.mp3
     const urls = []
     for (let i = 1; i <= 86; i++)
-        urls.push(`kcs2/resources/voice/titlecall_1/${(i+"").padStart(3, "0")}.mp3`)
+        urls.push(`kcs2/resources/voice/titlecall_1/${(i + "").padStart(3, "0")}.mp3`)
     for (let i = 1; i <= 49; i++)
-        urls.push(`kcs2/resources/voice/titlecall_2/${(i+"").padStart(3, "0")}.mp3`)
+        urls.push(`kcs2/resources/voice/titlecall_2/${(i + "").padStart(3, "0")}.mp3`)
 
     Logger.log(`Caching ${urls.length} title calls`)
     await cacheURLs(urls)
@@ -231,15 +231,15 @@ const cacheMaps = async () => {
         return ""
     }
     for (const map of START2.api_mst_mapinfo) {
-        const {api_maparea_id, api_no} = map
+        const { api_maparea_id, api_no } = map
         urls.push(
-            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}.png${getVersion(api_maparea_id*10+api_no)}`,
-            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_info.json${getVersion(api_maparea_id*10+api_no)}`,
-            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.json${getVersion(api_maparea_id*10+api_no)}`,
-            `kcs2/resources/map/${(""+api_maparea_id).padStart(3, "0")}/${(""+api_no).padStart(2, "0")}_image.png${getVersion(api_maparea_id*10+api_no)}`
+            `kcs2/resources/map/${("" + api_maparea_id).padStart(3, "0")}/${("" + api_no).padStart(2, "0")}.png${getVersion(api_maparea_id * 10 + api_no)}`,
+            `kcs2/resources/map/${("" + api_maparea_id).padStart(3, "0")}/${("" + api_no).padStart(2, "0")}_info.json${getVersion(api_maparea_id * 10 + api_no)}`,
+            `kcs2/resources/map/${("" + api_maparea_id).padStart(3, "0")}/${("" + api_no).padStart(2, "0")}_image.json${getVersion(api_maparea_id * 10 + api_no)}`,
+            `kcs2/resources/map/${("" + api_maparea_id).padStart(3, "0")}/${("" + api_no).padStart(2, "0")}_image.png${getVersion(api_maparea_id * 10 + api_no)}`
         )
         if (map.api_required_defeat_count != null || map.api_max_maphp != null)
-            urls.push(`kcs2/resources/gauge/${(""+api_maparea_id).padStart(3, "0")}${(""+api_no).padStart(2, "0")}.json${getVersion(api_maparea_id*10+api_no)}`)
+            urls.push(`kcs2/resources/gauge/${("" + api_maparea_id).padStart(3, "0")}${("" + api_no).padStart(2, "0")}.json${getVersion(api_maparea_id * 10 + api_no)}`)
     }
 
     Logger.log(`Caching ${urls.length} map assets`)
@@ -345,23 +345,23 @@ const cacheEquips = async () => {
     }
 
     for (const equip of START2.api_mst_slotitem) {
-        const {api_id, api_version} = equip
+        const { api_id, api_version } = equip
         const version = api_version ? "?version=" + api_version : ""
         for (const type of api_id < 500 ? typesNoKeyFriendly : typesNoKeyAbyssal)
             if (!(api_id == 42 && type == "item_character"))
                 urls.push(getPath(api_id, "slot", type, "png") + version)
 
         // Airplanes
-        if (equip.api_type[4] != 0  && api_id < 500) {
+        if ((equip.api_type[4] != 0 && api_id < 500) || INCLUDE_RARE) {
             for (const type of ["airunit_fairy", "airunit_banner", "airunit_name"])
                 urls.push(getPath(api_id, "slot", type, "png") + version)
         }
-        if (api_id < 5 || (api_id > 10 && api_id < 38)) {
-            urls.push(`kcs2/resources/plane/${(api_id+"").padStart(3, "0")}.png`)
-            urls.push(`kcs2/resources/plane/r${(api_id+"").padStart(3, "0")}.png`)
+        if (api_id < 5 || (api_id > 10 && api_id < 38) || INCLUDE_RARE) {
+            urls.push(`kcs2/resources/plane/${(api_id + "").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/plane/r${(api_id + "").padStart(3, "0")}.png`)
         }
-        if (api_id < 18)
-            urls.push(`kcs2/resources/plane/e${(api_id+"").padStart(3, "0")}.png`)
+        if (api_id < 18 || INCLUDE_RARE)
+            urls.push(`kcs2/resources/plane/e${(api_id + "").padStart(3, "0")}.png`)
     }
 
     Logger.log(`Caching ${urls.length} equip assets`)
@@ -380,7 +380,7 @@ const cacheBGM = async () => {
 
     // In case there are still some missing (new events)
     for (const map of START2.api_mst_mapbgm) {
-        const {api_boss_bgm, api_map_bgm, api_moving_bgm} = map
+        const { api_boss_bgm, api_map_bgm, api_moving_bgm } = map
 
         if (!bgm.includes(api_moving_bgm))
             bgm.push(api_moving_bgm)
@@ -405,7 +405,7 @@ const cacheBGM = async () => {
         bgm.push(i)
     // Add missing ones
     for (const mst_bgm of START2.api_mst_bgm) {
-        const {api_id} = mst_bgm
+        const { api_id } = mst_bgm
 
         if (!bgm.includes(api_id))
             bgm.push(api_id)
@@ -426,7 +426,7 @@ const cacheFurniture = async () => {
             urls.push(`kcs2/resources/furniture/outside/window_bg_${i}-${j}.png`)
 
     for (const mst_bgm of START2.api_mst_furniture) {
-        const {api_id, api_active_flag, api_version} = mst_bgm
+        const { api_id, api_active_flag, api_version } = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
 
         if (api_active_flag == 1) {
@@ -434,7 +434,7 @@ const cacheFurniture = async () => {
             urls.push(getPath(api_id, "furniture", "movable", "json") + version)
             urls.push(getPath(api_id, "furniture", "movable", "png") + version)
             urls.push(getPath(api_id, "furniture", "thumbnail", "png") + version)
-        } else if (![8, 32, 43, 62, 121, 131, 134, 150, 153, 163, 167, 169, 173, 177, 190, 191].includes(api_id)){
+        } else if (![8, 32, 43, 62, 121, 131, 134, 150, 153, 163, 167, 169, 173, 177, 190, 191].includes(api_id)) {
             urls.push(getPath(api_id, "furniture", "normal", "png") + version)
         }
 
@@ -449,7 +449,7 @@ const cacheFurniture = async () => {
     urls = []
 
     for (const mst_bgm of START2.api_mst_furniture) {
-        const {api_id, api_active_flag, api_version} = mst_bgm
+        const { api_id, api_active_flag, api_version } = mst_bgm
         const version = (api_version && api_version != "1") ? "?version=" + api_version : ""
         if (api_active_flag != 1) continue
         const script = JSON.parse(readFileSync(join(getCacheLocation(), getPath(api_id, "furniture", "scripts", "json"))).toString().trim())
@@ -485,14 +485,14 @@ const cacheServerName = async () => {
 const cacheUseItem = async () => {
     const urls = []
     for (const useitem of START2.api_mst_useitem) {
-        const {api_id, api_name} = useitem
+        const { api_id, api_name } = useitem
         if (api_name == "") continue
 
         if (![2, 10, 31, 32, 33, 34, 44, 49, 50, 51, 53, 76].includes(api_id))
-            urls.push(`kcs2/resources/useitem/card/${(api_id+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/useitem/card/${(api_id + "").padStart(3, "0")}.png`)
 
         if (api_id < 49 && api_id != 10)
-            urls.push(`kcs2/resources/useitem/card_/${(api_id+"").padStart(3, "0")}.png`)
+            urls.push(`kcs2/resources/useitem/card_/${(api_id + "").padStart(3, "0")}.png`)
     }
     Logger.log(`Caching ${urls.length} use item assets`)
     await cacheURLs(urls)
@@ -529,7 +529,7 @@ const workingDiffs = [
     3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
     5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
 ]
-const specialReairVoiceShips = [
+const specialRepairVoiceShips = [
     56, 160, 224, 65, 194, 268, 114, 200, 290, 123, 142,
     295, 126, 398, 127, 399, 135, 304, 136, 418, 496
 ]
@@ -542,7 +542,7 @@ const cacheVoices = async () => {
     for (const ship of START2.api_mst_shipgraph) {
         if (ship.api_sortno == 0 || !ship.api_battle_n || !ship.api_boko_d) continue
 
-        const {api_id, api_filename, api_version} = ship
+        const { api_id, api_filename, api_version } = ship
         const mstship = START2.api_mst_ship.find(k => k.api_id == api_id)
         if (!mstship) continue
 
@@ -567,10 +567,12 @@ const cacheVoices = async () => {
                 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
             )
         if (SPECIAL_CG.includes(api_id))
-            vnums.push(900)//, 901, 902, 903)
+            vnums.push(900)
+        if (SPECIAL_CG.includes(api_id) && INCLUDE_RARE)
+            vnums.push(901, 902, 903)
         if ([432, 353].includes(api_id))
             vnums.push(917, 918)
-        if (specialReairVoiceShips.includes(api_id))
+        if (specialRepairVoiceShips.includes(api_id))
             vnums.push(6)
 
         // Friend fleet lines
@@ -585,7 +587,7 @@ const cacheVoices = async () => {
 }
 
 const cleanup = async () => {
-    let cleared = {
+    const cleared = {
         "sound": 0,
         "shipcg": 0
     }
@@ -638,7 +640,7 @@ const getPath = (id, eors, type, ext, filename) => {
         suffix = "_d"
         type = type.replace("_d", "")
     }
-    let uniqueKey = filename ? "_" + filename : ""
+    const uniqueKey = filename ? "_" + filename : ""
 
     return `kcs2/resources/${eors}/${type}/${pad(id, eors)}${suffix}_${create(id, `${eors}_${type}`)}${uniqueKey}.${ext}`
 }

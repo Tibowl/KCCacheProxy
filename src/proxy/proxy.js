@@ -25,7 +25,7 @@ const server = createServer(async (req, res) => {
             Logger.send("help", "indexHit")
 
         if (req.headers.host == `127.0.0.1:${port}` || req.headers.host == `${hostname}:${port}`
-        || req.headers.host == "127.0.0.1" || req.headers.host == hostname)
+            || req.headers.host == "127.0.0.1" || req.headers.host == hostname)
             return res.end(500)
 
         Logger.addStatAndSend("passthroughHTTP")
@@ -58,7 +58,7 @@ server.on("connect", (req, socket) => {
         srvSocket.pipe(socket)
         socket.pipe(srvSocket)
     })
-    srvSocket.on("error", (...a) => Logger.error("Srvsocket error", ...a))
+    srvSocket.on("error", (...a) => Logger.error("Server socket error", ...a))
 })
 server.on("error", (...a) => Logger.error("Proxy server error", ...a))
 proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))

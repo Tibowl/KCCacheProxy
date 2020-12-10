@@ -52,8 +52,8 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
         if (stats.isDirectory())
             await prepareDir(filePath, modMeta, allowScripts, [...path, f])
         else if (stats.isFile()) {
-            let type = path[path.length-1]
-            let target, targetName = f + (modMeta.name||"") + (modMeta.version||"")
+            let type = path[path.length - 1]
+            let target, targetName = f + (modMeta.name || "") + (modMeta.version || "")
 
             if (type !== "original" && type !== "patched" && type !== "patcher" && type !== "ignore") {
                 if (f.startsWith("original")) type = "original"
@@ -68,7 +68,7 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
                 targetName = targetName.replace(/^(original|patched|patcher)/, "")
                 target = "/" + path.join("/")
             } else
-                target = "/" + path.slice(0, path.length-1).join("/")
+                target = "/" + path.slice(0, path.length - 1).join("/")
 
             if (type == "ignore")
                 return
@@ -88,7 +88,7 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
 }
 
 /**
- * If necesarry, will patch the file
+ * If necessary, will patch the file
  *
  * @param {string} file File path
  * @param {string|Buffer} contents Contents of file
@@ -106,21 +106,21 @@ async function patch(file, contents, cacheFile, cachedFile) {
         const patch = modCache[paths.join("/")]
         if (patch) {
             if (patch.patcher)
-                for (const [name, { path }] of Object.entries(patch.patcher).sort(([a], [b]) => a.localeCompare(b)))  {
+                for (const [name, { path }] of Object.entries(patch.patcher).sort(([a], [b]) => a.localeCompare(b))) {
                     const content = await readFile(path)
                     patchHashes.update(content)
-                    patches.push({patcher: require(path), name})
+                    patches.push({ patcher: require(path), name })
                 }
 
             if (patch.original)
-                for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b)))  {
+                for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b))) {
                     if (!patch.patched[name]) {
                         Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
                         continue
                     }
                     const content = await readFile(patch.patched[name].path)
                     patchHashes.update(content)
-                    patches.push({original: path, patched: content, name})
+                    patches.push({ original: path, patched: content, name })
                 }
         }
         paths.pop()
@@ -182,7 +182,7 @@ async function getModified(file, contents, cacheFile, cachedFile, patches, patch
     const cached = await checkCached(file, patchHash, cachedFile.lastmodified)
     if (cached) return cached
 
-    Logger.log(`Need to repatch ${file}`)
+    Logger.log(`Need to re-patch ${file}`)
 
     // Patching sprite sheets
     const spritesheet = await patchAsset(cacheFile, await Jimp.read(contents), patches)
@@ -213,10 +213,10 @@ async function patchAsset(cacheFile, spritesheet, patches) {
     }))
 
     if (!await exists(spritesheetMeta)) {
-        const potentionalPatches = patches.filter(patch => patch.w == spritesheet.getWidth() && patch.h == spritesheet.getHeight())
-        if (potentionalPatches.length == 0) return { sc: spritesheet }
+        const potentialPatches = patches.filter(patch => patch.w == spritesheet.getWidth() && patch.h == spritesheet.getHeight())
+        if (potentialPatches.length == 0) return { sc: spritesheet }
 
-        for (const { imgOriginal, patched } of potentionalPatches) {
+        for (const { imgOriginal, patched } of potentialPatches) {
             if (diff(imgOriginal, spritesheet) > 0.01) continue
             return { out: patched }
         }
@@ -226,18 +226,18 @@ async function patchAsset(cacheFile, spritesheet, patches) {
 
     const meta = JSON.parse(await readFile(spritesheetMeta))
 
-    for (const {frame: {x, y, w, h}} of Object.values(meta.frames)) {
+    for (const { frame: { x, y, w, h } } of Object.values(meta.frames)) {
         if (patches.length == 0) break
 
-        const potentionalPatches = patches.filter(patch => patch.w == w && patch.h == h)
-        if (potentionalPatches.length == 0) continue
+        const potentialPatches = patches.filter(patch => patch.w == w && patch.h == h)
+        if (potentialPatches.length == 0) continue
 
         // Clone takes quite a while
         const toReplace = spritesheet.clone().crop(x, y, w, h)
 
         for (const [k, patchInfo] of Object.entries(patches)) {
-            if (!potentionalPatches.includes(patchInfo)) continue
-            let { imgOriginal, patched } = patchInfo
+            if (!potentialPatches.includes(patchInfo)) continue
+            const { imgOriginal, patched } = patchInfo
 
             if (diff(imgOriginal, toReplace) > 0.01) continue
             patches.splice(k, 1)
@@ -256,7 +256,7 @@ async function prepatch() {
     const responses = await mapLimit(
         Object.entries(cacher.getCached()).filter(k => k[0].endsWith(".png")),
         2,
-        async ([key, value]) =>  {
+        async ([key, value]) => {
             try {
                 const filePath = join(getCacheLocation(), key)
                 const patchedContents = await patch(key, undefined, filePath, value)
@@ -270,7 +270,7 @@ async function prepatch() {
 
     const total = responses.length,
           checked = responses.filter(k => k > 0).length,
-          error   = responses.filter(k => k == -1).length
+          error = responses.filter(k => k == -1).length
 
     Logger.log(`Done after ${Date.now() - start}ms, ${checked} files have been patched out of ${total} .png files, failed to patch ${error} files`)
 }

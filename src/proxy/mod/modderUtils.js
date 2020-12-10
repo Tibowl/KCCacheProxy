@@ -27,22 +27,22 @@ const { diff } = require("./imgdiff")
 async function split(spritesheet, fileLocation, extract = true) {
     const spritesheetMeta = fileLocation.replace(/\.png$/, ".json")
     if (!await exists(spritesheetMeta))
-        return [{split: spritesheet}]
+        return [{ split: spritesheet }]
 
     try {
         const meta = JSON.parse(await readFile(spritesheetMeta))
         return Object.values(meta.frames).map(frame => {
-            const {frame: {x, y, w ,h}} = frame
+            const { frame: { x, y, w, h } } = frame
             const extracted = extract ? spritesheet.clone().crop(x, y, w, h) : undefined
             return {
-                x, y, w ,h,
+                x, y, w, h,
                 split: extracted,
                 // hash: extracted.pHash()
             }
         })
     } catch (error) {
         Logger.error(error)
-        return [{split: spritesheet}]
+        return [{ split: spritesheet }]
     }
 }
 
@@ -56,13 +56,13 @@ async function outlines(source, target) {
     /** @type {import("@jimp/core").default} */
     const output = new Jimp(spritesheet.getWidth(), spritesheet.getHeight(), 0x0)
     splits.forEach(({ w, h, x, y }) => {
-        const tb = new Jimp(w+2, 1, 0xFF0000FF)
-        const lr = new Jimp(1, h+2, 0xFF0000FF)
+        const tb = new Jimp(w + 2, 1, 0xFF0000FF)
+        const lr = new Jimp(1, h + 2, 0xFF0000FF)
         output
-            .composite(tb, x-1, y-1)
-            .composite(tb, x-1, y+h)
-            .composite(lr, x-1, y-1)
-            .composite(lr, x+w, y-1)
+            .composite(tb, x - 1, y - 1)
+            .composite(tb, x - 1, y + h)
+            .composite(lr, x - 1, y - 1)
+            .composite(lr, x + w, y - 1)
     })
     output.writeAsync(target)
 
@@ -73,7 +73,7 @@ async function extractSplit(source, target) {
     const startTime = Date.now()
     const spritesheet = await Jimp.read(source)
     const splits = await split(spritesheet, source)
-    await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))))
+    await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${(i + 1).toString().padStart(3, "0")}.png`))))
     Logger.log("Extracted in", Date.now() - startTime, "ms")
 }
 
@@ -143,8 +143,8 @@ async function importExternalMod(source, target) {
                 await ensureDir(join(p, "original"))
                 await ensureDir(join(p, "patched"))
 
-                await iOriginal.split.writeAsync(join(p, "original", `${basename(f).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))
-                await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${(i+1).toString().padStart(3, "0")}.png`))
+                await iOriginal.split.writeAsync(join(p, "original", `${basename(f).replace(/\.png$/, "")}_${(i + 1).toString().padStart(3, "0")}.png`))
+                await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${(i + 1).toString().padStart(3, "0")}.png`))
                 different++
             }
             Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)
@@ -155,7 +155,7 @@ async function importExternalMod(source, target) {
     )
 
     const changed = results.filter(k => k > 0).length,
-          totalChanged = results.filter(k => k > 0).reduce((a,b) => a+b, 0),
+          totalChanged = results.filter(k => k > 0).reduce((a, b) => a + b, 0),
           same = results.filter(k => k == 0).length,
           error = results.filter(k => k < 0).length
     Logger.log(`Finished converting in ${Date.now() - start}ms. Failed ${error} files, ${same} are same as original, ${changed} files converted resulting in ${totalChanged} diff files`)

@@ -19,7 +19,7 @@ async function loadCached() {
     }
 
     try {
-        if (await exists(CACHE_INFORMATION + ".bak")){
+        if (await exists(CACHE_INFORMATION + ".bak")) {
             cached = JSON.parse(await readFile(CACHE_INFORMATION + ".bak"))
             return
         }

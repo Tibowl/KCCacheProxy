@@ -1,3 +1,7 @@
+echo 'Create folders'
+mkdir -p out/
+mkdir -p cache_template/
+
 echo 'Clean previous output'
 rm -r out/
 

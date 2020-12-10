@@ -12,7 +12,7 @@ const invalidated = ["/kcs2/version.json", "/kcs2/js/main.js"]
 const blacklisted = ["/gadget_html5/", "/kcscontents/information/index.html", "/kcscontents/news/"]
 
 let cached
-module.exports = { cache, handleCaching, extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached, invalidated}
+module.exports = { cache, handleCaching, extractURL, getCached: () => cached, queueCacheSave, forceSave, loadCached, invalidated }
 
 const Logger = require("./ipc")
 const { getConfig, getCacheLocation, saveConfig } = require("./config")
@@ -336,7 +336,7 @@ async function handleCaching(req, res, forceCache = false) {
 
     if (file.startsWith("/kcs2/") && !file.startsWith("/kcs2/resources/worldselect") && getConfig().serverIP !== req.headers.host) {
         if (!(req.headers.host == `127.0.0.1:${getConfig().port}` || req.headers.host == `${getConfig().hostname}:${getConfig().port}`
-        || req.headers.host == "127.0.0.1" || req.headers.host == getConfig().hostname)) {
+            || req.headers.host == "127.0.0.1" || req.headers.host == getConfig().hostname)) {
             getConfig().serverIP = req.headers.host
             Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
             saveConfig()
@@ -387,10 +387,10 @@ async function getKCAVersion(host) {
 
     Logger.addStatAndSend("totalHandled")
 
-    const kcafile = cached[file]
+    const kcaFile = cached[file]
     let lastmodified = undefined
-    if (kcafile && await exists(cacheFile))
-        lastmodified = kcafile.lastmodified
+    if (kcaFile && await exists(cacheFile))
+        lastmodified = kcaFile.lastmodified
 
     const result = await cache(cacheFile, file, url, "", lastmodified)
 

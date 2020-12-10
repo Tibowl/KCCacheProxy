@@ -12,6 +12,7 @@
         "ecmaVersion": 2018
     },
     "rules": {
+        "prefer-const": "error",
         "no-trailing-spaces": "error",
         "indent": [
             "error",
@@ -19,13 +20,18 @@
             {
                 "SwitchCase": 1,
                 "VariableDeclarator": "first",
-                "FunctionExpression": {"parameters": "first"},
-                "CallExpression": {"arguments": "first"},
+                "FunctionExpression": {
+                    "parameters": "first"
+                },
+                "CallExpression": {
+                    "arguments": "first"
+                },
                 "ArrayExpression": "first",
                 "ObjectExpression": "first",
                 "ImportDeclaration": "first"
             }
         ],
+        "spaced-comment": "error",
         "linebreak-style": [
             "error",
             "windows"
@@ -46,9 +52,29 @@
                 "maxEOF": 0
             }
         ],
-        "keyword-spacing": ["warn", { "before": true, "after": true }],
+        "keyword-spacing": [
+            "warn",
+            {
+                "before": true,
+                "after": true
+            }
+        ],
         "eol-last": "error",
-        "no-unused-vars": "warn",
-        "no-console": "error"
+        "no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "no-console": "error",
+        "brace-style": [
+            "error",
+            "1tbs"
+        ],
+        "object-curly-spacing": [
+            "error",
+            "always"
+        ],
+        "comma-spacing": "warn"
     }
 }

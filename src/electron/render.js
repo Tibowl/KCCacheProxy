@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const { remote, ipcRenderer, shell } = require ("electron")
+const { remote, ipcRenderer, shell } = require("electron")
 const { join } = require("path")
 const { readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
@@ -13,7 +13,7 @@ ipcRenderer.on("recent", (e, message) => {
     message.reverse().forEach(m => update(m))
 })
 ipcRenderer.on("config", (e, message) => updateConfig(message))
-ipcRenderer.on("version", (e, {manual, error, release}) => {
+ipcRenderer.on("version", (e, { manual, error, release }) => {
     if (error) {
         addLog("error", new Date(), error)
         if (manual)
@@ -70,14 +70,14 @@ let recent = []
 const log = document.getElementById("log")
 /**
  * Add a log element to log
- * @param {"error"|"log"} messageType Type of message, determinates color
+ * @param {"error"|"log"} messageType Type of message, affects color
  * @param {Date} messageDate Date of message
  * @param {any[]} message Rest of message, array gets mapped and joined together
  */
 function addLog(messageType, messageDate, ...message) {
     recent.unshift(message)
     while (recent.length >= 50) {
-        log.removeChild(log.children[log.children.length-1])
+        log.removeChild(log.children[log.children.length - 1])
         recent.pop()
     }
 
@@ -90,10 +90,10 @@ function addLog(messageType, messageDate, ...message) {
     date.innerText = `${f(messageDate.getHours())}:${f(messageDate.getMinutes())}:${f(messageDate.getSeconds())}.${f(messageDate.getMilliseconds(), 3)}`
     elem.appendChild(date)
 
-    const seperator = document.createElement("span")
-    seperator.className = "seperator"
-    seperator.innerText = ": "
-    elem.appendChild(seperator)
+    const separator = document.createElement("span")
+    separator.className = "separator"
+    separator.innerText = ": "
+    elem.appendChild(separator)
 
     const msg = document.createElement("span")
     msg.className = "msg"
@@ -148,7 +148,7 @@ function updateStats(newStats) {
         switch (type) {
             case "numberH":
                 document.getElementById(`${key}H`).style = value > 0 ? "" : "display:none;"
-                // eslint-disable-next-line no-fallthrough
+            // eslint-disable-next-line no-fallthrough
             case "number":
                 document.getElementById(key).innerText = value.toLocaleString()
                 break
@@ -283,7 +283,7 @@ const settable = {
     },
     "enableModder": {
         "label": "Enable assets modifier",
-        "title": "Whenever or not the proxy should process assets moddifiers. You'll need to save to apply changes.",
+        "title": "Whenever or not the proxy should process assets modifiers. You'll need to save to apply changes.",
         "input": {
             "type": "checkbox"
         }
@@ -415,12 +415,12 @@ function updateHidden() {
         const elem = document.createElement("li")
         list.appendChild(elem)
 
-        const add = function(tag, text) {
+        const add = function (tag, text) {
             const child = document.createElement(tag)
             child.innerText = text
             elem.appendChild(child)
         }
-        const addButton = function(text, callback, disabled = false, className = "") {
+        const addButton = function (text, callback, disabled = false, className = "") {
             const button = document.createElement("button")
             button.innerText = text
             button.disabled = disabled
@@ -428,10 +428,10 @@ function updateHidden() {
             button.onclick = callback
             elem.appendChild(button)
         }
-        const move = function(direction) {
+        const move = function (direction) {
             const ind = config.mods.indexOf(mod)
             config.mods.splice(ind, 1)
-            config.mods.splice(ind+direction, 0, mod)
+            config.mods.splice(ind + direction, 0, mod)
 
             reload()
             updateHidden()
@@ -440,7 +440,7 @@ function updateHidden() {
             try {
                 const modData = JSON.parse(readFileSync(mod.path))
 
-                addButton("↓", () => move(1), config.mods[config.mods.length-1] === mod)
+                addButton("↓", () => move(1), config.mods[config.mods.length - 1] === mod)
                 addButton("↑", () => move(-1), config.mods[0] === mod)
 
                 add("span", " ")
@@ -505,7 +505,7 @@ function updateHidden() {
                 path.innerText = mod.path
                 elem.appendChild(path)
             }
-        else  {
+        else {
             elem.innerText = "Missing file (moved or deleted?): "
             const path = document.createElement("code")
             path.innerText = mod.path
@@ -592,7 +592,7 @@ function getModPath() {
 }
 function getImgCachePath() {
     let cachePath = config.cacheLocation
-    if  (config.cacheLocation == undefined || config.cacheLocation == "default")
+    if (config.cacheLocation == undefined || config.cacheLocation == "default")
         cachePath = join(remote.app.getPath("userData"), "ProxyData", "cache")
     cachePath = join(cachePath, "kcs2", "img")
     return cachePath
@@ -614,7 +614,7 @@ document.getElementById("createDiff").onclick = async () => {
     const n = new Date(), f = d => d.toString().padStart(2, 0)
     const target = await remote.dialog.showSaveDialog({
         title: "Select new zip",
-        defaultPath: `cache-diff-${n.getFullYear()}-${f(n.getMonth()+1)}-${f(n.getDate())}.zip`,
+        defaultPath: `cache-diff-${n.getFullYear()}-${f(n.getMonth() + 1)}-${f(n.getDate())}.zip`,
         filters: [{
             name: ".zip files",
             extensions: ["zip"]

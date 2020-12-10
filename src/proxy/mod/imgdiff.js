@@ -12,7 +12,7 @@ function diff(img1, img2, threshold = 0.1) {
     const bmp1 = img1.bitmap
     const bmp2 = img2.bitmap
 
-    const numDiffPixels  = pixelmatch(
+    const numDiffPixels = pixelmatch(
         bmp1.data,
         bmp2.data,
         bmp1.width,
@@ -36,7 +36,10 @@ function pixelmatch(img1, img2, width, height, options) {
     let identical = true
 
     for (let i = 0; i < len; i++) {
-        if (a32[i] !== b32[i]) { identical = false; break }
+        if (a32[i] !== b32[i]) {
+            identical = false
+            break
+        }
     }
     if (identical)
         return 0
@@ -94,9 +97,15 @@ function colorDelta(img1, img2, k, m) {
     return y1 > y2 ? -delta : delta
 }
 
-function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.11448223 }
-function rgb2i(r, g, b) { return r * 0.59597799 - g * 0.27417610 - b * 0.32180189 }
-function rgb2q(r, g, b) { return r * 0.21147017 - g * 0.52261711 + b * 0.31114694 }
+function rgb2y(r, g, b) {
+    return r * 0.29889531 + g * 0.58662247 + b * 0.11448223
+}
+function rgb2i(r, g, b) {
+    return r * 0.59597799 - g * 0.27417610 - b * 0.32180189
+}
+function rgb2q(r, g, b) {
+    return r * 0.21147017 - g * 0.52261711 + b * 0.31114694
+}
 
 // blend semi-transparent color with white or black, alternating each pixel
 function blend(c, a, p) {
