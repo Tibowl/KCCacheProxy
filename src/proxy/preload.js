@@ -141,7 +141,7 @@ const cacheGadget = async () => {
             urls.push(`kcs2/resources/worldselect/btn_chinjyufu${i}_off.png`)
         }
 
-        for (let y = 13; y <= 20; y++)
+        for (let y = 13; y <= (new Date().getYear() - 100); y++)
             for (let m = 1; m <= 12; m++)
                 for (let i = 1; i <= 21; i++)
                     if (!(y == 13 && m < 6))

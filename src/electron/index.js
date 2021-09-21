@@ -92,7 +92,11 @@ async function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false,
+            nativeWindowOpen: true,
+            devTools: true,
+            enableRemoteModule: true
         },
         show: !config.getConfig().startHidden
     })
