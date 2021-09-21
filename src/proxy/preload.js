@@ -141,7 +141,7 @@ const cacheGadget = async () => {
             urls.push(`kcs2/resources/worldselect/btn_chinjyufu${i}_off.png`)
         }
 
-        for (let y = 13; y <= 20; y++)
+        for (let y = 13; y <= 21; y++)
             for (let m = 1; m <= 12; m++)
                 for (let i = 1; i <= 21; i++)
                     if (!(y == 13 && m < 6))
@@ -374,7 +374,7 @@ const cacheBGM = async () => {
 
     // Battle BGMs
     const missing_battle = [24]
-    for (let i = 1; i <= 151; i++)
+    for (let i = 1; i <= 187; i++)
         if (!missing_battle.includes(i))
             bgm.push(i)
 
