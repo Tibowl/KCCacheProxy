@@ -633,7 +633,7 @@ const resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 31
 const key = s => s.split("").reduce((a, e) => a + e.charCodeAt(0), 0)
 const create = (id, type) =>
     (17 * (id + 7) * resource[(key(type) + id * type.length) % 100] % 8973 + 1000).toString()
-const pad = (id, eors) => eors == "ship" ? id.toString().padStart(4, "0") : id.toString().padStart(3, "0")
+const pad = (id, eors) => (eors == "ship" || eors == "slot") ? id.toString().padStart(4, "0") : id.toString().padStart(3, "0")
 const getPath = (id, eors, type, ext, filename) => {
     let suffix = ""
     if (type.indexOf("_d") > 0 && type.indexOf("_dmg") < 0) {
