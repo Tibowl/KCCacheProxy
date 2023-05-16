@@ -5,4 +5,6 @@ out/
 cache/
 cache_template/
 *.zip
+*.bak
 config.json
+stats.json
