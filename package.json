@@ -1,7 +1,7 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.6.3",
+  "version": "2.7.0",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {
@@ -16,6 +16,12 @@
     "name": "Tibo",
     "email": "Tibowl@users.noreply.github.com"
   },
+  "contributors": [
+    {
+      "name": "Chami",
+      "email": "planetarian@users.noreply.github.com"
+    }
+  ],
   "license": "MIT",
   "config": {
     "forge": {
@@ -33,7 +39,7 @@
           "config": {
             "name": "KCCacheProxy",
             "loadingGif": "./src/electron/installer.gif",
-            "iconUrl": "https://raw.githubusercontent.com/Tibowl/KCCacheProxy/master/src/electron/icon.ico"
+            "iconUrl": "https://raw.githubusercontent.com/planetarian/KCCacheProxy/master/src/electron/icon.ico"
           }
         },
         {
