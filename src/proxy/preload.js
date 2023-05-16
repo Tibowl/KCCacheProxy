@@ -374,7 +374,7 @@ const cacheBGM = async () => {
 
     // Battle BGMs
     const missing_battle = [24]
-    for (let i = 1; i <= 151; i++)
+    for (let i = 1; i <= 187; i++)
         if (!missing_battle.includes(i))
             bgm.push(i)
 
