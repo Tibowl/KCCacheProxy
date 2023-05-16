@@ -331,6 +331,7 @@ const cacheShips = async () => {
 }
 
 const cacheEquips = async () => {
+    const friendlyCutoff = 1500
     const urls = []
     const typesNoKeyFriendly = [
         "card", "card_t",
@@ -347,12 +348,12 @@ const cacheEquips = async () => {
     for (const equip of START2.api_mst_slotitem) {
         const { api_id, api_version } = equip
         const version = api_version ? "?version=" + api_version : ""
-        for (const type of api_id < 500 ? typesNoKeyFriendly : typesNoKeyAbyssal)
+        for (const type of api_id < friendlyCutoff ? typesNoKeyFriendly : typesNoKeyAbyssal)
             if (!(api_id == 42 && type == "item_character"))
                 urls.push(getPath(api_id, "slot", type, "png") + version)
 
         // Airplanes
-        if ((equip.api_type[4] != 0 && api_id < 500) || INCLUDE_RARE) {
+        if ((equip.api_type[4] != 0 && api_id < friendlyCutoff) || INCLUDE_RARE) {
             for (const type of ["airunit_fairy", "airunit_banner", "airunit_name"])
                 urls.push(getPath(api_id, "slot", type, "png") + version)
         }
