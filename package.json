@@ -61,6 +61,7 @@
     }
   },
   "dependencies": {
+    "@heroku/socksv5": "^0.0.9",
     "@jimp/custom": "^0.16.1",
     "@jimp/plugin-crop": "^0.16.1",
     "@jimp/plugin-mask": "^0.16.1",

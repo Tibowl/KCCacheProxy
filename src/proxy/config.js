@@ -8,6 +8,11 @@ const { forceSave, loadCached } = require("./cacher")
 
 const defaultConfig = {
     "port": 8081,
+    "socks5Port": 1080,
+    "socks5Enabled": false,
+    "socks5Users" : [
+        { "user": "MyKccpUser", "password": "ChangeMe" }
+    ],
     "hostname": "127.0.0.1",
     "cacheLocation": "default",
     "checkForUpdates": true,
