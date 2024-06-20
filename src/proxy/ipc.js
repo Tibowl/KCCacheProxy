@@ -73,7 +73,7 @@ function addStatAndSend(statType, amount = 1) {
         }, 100)
 
     if (!saveStatsTimer)
-        saveStatsTimer = setTimeout(saveStats, 5 * 60 * 1000)
+        saveStatsTimer = setTimeout(saveStats, 60 * 1000)
 }
 /**
  * Save stats to disk
@@ -93,7 +93,7 @@ async function saveStats() {
     if (await exists(statsPath))
         await move(statsPath, statsPath + ".old")
 
-    await writeFile(statsPath, JSON.stringify(stats))
+    await writeFile(statsPath, JSON.stringify(stats, null, 2))
 }
 /**
  * Load stats from disk

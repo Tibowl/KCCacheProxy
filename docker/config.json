@@ -1,0 +1,41 @@
+{
+  "port": 8080,
+  "hostname": "0.0.0.0",
+  "cacheLocation": "/cache",
+  "checkForUpdates": true,
+  "startHidden": false,
+  "disableBrowserCache": true,
+  "verifyCache": false,
+  "serverIP": "203.104.209.23",
+  "bypassGadgetUpdateCheck": true,
+  "gameVersionOverwrite": "false",
+  "preloadOnStart": false,
+  "showExtraButtons": false,
+  "enableModder": false,
+  "mods": [],
+  "preloader": {
+    "maxSimulPreload": 5,
+    "recommended": {
+      "static": true,
+      "assets": true,
+      "servername": true,
+      "maps": true,
+      "useitem": true,
+      "gadget": true
+    },
+    "sounds": {
+      "titlecalls": true,
+      "se": true,
+      "bgm": true,
+      "npcvoices": true,
+      "voices": true
+    },
+    "extra": {
+      "equips": true,
+      "furniture": true,
+      "ships": true
+    },
+    "cleanup": true
+  },
+  "configVersion": 3
+}
