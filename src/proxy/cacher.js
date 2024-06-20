@@ -305,18 +305,20 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     }
 
     // TODO switch or some table
-    if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html"))
+    if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html")) {
         res.setHeader("Content-Type", "text/html")
-    else if (cacheFile.endsWith(".png"))
+    } else if (cacheFile.endsWith(".png")) {
         res.setHeader("Content-Type", "image/png")
-    else if (cacheFile.endsWith(".json"))
+    } else if (cacheFile.endsWith(".json")) {
         res.setHeader("Content-Type", "application/json")
-    else if (cacheFile.endsWith(".css"))
+    } else if (cacheFile.endsWith(".css")) {
         res.setHeader("Content-Type", "text/css")
-    else if (cacheFile.endsWith(".mp3"))
+    } else if (cacheFile.endsWith(".mp3")) {
+        res.setHeader("Accept-Ranges", "bytes")
         res.setHeader("Content-Type", "audio/mpeg")
-    else if (cacheFile.endsWith(".js"))
+    } else if (cacheFile.endsWith(".js")) {
         res.setHeader("Content-Type", "application/x-javascript")
+    }
 
     res.end(contents)
 }

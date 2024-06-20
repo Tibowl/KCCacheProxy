@@ -2,6 +2,7 @@ const { createServer } = require("http")
 const { createProxyServer } = require("http-proxy")
 const { connect } = require("net")
 const { parse } = require("url")
+const { join } = require("path")
 
 const socks = require("@heroku/socksv5")
 
@@ -66,7 +67,7 @@ server.on("error", (...a) => Logger.error("Proxy server error", ...a))
 proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
 if (socks5Enabled) {
-    const socksServer = socks.createServer(function(info, accept, deny) {
+    const socksServer = socks.createServer(function (info, accept, deny) {
         if (info.dstAddr === getConfig().serverIP && info.dstPort === 80) {
             Logger.log(`SOCKS5: ${info.dstAddr}:${info.dstPort}`)
             info.dstAddr = hostname
@@ -75,14 +76,14 @@ if (socks5Enabled) {
         accept()
     })
 
-    socksServer.listen(socks5Port, hostname, function() {
+    socksServer.listen(socks5Port, hostname, function () {
         Logger.log(`SOCKS5 server listening on port ${socks5Port}`)
     })
 
     if (socks5Users.length > 0) {
-        socksServer.useAuth(socks.auth.UserPassword(function(username, password, callback) {
+        socksServer.useAuth(socks.auth.UserPassword(function (username, password, callback) {
             if (!username) {
-                Logger.error(`SOCKS5: No username provided.`)
+                Logger.error("SOCKS5: No username provided.")
                 callback(false)
             }
             const user = socks5Users.find(u => u.user === username)
@@ -108,8 +109,12 @@ const listen = () => {
 
 const main = async () => {
     cacher.loadCached()
-    if (Logger.getStatsPath() == undefined)
-        Logger.setStatsPath("./stats.json")
+
+    if (Logger.getStatsPath() == undefined) {
+        const dir = process.env.DATA_DIR || "."
+        const filePath = join(dir, "stats.json")
+        Logger.setStatsPath(filePath)
+    }
 
     if (enableModder)
         setImmediate(async () => {
