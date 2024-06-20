@@ -331,6 +331,7 @@ const cacheShips = async () => {
 }
 
 const cacheEquips = async () => {
+    const friendlyCutoff = 1500
     const urls = []
     const typesNoKeyFriendly = [
         "card", "card_t",
@@ -347,12 +348,12 @@ const cacheEquips = async () => {
     for (const equip of START2.api_mst_slotitem) {
         const { api_id, api_version } = equip
         const version = api_version ? "?version=" + api_version : ""
-        for (const type of api_id < 500 ? typesNoKeyFriendly : typesNoKeyAbyssal)
+        for (const type of api_id < friendlyCutoff ? typesNoKeyFriendly : typesNoKeyAbyssal)
             if (!(api_id == 42 && type == "item_character"))
                 urls.push(getPath(api_id, "slot", type, "png") + version)
 
         // Airplanes
-        if ((equip.api_type[4] != 0 && api_id < 500) || INCLUDE_RARE) {
+        if ((equip.api_type[4] != 0 && api_id < friendlyCutoff) || INCLUDE_RARE) {
             for (const type of ["airunit_fairy", "airunit_banner", "airunit_name"])
                 urls.push(getPath(api_id, "slot", type, "png") + version)
         }
@@ -374,7 +375,7 @@ const cacheBGM = async () => {
 
     // Battle BGMs
     const missing_battle = [24]
-    for (let i = 1; i <= 151; i++)
+    for (let i = 1; i <= 187; i++)
         if (!missing_battle.includes(i))
             bgm.push(i)
 
@@ -633,7 +634,7 @@ const resource = [6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501, 31
 const key = s => s.split("").reduce((a, e) => a + e.charCodeAt(0), 0)
 const create = (id, type) =>
     (17 * (id + 7) * resource[(key(type) + id * type.length) % 100] % 8973 + 1000).toString()
-const pad = (id, eors) => eors == "ship" ? id.toString().padStart(4, "0") : id.toString().padStart(3, "0")
+const pad = (id, eors) => (eors == "ship" || eors == "slot") ? id.toString().padStart(4, "0") : id.toString().padStart(3, "0")
 const getPath = (id, eors, type, ext, filename) => {
     let suffix = ""
     if (type.indexOf("_d") > 0 && type.indexOf("_dmg") < 0) {

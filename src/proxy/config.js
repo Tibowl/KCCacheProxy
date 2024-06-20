@@ -8,6 +8,11 @@ const { forceSave, loadCached } = require("./cacher")
 
 const defaultConfig = {
     "port": 8081,
+    "socks5Port": 1080,
+    "socks5Enabled": false,
+    "socks5Users": [
+        { "user": "MyKccpUser", "password": "ChangeMe" }
+    ],
     "hostname": "127.0.0.1",
     "cacheLocation": "default",
     "checkForUpdates": true,
@@ -99,7 +104,7 @@ function saveConfig() {
     Logger.log(`Saving config to ${configLocation}`)
 
     ensureDirSync(dirname(configLocation))
-    writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 4))
+    writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 2))
 }
 
 /**

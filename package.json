@@ -1,7 +1,7 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.6.3",
+  "version": "2.7.0",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
   "scripts": {
@@ -16,6 +16,16 @@
     "name": "Tibo",
     "email": "Tibowl@users.noreply.github.com"
   },
+  "contributors": [
+    {
+      "name": "Chami",
+      "email": "planetarian@users.noreply.github.com"
+    },
+    {
+      "name": "HitomaruKonpaku",
+      "email": "HitomaruKonpaku@users.noreply.github.com"
+    }
+  ],
   "license": "MIT",
   "config": {
     "forge": {
@@ -61,6 +71,7 @@
     }
   },
   "dependencies": {
+    "@heroku/socksv5": "^0.0.9",
     "@jimp/custom": "^0.16.1",
     "@jimp/plugin-crop": "^0.16.1",
     "@jimp/plugin-mask": "^0.16.1",

@@ -4,5 +4,11 @@ node_modules/
 out/
 cache/
 cache_template/
+
 *.zip
+*.bak
+*.old
 config.json
+stats.json
+
+!docker/**

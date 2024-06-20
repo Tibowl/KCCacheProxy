@@ -305,18 +305,20 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     }
 
     // TODO switch or some table
-    if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html"))
+    if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html")) {
         res.setHeader("Content-Type", "text/html")
-    else if (cacheFile.endsWith(".png"))
+    } else if (cacheFile.endsWith(".png")) {
         res.setHeader("Content-Type", "image/png")
-    else if (cacheFile.endsWith(".json"))
+    } else if (cacheFile.endsWith(".json")) {
         res.setHeader("Content-Type", "application/json")
-    else if (cacheFile.endsWith(".css"))
+    } else if (cacheFile.endsWith(".css")) {
         res.setHeader("Content-Type", "text/css")
-    else if (cacheFile.endsWith(".mp3"))
+    } else if (cacheFile.endsWith(".mp3")) {
+        res.setHeader("Accept-Ranges", "bytes")
         res.setHeader("Content-Type", "audio/mpeg")
-    else if (cacheFile.endsWith(".js"))
+    } else if (cacheFile.endsWith(".js")) {
         res.setHeader("Content-Type", "application/x-javascript")
+    }
 
     res.end(contents)
 }
@@ -328,16 +330,20 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
  * @param {boolean} forceCache Bypass verification
  */
 async function handleCaching(req, res, forceCache = false) {
-    const { url, headers } = req
+    const { headers } = req
+    let { url } = req
+    if (url.startsWith("/"))
+        url = `http://${headers.host}${url}`
+
     const { file, cacheFile, version } = extractURL(url)
 
     if (getConfig().bypassGadgetUpdateCheck)
         invalidatedMainVersion = true
 
-    if (file.startsWith("/kcs2/") && !file.startsWith("/kcs2/resources/worldselect") && getConfig().serverIP !== req.headers.host) {
-        if (!(req.headers.host == `127.0.0.1:${getConfig().port}` || req.headers.host == `${getConfig().hostname}:${getConfig().port}`
-            || req.headers.host == "127.0.0.1" || req.headers.host == getConfig().hostname)) {
-            getConfig().serverIP = req.headers.host
+    if (file.startsWith("/kcs2/") && !file.startsWith("/kcs2/resources/worldselect") && getConfig().serverIP !== headers.host) {
+        if (!(headers.host == `127.0.0.1:${getConfig().port}` || headers.host == `${getConfig().hostname}:${getConfig().port}`
+            || headers.host == "127.0.0.1" || headers.host == getConfig().hostname)) {
+            getConfig().serverIP = headers.host
             Logger.log(`Detected KC server IP ${getConfig().serverIP}`)
             saveConfig()
         }

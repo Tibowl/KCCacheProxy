@@ -1,0 +1,4 @@
+*
+!docker/
+!src/proxy
+!package*.json
