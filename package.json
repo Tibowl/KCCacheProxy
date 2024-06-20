@@ -20,6 +20,10 @@
     {
       "name": "Chami",
       "email": "planetarian@users.noreply.github.com"
+    },
+    {
+      "name": "HitomaruKonpaku",
+      "email": "HitomaruKonpaku@users.noreply.github.com"
     }
   ],
   "license": "MIT",
@@ -39,7 +43,7 @@
           "config": {
             "name": "KCCacheProxy",
             "loadingGif": "./src/electron/installer.gif",
-            "iconUrl": "https://raw.githubusercontent.com/planetarian/KCCacheProxy/master/src/electron/icon.ico"
+            "iconUrl": "https://raw.githubusercontent.com/Tibowl/KCCacheProxy/master/src/electron/icon.ico"
           }
         },
         {
