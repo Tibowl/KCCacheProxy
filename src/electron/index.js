@@ -75,7 +75,7 @@ async function checkVersion() {
         silent: false,
         icon: path.join(__dirname, process.platform === "win32" ? "icon.ico" : "icon.png")
     })
-    notification.on("click", () => shell.openExternal("https://github.com/planetarian/KCCacheProxy/releases"))
+    notification.on("click", () => shell.openExternal("https://github.com/Tibowl/KCCacheProxy/releases"))
     notification.show()
 
     config.getConfig().lastVersionCheck = nv

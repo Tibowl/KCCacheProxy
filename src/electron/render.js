@@ -4,7 +4,7 @@ const { join } = require("path")
 const { readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
 
-const BASEURL = "https://github.com/planetarian/KCCacheProxy"
+const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
