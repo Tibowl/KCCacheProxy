@@ -1,0 +1,11 @@
+---
+services:
+  kccp:
+    container_name: kccp
+    image: kccp
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./data:/data
+      - ./cache:/cache
