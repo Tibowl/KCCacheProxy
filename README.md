@@ -19,7 +19,7 @@ Download [docker-compose.yaml](./docker-compose.yaml) or copy below code
 services:
   kccp:
     container_name: kccp
-    image: ghcr.io/hitomarukonpaku/kccp
+    image: ghcr.io/hitomarukonpaku/kccacheproxy
     restart: unless-stopped
     ports:
       - 8080:8080
@@ -37,11 +37,11 @@ docker compose up -d
 ### Preload
 
 ```sh
-docker run --rm -v "./cache:/cache" ghcr.io/hitomarukonpaku/kccp preload
+docker run --rm -v "./cache:/cache" ghcr.io/hitomarukonpaku/kccacheproxy preload
 ```
 
 ### Update image
 
 ```sh
-docker pull ghcr.io/hitomarukonpaku/kccp
+docker pull ghcr.io/hitomarukonpaku/kccacheproxy
 ```

@@ -1,5 +1,5 @@
 # BASE
-FROM node:18-alpine AS base
+FROM node:lts-alpine AS base
 
 RUN apk add --no-cache tini
 
@@ -10,7 +10,7 @@ COPY package*.json ./
 # DEPENDENCIES
 FROM base AS dependencies
 
-RUN npm install --no-progress --omit=dev
+RUN npm ci --omit=dev
 
 # BUILDER
 FROM base AS builder
