@@ -22,6 +22,9 @@ FROM base
 
 ENV DATA_DIR=/data
 
+VOLUME /data
+VOLUME /cache
+
 RUN mkdir /data
 RUN mkdir /cache
 
