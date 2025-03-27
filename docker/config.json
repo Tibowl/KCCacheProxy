@@ -6,7 +6,7 @@
   "startHidden": false,
   "disableBrowserCache": true,
   "verifyCache": false,
-  "serverIP": "203.104.209.23",
+  "serverIP": "w00g.kancolle-server.com",
   "bypassGadgetUpdateCheck": true,
   "gameVersionOverwrite": "false",
   "preloadOnStart": false,
