@@ -4,7 +4,7 @@ const { connect } = require("net")
 const { parse } = require("url")
 const { join } = require("path")
 
-const socks = require("@heroku/socksv5")
+const socks = require("node-socksv5-dns-looukp")
 
 const cacher = require("./cacher")
 const Logger = require("./ipc")
@@ -74,35 +74,36 @@ class Proxy {
         this.server.on("error", (...a) => Logger.error("Proxy server error", ...a))
         this.proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
+        // SOCKS5 support
         if (this.config.socks5Enabled) {
-            this.socksServer = socks.createServer(function (info, accept, deny) {
-                if (info.dstAddr === config.getConfig().serverIP && info.dstPort === 80) {
-                    Logger.log(`SOCKS5: ${info.dstAddr}:${info.dstPort}`)
-                    info.dstAddr = this.config.hostname
-                    info.dstPort = this.config.port
+            this.socksServer = new socks.Server({}, async function (info, accept, deny) {
+                if (info.destination.host === config.getConfig().serverIP && info.destination.port === 80) {
+                    Logger.log(`SOCKS5: ${info.destination.host}:${info.destination.port}`)
+                    info.destination.host = this.config.hostname
+                    info.destination.port = this.config.port
                 }
-                accept()
+                await accept()
             })
 
             if (this.config.socks5Users.length > 0) {
-                this.socksServer.useAuth(socks.auth.UserPassword(function (username, password, callback) {
+                this.socksServer.useAuth(socks.Auth.userPass(function (username, password) {
                     if (!username) {
                         Logger.error("SOCKS5: No username provided.")
-                        callback(false)
+                        return Promise.reject()
                     }
                     const user = this.config.socks5Users.find(u => u.user === username)
                     if (!user) {
                         Logger.error(`SOCKS5: No user matching username ${username}.`)
-                        callback(false)
+                        return Promise.reject()
                     }
                     if (!user || user.password !== password) {
                         Logger.error(`SOCKS5: Password for user ${username} incorrect.`)
-                        callback(false)
+                        return Promise.reject()
                     }
-                    callback(true)
+                    return Promise.resolve()
                 }))
             } else {
-                this.socksServer.useAuth(socks.auth.None())
+                this.socksServer.useAuth(socks.Auth.none())
             }
         }
     }
@@ -159,5 +160,5 @@ if (require.main === module) {
     proxy.init()
     proxy.start()
 } else {
-    module.exports = { Proxy, config }
+    module.exports = { Proxy, config, ipc: Logger }
 }
