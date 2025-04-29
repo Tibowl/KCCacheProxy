@@ -2,7 +2,7 @@ const { existsSync, readFileSync, exists, writeFile, ensureDir, unlink, move } =
 const { join, dirname } = require("path")
 const fetch = require("node-fetch")
 
-module.exports = { log, error, registerElectron, send, sendRecent, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
+module.exports = { log, error, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
 /* eslint-disable no-console */
 const consoleLog = console.log
@@ -14,6 +14,8 @@ console.trace = error
 /* eslint-enable no-console */
 
 const recent = []
+
+let mainWindow = undefined
 
 /**
  * Log a message/object/etc to normal log
@@ -46,8 +48,8 @@ function send(type, ...toSend) {
     toSend.unshift(type)
     toSend.unshift(new Date())
 
-    if (global.mainWindow && (global.mainWindow.isVisible() || type == "stats"))
-        global.mainWindow.webContents.send("update", toSend)
+    if (mainWindow && (mainWindow.isVisible() || type == "stats"))
+        mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 150) recent.pop()
     if (type != "help") recent.unshift(toSend)
@@ -127,8 +129,14 @@ function loadStats() {
  * Send most recent messages
  */
 function sendRecent() {
-    if (global.mainWindow)
-        global.mainWindow.webContents.send("recent", recent)
+    if (mainWindow)
+        mainWindow.webContents.send("recent", recent)
+}
+/**
+ * Register main window for IPC communication
+ */
+function setMainWindow(window) {
+    mainWindow = window
 }
 /**
  * Check latest version
@@ -158,11 +166,11 @@ function registerElectron(ipcMain, app, al) {
     const { reloadModCache, prepatch } = require("./mod/patcher")
 
     ipcMain.on("getRecent", () => sendRecent())
-    ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
+    ipcMain.on("getConfig", () => mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true, al))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
-    ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))
+    ipcMain.on("checkVersion", async () => mainWindow.webContents.send("version", await checkVersion(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", (e, rare) => require("./preload").run(rare))
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))

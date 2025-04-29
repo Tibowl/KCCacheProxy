@@ -84,6 +84,12 @@ async function checkVersion() {
 }
 
 
+function registerMainWindow(window) {
+    global.mainWindow = window
+    ipc.setMainWindow(window)
+}
+
+
 async function createWindow() {
     const icon = path.join(__dirname, process.platform === "win32" ? "icon.ico" : "icon.png")
 
@@ -101,7 +107,7 @@ async function createWindow() {
         show: !config.getConfig().startHidden
     })
 
-    global.mainWindow = mainWindow
+    registerMainWindow(mainWindow)
 
     // and load the index.html of the app.
     mainWindow.loadFile(path.join(__dirname, "index.html"))
@@ -147,7 +153,7 @@ async function createWindow() {
         mainWindow.hide()
     })
 
-    mainWindow.on("closed", () => global.mainWindow = null)
+    mainWindow.on("closed", () => registerMainWindow(null))
     mainWindow.on("close", (event) => {
         if (!app.isQuitting) {
             event.preventDefault()
