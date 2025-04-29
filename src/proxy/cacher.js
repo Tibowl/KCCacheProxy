@@ -1,4 +1,4 @@
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 const { dirname, join } = require("path")
 const { ensureDir, existsSync, exists, rename, unlink, readFileSync, readFile, writeFile } = require("fs-extra")
 const { promisify } = require("util")
