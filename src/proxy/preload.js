@@ -8,7 +8,7 @@ const Logger = require("./ipc")
 const { getConfig, getCacheLocation, preloader } = require("./config")
 preloader()
 
-const GADGET = "http://203.104.209.7/"
+const GADGET = "http://w00g.kancolle-server.com/"
 let INCLUDE_RARE = false
 
 const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
