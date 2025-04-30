@@ -19,7 +19,7 @@ const defaultConfig = {
     "startHidden": false,
     "disableBrowserCache": false,
     "verifyCache": false,
-    "serverIP": "203.104.209.23",
+    "serverIP": "w15p.kancolle-server.com",
     "bypassGadgetUpdateCheck": false,
     "gameVersionOverwrite": "false",
     "preloadOnStart": false,
