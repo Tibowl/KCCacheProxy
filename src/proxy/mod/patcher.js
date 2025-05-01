@@ -74,7 +74,10 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
                 return
             else if (type == "patcher") {
                 if (!allowScripts) return
-                delete require.cache[require.resolve(filePath)]
+                // TODO: find a more elegant solution for this
+                // eval() to get around webpack messing with dynamic require.resolve
+                const req = eval("require.resolve(filePath)")
+                delete require.cache[req]
             }
 
             if (!modCache[target])
