@@ -112,7 +112,7 @@ async function patch(file, contents, cacheFile, cachedFile) {
                 for (const [name, { path }] of Object.entries(patch.patcher).sort(([a], [b]) => a.localeCompare(b))) {
                     const content = await readFile(path)
                     patchHashes.update(content)
-                    patches.push({ patcher: require(path), name })
+                    patches.push({ patcher: eval("require(path)"), name })
                 }
 
             if (patch.original)
