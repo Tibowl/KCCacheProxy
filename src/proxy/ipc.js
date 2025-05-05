@@ -8,6 +8,8 @@ module.exports = { log, error, registerElectron, send, sendRecent, setMainWindow
 const consoleLog = console.log
 const consoleError = console.error
 
+// TODO: this hijacks the console.log of anything that loads this as a module
+// ...maybe don't do that
 console.log = log
 console.error = error
 console.trace = error
