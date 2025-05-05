@@ -4,10 +4,12 @@ const { exists, readFile, remove, ensureDir, writeFile, move } = require("fs-ext
 const Logger = require("./../ipc")
 const { getCacheLocation } = require("./../config")
 
+const logSource = "kccp-patchedcache"
+
 let cached = undefined
 async function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "mod-cache.json")
-    Logger.log(`Loading modded cached from ${CACHE_INFORMATION}`)
+    Logger.log(logSource, `Loading modded cached from ${CACHE_INFORMATION}`)
 
     try {
         if (await exists(CACHE_INFORMATION)) {
@@ -15,7 +17,7 @@ async function loadCached() {
             return
         }
     } catch (error) {
-        Logger.error("Failed to load mod-cached.json")
+        Logger.error(logSource, "Failed to load mod-cached.json")
     }
 
     try {
@@ -24,14 +26,14 @@ async function loadCached() {
             return
         }
     } catch (error) {
-        Logger.error("Failed to load mod-cached.json.bak")
+        Logger.error(logSource, "Failed to load mod-cached.json.bak")
     }
 
     if (cached == undefined) {
         cached = {}
-        Logger.log("No valid file found, using empty mod-cache")
+        Logger.log(logSource, "No valid file found, using empty mod-cache")
     } else {
-        Logger.log("No valid file found, not reloading mod-cache")
+        Logger.log(logSource, "No valid file found, not reloading mod-cache")
     }
 }
 
@@ -102,7 +104,7 @@ async function saveCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "mod-cache.json")
     const str = JSON.stringify(cached)
     if (str.length == 2)
-        return Logger.log(`Cache is empty, not saved to ${CACHE_INFORMATION}`)
+        return Logger.log(logSource, `Cache is empty, not saved to ${CACHE_INFORMATION}`)
 
     await ensureDir(getCacheLocation())
     if (await exists(CACHE_INFORMATION)) {
@@ -112,7 +114,7 @@ async function saveCached() {
     }
     await writeFile(CACHE_INFORMATION, str)
 
-    Logger.log(`Saved mod cache to ${CACHE_INFORMATION}.`)
+    Logger.log(logSource, `Saved mod cache to ${CACHE_INFORMATION}.`)
 }
 
 

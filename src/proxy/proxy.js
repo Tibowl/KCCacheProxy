@@ -8,6 +8,7 @@ const socks = require("node-socksv5-dns-looukp")
 
 const cacher = require("./cacher")
 const Logger = require("./ipc")
+const logSource = "kccp-proxy"
 
 const { verifyCache } = require("./cacheHandler")
 const config = require("./config")
@@ -30,12 +31,12 @@ class Proxy {
         this.server = createServer(async (req, res) => {
             const { method, url } = req
 
-            Logger.log(`${method}: ${url}`)
-            Logger.send("help", "connected")
+            Logger.log(logSource, `${method}: ${url}`)
+            Logger.send(logSource, "help", "connected")
 
             if (method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
                 if (url.includes("/kcs2/index.php"))
-                    Logger.send("help", "indexHit")
+                    Logger.send(logSource, "help", "indexHit")
 
                 if (req.headers.host == `127.0.0.1:${this.config.port}` || req.headers.host == `${this.config.hostname}:${this.config.port}`
                     || req.headers.host == "127.0.0.1" || req.headers.host == this.config.hostname)
@@ -56,11 +57,11 @@ class Proxy {
 
         // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
         this.server.on("connect", (req, socket) => {
-            Logger.log(`${req.method}: ${req.url}`)
+            Logger.log(logSource, `${req.method}: ${req.url}`)
             Logger.addStatAndSend("passthroughHTTPS")
             Logger.addStatAndSend("passthrough")
 
-            socket.on("error", (...a) => Logger.error("Socket error", ...a))
+            socket.on("error", (...a) => Logger.error(logSource, "Socket error", ...a))
 
             const serverUrl = parse("https://" + req.url)
             const srvSocket = connect(serverUrl.port, serverUrl.hostname, () => {
@@ -71,10 +72,10 @@ class Proxy {
                 srvSocket.pipe(socket)
                 socket.pipe(srvSocket)
             })
-            srvSocket.on("error", (...a) => Logger.error("Server socket error", ...a))
+            srvSocket.on("error", (...a) => Logger.error(logSource, "Server socket error", ...a))
         })
         this.server.on("error", async (...a) => {
-            Logger.error("Proxy server error", ...a)
+            Logger.error(logSource, "Proxy server error", ...a)
             if (a[0].code === "EADDRINUSE") {
                 if (this.closing) return
                 setTimeout(() => {
@@ -82,13 +83,13 @@ class Proxy {
                 }, 5000)
             }
         })
-        this.proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
+        this.proxy.on("error", (error) => Logger.error(logSource, `Proxy error: ${error.code}: ${error.hostname}`))
 
         // SOCKS5 support
         if (this.config.socks5Enabled) {
             this.socksServer = new socks.Server({}, async function (info, accept, deny) {
                 if (info.destination.host === config.getConfig().serverIP && info.destination.port === 80) {
-                    Logger.log(`SOCKS5: ${info.destination.host}:${info.destination.port}`)
+                    Logger.log(logSource, `SOCKS5: ${info.destination.host}:${info.destination.port}`)
                     info.destination.host = this.config.hostname
                     info.destination.port = this.config.port
                 }
@@ -98,16 +99,16 @@ class Proxy {
             if (this.config.socks5Users.length > 0) {
                 this.socksServer.useAuth(socks.Auth.userPass(function (username, password) {
                     if (!username) {
-                        Logger.error("SOCKS5: No username provided.")
+                        Logger.error(logSource, "SOCKS5: No username provided.")
                         return Promise.reject()
                     }
                     const user = this.config.socks5Users.find(u => u.user === username)
                     if (!user) {
-                        Logger.error(`SOCKS5: No user matching username ${username}.`)
+                        Logger.error(logSource, `SOCKS5: No user matching username ${username}.`)
                         return Promise.reject()
                     }
                     if (!user || user.password !== password) {
-                        Logger.error(`SOCKS5: Password for user ${username} incorrect.`)
+                        Logger.error(logSource, `SOCKS5: Password for user ${username} incorrect.`)
                         return Promise.reject()
                     }
                     return Promise.resolve()
@@ -128,7 +129,7 @@ class Proxy {
         }
 
         const listen = () => {
-            Logger.log(`Starting proxy on ${this.config.hostname} with port ${this.config.port}...`)
+            Logger.log(logSource, `Starting proxy on ${this.config.hostname} with port ${this.config.port}...`)
             this.server.listen(this.config.port, this.config.hostname)
         }
 
@@ -143,7 +144,7 @@ class Proxy {
 
         if (this.socksServer) {
             this.socksServer.listen(this.config.socks5Port, this.config.hostname, function () {
-                Logger.log(`SOCKS5 server listening on port ${this.config.socks5Port}`)
+                Logger.log(logSource, `SOCKS5 server listening on port ${this.config.socks5Port}`)
             })
         }
 
@@ -158,7 +159,7 @@ class Proxy {
     }
 
     close() {
-        Logger.log("KCCacheProxy shutting down.")
+        Logger.log(logSource, "KCCacheProxy shutting down.")
         this.closing = true
         if (this.proxy)
             this.proxy.close()

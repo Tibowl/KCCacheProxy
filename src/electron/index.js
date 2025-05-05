@@ -8,6 +8,7 @@ const al = new AutoLaunch({
     path: app.getPath("exe"),
 })
 
+const logSource = "kccp-main"
 
 const ipc = require("../proxy/ipc")
 ipc.registerElectron(ipcMain, app, al)
@@ -49,18 +50,18 @@ if (!app.requestSingleInstanceLock()) {
 
 async function checkVersion() {
     if (!config.getConfig().checkForUpdates) return
-    ipc.log("Version check: Automatically checking for new versions...")
+    ipc.log(logSource, "Version check: Automatically checking for new versions...")
 
     const result = await ipc.checkVersion(false)
     if (result.error)
-        return ipc.error(`Version check: Failed to automatically check for updates ${result.error}`)
+        return ipc.error(logSource, `Version check: Failed to automatically check for updates ${result.error}`)
 
     const v = app.getVersion(), nv = result.release.tag_name
     if (`v${v}` == nv) {
-        ipc.log("Version check: Up to date!")
+        ipc.log(logSource, "Version check: Up to date!")
         return
     }
-    ipc.log(`Version check: New version found! v${v} -> ${nv}`)
+    ipc.log(logSource, `Version check: New version found! v${v} -> ${nv}`)
 
     if (global.mainWindow)
         global.mainWindow.webContents.send("version", result)

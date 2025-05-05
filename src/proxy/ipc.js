@@ -4,15 +4,19 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
+// Log source for internally-generated messages
+const logSource = "kccp-logger"
+
 /* eslint-disable no-console */
 const consoleLog = console.log
 const consoleError = console.error
+const consoleTrace = console.trace
 
 // TODO: this hijacks the console.log of anything that loads this as a module
 // ...maybe don't do that
-console.log = log
-console.error = error
-console.trace = error
+console.log = (...input) => log("Unknown", ...input)
+console.error = (...input) => error("Unknown", ...input)
+console.trace = (...input) => trace("Unknown", ...input)
 /* eslint-enable no-console */
 
 const recent = []
@@ -23,31 +27,41 @@ let mainWindow = undefined
  * Log a message/object/etc to normal log
  * @param  {...any} input Stuff to log to normal log
  */
-function log(...input) {
+function log(source, ...input) {
     consoleLog(...input)
-    send("log", ...input)
+    send(source, "log", ...input)
 }
 
 /**
  * Log an error/message/object/etc to error
  * @param  {...any} input Stuff to log to error log
  */
-function error(...input) {
+function error(source, ...input) {
     consoleError(...input)
-    send("error", ...input)
+    send(source, "error", ...input)
+}
+
+/**
+ * Log a stack trace
+ * @param  {...any} input Stuff to log to trace log
+ */
+function trace(source, ...input) {
+    consoleTrace(...input)
+    send(source, "trace", ...input)
 }
 
 let sendHelp = false
 
-/** @typedef {"stats" | "log" | "error" | "help"} UpdateTypes */
+/** @typedef {"stats" | "log" | "error" | "trace" | "help"} UpdateTypes */
 /**
  * Send an update to render process
  * @param {UpdateTypes} type Type of message
  * @param  {...any} toSend Message to send
  */
-function send(type, ...toSend) {
+function send(source, type, ...toSend) {
     if (type == "help" && !sendHelp) return
     toSend.unshift(type)
+    toSend.unshift(source)
     toSend.unshift(new Date())
 
     if (mainWindow && (mainWindow.isVisible() || type == "stats"))
@@ -73,7 +87,7 @@ function addStatAndSend(statType, amount = 1) {
     if (!sendStats)
         sendStats = setTimeout(() => {
             sendStats = undefined
-            send("stats", stats)
+            send(logSource, "stats", stats)
         }, 100)
 
     if (!saveStatsTimer)
@@ -109,17 +123,17 @@ function loadStats() {
             stats = JSON.parse(readFileSync(statsPath).toString())
             return
         } catch (e) {
-            error("Failed to read ", e)
+            error(logSource, "Failed to read ", e)
         }
     }
 
     if (existsSync(statsPath + ".old")) {
         try {
             stats = JSON.parse(readFileSync(statsPath + ".old").toString())
-            log("Recovered stats from old file")
+            log(logSource, "Recovered stats from old file")
             return
         } catch (e) {
-            error("Failed to read old file ", e)
+            error(logSource, "Failed to read old file ", e)
         }
     }
 
@@ -160,7 +174,7 @@ async function checkVersion(manual) {
 function registerElectron(ipcMain, app, al) {
     statsPath = join(app.getPath("userData"), "ProxyData", "stats.json")
     loadStats()
-    send("stats", stats)
+    send(logSource, "stats", stats)
 
     const config = require("./config")
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")

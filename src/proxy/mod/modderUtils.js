@@ -8,6 +8,8 @@ const { getCacheLocation } = require("./../config")
 const Logger = require("./../ipc")
 const { diff } = require("./imgdiff")
 
+const logSource = "kccp-modderUtils"
+
 /**
  * @typedef {Object} Split
  * @property {import("@jimp/core").default} split
@@ -41,7 +43,7 @@ async function split(spritesheet, fileLocation, extract = true) {
             }
         })
     } catch (error) {
-        Logger.error(error)
+        Logger.error(logSource, error)
         return [{ split: spritesheet }]
     }
 }
@@ -66,7 +68,7 @@ async function outlines(source, target) {
     })
     output.writeAsync(target)
 
-    Logger.log(`Created outlines in ${Date.now() - startTime}ms`)
+    Logger.log(logSource, `Created outlines in ${Date.now() - startTime}ms`)
 }
 
 async function extractSplit(source, target) {
@@ -74,13 +76,13 @@ async function extractSplit(source, target) {
     const spritesheet = await Jimp.read(source)
     const splits = await split(spritesheet, source)
     await Promise.all(splits.map((j, i) => j.split.writeAsync(join(target, `${basename(source).replace(/\.png$/, "")}_${(i + 1).toString().padStart(3, "0")}.png`))))
-    Logger.log("Extracted in", Date.now() - startTime, "ms")
+    Logger.log(logSource, "Extracted in", Date.now() - startTime, "ms")
 }
 
 async function importExternalMod(source, target) {
     const start = Date.now()
     const queue = (await getFiles(source)).filter(k => k.startsWith("kcs"))
-    Logger.log(`Discovered ${queue.length} files`)
+    Logger.log(logSource, `Discovered ${queue.length} files`)
 
     const results = await mapLimit(
         queue,
@@ -92,7 +94,7 @@ async function importExternalMod(source, target) {
             const fPatched = join(source, f)
 
             if (!await exists(fOriginal)) {
-                Logger.error(`${fOriginal} not in cache - skipping!`)
+                Logger.error(logSource, `${fOriginal} not in cache - skipping!`)
                 return -1
             }
 
@@ -107,7 +109,7 @@ async function importExternalMod(source, target) {
                     await writeFile(join(p, `patched${extname(f)}`), cPatched)
                     return 1
                 }
-                Logger.error(`Warning: ${f} is same as source!`)
+                Logger.error(logSource, `Warning: ${f} is same as source!`)
                 return 0
             }
 
@@ -118,7 +120,7 @@ async function importExternalMod(source, target) {
             const aPatched = await split(sPatched, fOriginal)
 
             if (aOriginal.length !== aPatched.length) {
-                Logger.error("Spritesheets don't match")
+                Logger.error(logSource, "Spritesheets don't match")
                 return -1
             }
 
@@ -136,7 +138,7 @@ async function importExternalMod(source, target) {
                     await iOriginal.split.writeAsync(join(p, "original.png"))
                     await iPatched.split.writeAsync(join(p, "patched.png"))
 
-                    Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)
+                    Logger.log(logSource, `Converted ${f} in ${Date.now() - startTime}ms`)
                     return 1
                 }
 
@@ -147,9 +149,9 @@ async function importExternalMod(source, target) {
                 await iPatched.split.writeAsync(join(p, "patched", `${basename(f).replace(/\.png$/, "")}_${(i + 1).toString().padStart(3, "0")}.png`))
                 different++
             }
-            Logger.log(`Converted ${f} in ${Date.now() - startTime}ms`)
+            Logger.log(logSource, `Converted ${f} in ${Date.now() - startTime}ms`)
             if (different == 0)
-                Logger.error(`Warning: ${f} is same as source!`)
+                Logger.error(logSource, `Warning: ${f} is same as source!`)
             return different
         }
     )
@@ -158,7 +160,7 @@ async function importExternalMod(source, target) {
           totalChanged = results.filter(k => k > 0).reduce((a, b) => a + b, 0),
           same = results.filter(k => k == 0).length,
           error = results.filter(k => k < 0).length
-    Logger.log(`Finished converting in ${Date.now() - start}ms. Failed ${error} files, ${same} are same as original, ${changed} files converted resulting in ${totalChanged} diff files`)
+    Logger.log(logSource, `Finished converting in ${Date.now() - start}ms. Failed ${error} files, ${same} are same as original, ${changed} files converted resulting in ${totalChanged} diff files`)
 }
 
 async function getFiles(dir, queue = [], path = []) {

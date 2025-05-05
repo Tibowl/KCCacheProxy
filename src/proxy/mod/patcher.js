@@ -10,6 +10,8 @@ const { getConfig, getCacheLocation } = require("./../config")
 const { cacheModded, checkCached, loadCached } = require("./patchedcache")
 const { diff } = require("./imgdiff")
 
+const logSource = "kccp-patcher"
+
 /**
  * @typedef {Object} Patched
  * @property {string} path
@@ -35,11 +37,11 @@ async function reloadModCache() {
         const meta = JSON.parse(await readFile(path))
         if (meta.requireScripts && !allowScripts) continue
 
-        Logger.log("Preparing", modDir)
+        Logger.log(logSource, "Preparing", modDir)
         await prepareDir(modDir, meta, allowScripts && meta.requireScripts)
     }
 
-    Logger.log("Preparing mod images took", Date.now() - startTime, "ms")
+    Logger.log(logSource, "Preparing mod images took", Date.now() - startTime, "ms")
     loadCached()
 }
 
@@ -61,7 +63,7 @@ async function prepareDir(dir, modMeta, allowScripts, path = []) {
                 else if (f.startsWith("patcher")) type = "patcher"
                 else if (f.startsWith("ignore")) return
                 else {
-                    Logger.error(`Invalid path ${filePath}`)
+                    Logger.error(logSource, `Invalid path ${filePath}`)
                     return
                 }
 
@@ -118,7 +120,7 @@ async function patch(file, contents, cacheFile, cachedFile) {
             if (patch.original)
                 for (const [name, { path }] of Object.entries(patch.original).sort(([a], [b]) => a.localeCompare(b))) {
                     if (!patch.patched[name]) {
-                        Logger.error(`Missing ${name} in patched - delete original file if no patch needed!`)
+                        Logger.error(logSource, `Missing ${name} in patched - delete original file if no patch needed!`)
                         continue
                     }
                     const content = await readFile(patch.patched[name].path)
@@ -185,14 +187,14 @@ async function getModified(file, contents, cacheFile, cachedFile, patches, patch
     const cached = await checkCached(file, patchHash, cachedFile.lastmodified)
     if (cached) return cached
 
-    Logger.log(`Need to re-patch ${file}`)
+    Logger.log(logSource, `Need to re-patch ${file}`)
 
     // Patching sprite sheets
     const spritesheet = await patchAsset(cacheFile, await Jimp.read(contents), patches)
 
     const output = spritesheet.out ? spritesheet.out : await spritesheet.sc.getBufferAsync(Jimp.MIME_PNG)
     cacheModded(file, output, patchHash, cachedFile.lastmodified)
-    Logger.log(`Patching ${file} took ${Date.now() - startTime} ms`)
+    Logger.log(logSource, `Patching ${file} took ${Date.now() - startTime} ms`)
     return output
 }
 
@@ -275,7 +277,7 @@ async function prepatch() {
           checked = responses.filter(k => k > 0).length,
           error = responses.filter(k => k == -1).length
 
-    Logger.log(`Done after ${Date.now() - start}ms, ${checked} files have been patched out of ${total} .png files, failed to patch ${error} files`)
+    Logger.log(logSource, `Done after ${Date.now() - start}ms, ${checked} files have been patched out of ${total} .png files, failed to patch ${error} files`)
 }
 
 module.exports = { patch, reloadModCache, prepatch }
