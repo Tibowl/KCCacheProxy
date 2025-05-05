@@ -172,5 +172,5 @@ if (require.main === module) {
     proxy.init()
     proxy.start()
 } else {
-    module.exports = { Proxy, config, ipc: Logger }
+    module.exports = { Proxy, config, logger: Logger }
 }
