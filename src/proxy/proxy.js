@@ -21,6 +21,8 @@ class Proxy {
     }
 
     async init() {
+        this.closing = false
+
         this.config = config.getConfig()
 
         this.proxy = createProxyServer()
@@ -71,7 +73,15 @@ class Proxy {
             })
             srvSocket.on("error", (...a) => Logger.error("Server socket error", ...a))
         })
-        this.server.on("error", (...a) => Logger.error("Proxy server error", ...a))
+        this.server.on("error", async (...a) => {
+            Logger.error("Proxy server error", ...a)
+            if (a[0].code === "EADDRINUSE") {
+                if (this.closing) return
+                setTimeout(() => {
+                    this.server.listen(this.config.port, this.config.hostname)
+                }, 5000)
+            }
+        })
         this.proxy.on("error", (error) => Logger.error(`Proxy error: ${error.code}: ${error.hostname}`))
 
         // SOCKS5 support
@@ -148,6 +158,8 @@ class Proxy {
     }
 
     close() {
+        Logger.log("KCCacheProxy shutting down.")
+        this.closing = true
         if (this.proxy)
             this.proxy.close()
         if (this.server)
