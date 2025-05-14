@@ -2,7 +2,7 @@ const { existsSync, readFileSync, exists, writeFile, ensureDir, unlink, move } =
 const { join, dirname } = require("path")
 const fetch = require("node-fetch")
 
-module.exports = { log, error, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
+module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
@@ -14,9 +14,9 @@ const consoleTrace = console.trace
 
 // TODO: this hijacks the console.log of anything that loads this as a module
 // ...maybe don't do that
-console.log = (...input) => log("Unknown", ...input)
-console.error = (...input) => error("Unknown", ...input)
-console.trace = (...input) => trace("Unknown", ...input)
+// console.log = (...input) => log("Unknown", ...input)
+// console.error = (...input) => error("Unknown", ...input)
+// console.trace = (...input) => trace("Unknown", ...input)
 /* eslint-enable no-console */
 
 const recent = []
