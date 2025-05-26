@@ -1,9 +1,14 @@
 {
   "name": "kccacheproxy",
   "productName": "KCCacheProxy",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "KanColle caching proxy",
   "main": "src/electron/index.js",
+  "exports": {
+    ".": {
+      "require": "./src/proxy/proxy.js"
+    }
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -71,7 +76,6 @@
     }
   },
   "dependencies": {
-    "@heroku/socksv5": "^0.0.9",
     "@jimp/custom": "^0.16.1",
     "@jimp/plugin-crop": "^0.16.1",
     "@jimp/plugin-mask": "^0.16.1",
@@ -83,6 +87,7 @@
     "fs-extra": "^10.0.0",
     "http-proxy": "^1.18.1",
     "node-fetch": "^2.6.1",
+    "node-socksv5-dns-looukp": "^1.0.9",
     "node-stream-zip": "^1.15.0"
   },
   "devDependencies": {

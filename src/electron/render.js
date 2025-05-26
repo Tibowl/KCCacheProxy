@@ -50,6 +50,7 @@ ipcRenderer.on("version", (e, { manual, error, release }) => {
  */
 function update(message) {
     const messageDate = message.shift()
+    message.shift() // source
     const messageType = message.shift()
 
     switch (messageType) {

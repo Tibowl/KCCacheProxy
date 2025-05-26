@@ -2,52 +2,70 @@ const { existsSync, readFileSync, exists, writeFile, ensureDir, unlink, move } =
 const { join, dirname } = require("path")
 const fetch = require("node-fetch")
 
-module.exports = { log, error, registerElectron, send, sendRecent, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
+module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
+
+// Log source for internally-generated messages
+const logSource = "kccp-logger"
 
 /* eslint-disable no-console */
 const consoleLog = console.log
 const consoleError = console.error
+const consoleTrace = console.trace
 
-console.log = log
-console.error = error
-console.trace = error
+// TODO: this hijacks the console.log of anything that loads this as a module
+// ...maybe don't do that
+// console.log = (...input) => log("Unknown", ...input)
+// console.error = (...input) => error("Unknown", ...input)
+// console.trace = (...input) => trace("Unknown", ...input)
 /* eslint-enable no-console */
 
 const recent = []
+
+let mainWindow = undefined
 
 /**
  * Log a message/object/etc to normal log
  * @param  {...any} input Stuff to log to normal log
  */
-function log(...input) {
+function log(source, ...input) {
     consoleLog(...input)
-    send("log", ...input)
+    send(source, "log", ...input)
 }
 
 /**
  * Log an error/message/object/etc to error
  * @param  {...any} input Stuff to log to error log
  */
-function error(...input) {
+function error(source, ...input) {
     consoleError(...input)
-    send("error", ...input)
+    send(source, "error", ...input)
+}
+
+/**
+ * Log a stack trace
+ * @param  {...any} input Stuff to log to trace log
+ */
+function trace(source, ...input) {
+    consoleTrace(...input)
+    send(source, "trace", ...input)
 }
 
 let sendHelp = false
 
-/** @typedef {"stats" | "log" | "error" | "help"} UpdateTypes */
+/** @typedef {"stats" | "log" | "error" | "trace" | "help"} UpdateTypes */
 /**
  * Send an update to render process
  * @param {UpdateTypes} type Type of message
  * @param  {...any} toSend Message to send
  */
-function send(type, ...toSend) {
+function send(source, type, ...toSend) {
     if (type == "help" && !sendHelp) return
     toSend.unshift(type)
+    toSend.unshift(source)
     toSend.unshift(new Date())
 
-    if (global.mainWindow && (global.mainWindow.isVisible() || type == "stats"))
-        global.mainWindow.webContents.send("update", toSend)
+    if (mainWindow && (mainWindow.isVisible() || type == "stats"))
+        mainWindow.webContents.send("update", toSend)
 
     while (recent.length >= 150) recent.pop()
     if (type != "help") recent.unshift(toSend)
@@ -69,7 +87,7 @@ function addStatAndSend(statType, amount = 1) {
     if (!sendStats)
         sendStats = setTimeout(() => {
             sendStats = undefined
-            send("stats", stats)
+            send(logSource, "stats", stats)
         }, 100)
 
     if (!saveStatsTimer)
@@ -105,17 +123,17 @@ function loadStats() {
             stats = JSON.parse(readFileSync(statsPath).toString())
             return
         } catch (e) {
-            error("Failed to read ", e)
+            error(logSource, "Failed to read ", e)
         }
     }
 
     if (existsSync(statsPath + ".old")) {
         try {
             stats = JSON.parse(readFileSync(statsPath + ".old").toString())
-            log("Recovered stats from old file")
+            log(logSource, "Recovered stats from old file")
             return
         } catch (e) {
-            error("Failed to read old file ", e)
+            error(logSource, "Failed to read old file ", e)
         }
     }
 
@@ -127,8 +145,14 @@ function loadStats() {
  * Send most recent messages
  */
 function sendRecent() {
-    if (global.mainWindow)
-        global.mainWindow.webContents.send("recent", recent)
+    if (mainWindow)
+        mainWindow.webContents.send("recent", recent)
+}
+/**
+ * Register main window for IPC communication
+ */
+function setMainWindow(window) {
+    mainWindow = window
 }
 /**
  * Check latest version
@@ -150,7 +174,7 @@ async function checkVersion(manual) {
 function registerElectron(ipcMain, app, al) {
     statsPath = join(app.getPath("userData"), "ProxyData", "stats.json")
     loadStats()
-    send("stats", stats)
+    send(logSource, "stats", stats)
 
     const config = require("./config")
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
@@ -158,11 +182,11 @@ function registerElectron(ipcMain, app, al) {
     const { reloadModCache, prepatch } = require("./mod/patcher")
 
     ipcMain.on("getRecent", () => sendRecent())
-    ipcMain.on("getConfig", () => global.mainWindow.webContents.send("config", config.getConfig()))
+    ipcMain.on("getConfig", () => mainWindow.webContents.send("config", config.getConfig()))
     ipcMain.on("setConfig", (e, message) => config.setConfig(message, true, al))
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
-    ipcMain.on("checkVersion", async () => global.mainWindow.webContents.send("version", await checkVersion(true)))
+    ipcMain.on("checkVersion", async () => mainWindow.webContents.send("version", await checkVersion(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", (e, rare) => require("./preload").run(rare))
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))

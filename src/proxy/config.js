@@ -6,6 +6,8 @@ module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfi
 const Logger = require("./ipc")
 const { forceSave, loadCached } = require("./cacher")
 
+const logSource = "kccp-config"
+
 const defaultConfig = {
     "port": 8081,
     "socks5Port": 1080,
@@ -19,7 +21,7 @@ const defaultConfig = {
     "startHidden": false,
     "disableBrowserCache": false,
     "verifyCache": false,
-    "serverIP": "w17k.kancolle-server.com",
+    "serverIP": "w15p.kancolle-server.com",
     "bypassGadgetUpdateCheck": false,
     "gameVersionOverwrite": "false",
     "preloadOnStart": false,
@@ -69,7 +71,7 @@ function loadConfig(electronApp) {
     userdata = join(app.getPath("userData"), "ProxyData")
     const configLocation = join(userdata, "config.json")
 
-    Logger.log(`Loading config from: ${configLocation}`)
+    Logger.log(logSource, `Loading config from: ${configLocation}`)
 
     if (existsSync(configLocation)) {
         const loadedConfig = JSON.parse(readFileSync(configLocation))
@@ -82,7 +84,7 @@ function loadConfig(electronApp) {
 
     let shouldSave = false
     if (config.configVersion <= 2) {
-        Logger.log("Updating config version 2 -> 3, hopefully nothing breaks")
+        Logger.log(logSource, "Updating config version 2 -> 3, hopefully nothing breaks")
 
         config.mods = config.mods.map((path) => {
             return {
@@ -101,7 +103,7 @@ function loadConfig(electronApp) {
  */
 function saveConfig() {
     const configLocation = join(userdata, "config.json")
-    Logger.log(`Saving config to ${configLocation}`)
+    Logger.log(logSource, `Saving config to ${configLocation}`)
 
     ensureDirSync(dirname(configLocation))
     writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 2))
@@ -136,7 +138,7 @@ async function setConfig(newConfig, save = false, al = undefined) {
         try {
             await forceSave()
         } catch (error) {
-            Logger.error(error)
+            Logger.error(logSource, error)
         }
 
     if (al !== undefined) {
@@ -144,10 +146,10 @@ async function setConfig(newConfig, save = false, al = undefined) {
 
         if (enabled && !newConfig.autoStartup) {
             await al.disable()
-            Logger.log("Disabled startup")
+            Logger.log(logSource, "Disabled startup")
         } else if (!enabled && newConfig.autoStartup) {
             await al.enable()
-            Logger.log("Enabled startup")
+            Logger.log(logSource, "Enabled startup")
         }
     }
 

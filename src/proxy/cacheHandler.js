@@ -10,6 +10,8 @@ const { getConfig, getCacheLocation } = require("./config")
 const Logger = require("./ipc")
 const cacher = require("./cacher")
 
+const logSource = "kccp-cacheHandler"
+
 /**
  * Verifies cache, will delete if "delete" in argv or parameter set
  *
@@ -17,11 +19,11 @@ const cacher = require("./cacher")
  */
 async function verifyCache(deleteInvalid = process.argv.find(k => k.toLowerCase() == "delete")) {
     if (!getConfig().verifyCache) {
-        Logger.error("verifyCache is not set in config! Aborted check!")
+        Logger.error(logSource, "verifyCache is not set in config! Aborted check!")
         return
     }
 
-    Logger.log("Verifying cache... This might take a while")
+    Logger.log(logSource, "Verifying cache... This might take a while")
 
     const responses = await mapLimit(
         Object.entries(cacher.getCached()),
@@ -33,7 +35,7 @@ async function verifyCache(deleteInvalid = process.argv.find(k => k.toLowerCase(
                 const contents = await readFile(file)
 
                 if (contents.length != value.length) {
-                    Logger.error(key, "length doesn't match!", contents.length, value.length)
+                    Logger.error(logSource, key, "length doesn't match!", contents.length, value.length)
                     if (deleteInvalid) {
                         await unlink(file)
                         delete cacher.getCached()[key]
@@ -54,7 +56,7 @@ async function verifyCache(deleteInvalid = process.argv.find(k => k.toLowerCase(
           checked = responses.filter(k => k >= 0).length,
           error   = responses.filter(k => k == -1).length
 
-    Logger.log(`Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
+    Logger.log(logSource, `Done verifying, found ${invalid} invalid files, ${checked} files checked, cached.json contains ${total} files, failed to check ${error} files (missing?)`)
 }
 
 /**
@@ -67,13 +69,13 @@ async function mergeCache(source) {
         storeEntries: true
     })
 
-    zip.on("error", err => Logger.error("An error occurred while reading zip file!", err))
+    zip.on("error", err => Logger.error(logSource, "An error occurred while reading zip file!", err))
 
     const fetchCached = new Promise((resolve, reject) => {
         let found = false
         zip.on("entry", entry => {
             if (entry.name.endsWith("cached.json") && !found) {
-                Logger.log("Found cached.json")
+                Logger.log(logSource, "Found cached.json")
                 found = true
                 resolve({
                     baseFolder: entry.name.replace(/cached\.json$/, ""),
@@ -86,7 +88,7 @@ async function mergeCache(source) {
             if (!found)
                 reject("Not found!")
             else
-                Logger.log("Zip loaded, extracting missing files...")
+                Logger.log(logSource, "Zip loaded, extracting missing files...")
         })
     })
 
@@ -111,7 +113,7 @@ async function mergeCache(source) {
         for (const file of Object.keys(newCached).sort()) {
             completed++
             if (Date.now() - lastPrint > 10000) {
-                Logger.log(`Current cache merge progress: ${(completed / total * 100).toFixed(1)}% (${completed.toLocaleString()}/${total.toLocaleString()})`)
+                Logger.log(logSource, `Current cache merge progress: ${(completed / total * 100).toFixed(1)}% (${completed.toLocaleString()}/${total.toLocaleString()})`)
                 lastPrint = Date.now()
             }
 
@@ -142,7 +144,7 @@ async function mergeCache(source) {
             const entry = zip.entry(sourceLocation)
 
             if (!entry) {
-                // Logger.error(`File ${sourceLocation} is missing in zip`)
+                // Logger.error(logSource, `File ${sourceLocation} is missing in zip`)
                 skipped++
                 break
             }
@@ -159,9 +161,9 @@ async function mergeCache(source) {
 
         await loadRest
         zip.close()
-        Logger.log(`Finished merging cache! Copied ${copied} files, updated version tag of ${versionChange} files. ${newerLocally} were newer locally, ${same} are the same, ${skipped} skipped.`)
+        Logger.log(logSource, `Finished merging cache! Copied ${copied} files, updated version tag of ${versionChange} files. ${newerLocally} were newer locally, ${same} are the same, ${skipped} skipped.`)
     } catch (error) {
-        return Logger.error(error)
+        return Logger.error(logSource, error)
     }
 }
 /**
@@ -170,7 +172,7 @@ async function mergeCache(source) {
  * @param {string} target Target zip file
  */
 async function createDiff(source, target) {
-    Logger.log(source, "->", target)
+    Logger.log(logSource, source, "->", target)
     let oldCached
 
     if (source.endsWith(".zip")) {
@@ -182,7 +184,7 @@ async function createDiff(source, target) {
         oldCached = await new Promise((resolve, reject) => {
             zip.on("entry", entry => {
                 if (entry.name.endsWith("cached.json")) {
-                    Logger.log("Found cached.json")
+                    Logger.log(logSource, "Found cached.json")
                     resolve(zip.entryDataSync(entry))
                     zip.close()
                 }
@@ -227,12 +229,12 @@ async function createDiff(source, target) {
     }
     zip.addFile("cached.json", JSON.stringify(diffCached))
 
-    Logger.log("Saving...")
+    Logger.log(logSource, "Saving...")
 
     await ensureDir(dirname(target))
     zip.writeZip(target)
 
-    Logger.log(`Finished creating diff! ${total} total changes, of which ${news} new files. ${versionChange} changed version. ${same} are exactly the same. ${olderCurrently} are newer in old cache?! `)
+    Logger.log(logSource, `Finished creating diff! ${total} total changes, of which ${news} new files. ${versionChange} changed version. ${same} are exactly the same. ${olderCurrently} are newer in old cache?! `)
 }
 
 async function clearMain() {
@@ -240,7 +242,7 @@ async function clearMain() {
         const file = join(getCacheLocation(), key)
         if (await exists(file)) {
             await unlink(file)
-            Logger.log(`Deleted ${file} - as it could potentially cause issues`)
+            Logger.log(logSource, `Deleted ${file} - as it could potentially cause issues`)
         }
     }
 }
