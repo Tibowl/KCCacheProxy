@@ -8,6 +8,7 @@ const { forceSave, loadCached } = require("./cacher")
 
 const logSource = "kccp-config"
 
+const configFile = "config.json"
 const defaultConfig = {
     "port": 8081,
     "socks5Port": 1080,
@@ -55,12 +56,35 @@ const defaultConfig = {
     "configVersion": 3
 }
 
+let app = undefined,
+    userdata = process.env.DATA_DIR || "."
+
 /** @typedef {defaultConfig} config */
 /** @type {config} */
-let config = existsSync("./config.json") ? Object.assign({}, defaultConfig, JSON.parse(readFileSync("./config.json"))) : defaultConfig
+let config = defaultConfig
+if (process.env.DATA_DIR) {
+    const configPath = join(process.env.DATA_DIR, configFile)
+    if (existsSync(configPath)) {
+        config = {
+            ...defaultConfig,
+            ...JSON.parse(readFileSync(configPath, "utf8"))
+        }
+    } else if (process.env.CONFIG_DEFAULT_FILE) {
+        config = {
+            ...defaultConfig,
+            ...JSON.parse(readFileSync(process.env.CONFIG_DEFAULT_FILE, "utf8"))
+        }
+        saveConfig()
+    }
+} else if (existsSync(configFile)) {
+    config = {
+        ...defaultConfig,
+        ...JSON.parse(readFileSync(configFile, "utf8"))
+    }
+}
+
 let cacheLocation = config.cacheLocation
 
-let app = undefined, userdata = "."
 /**
  * Load config from electron folder
  * @param {import("electron").app} electronApp Electron app
@@ -69,7 +93,7 @@ function loadConfig(electronApp) {
     app = electronApp // Prevent compiling electron stuff in small versions
 
     userdata = join(app.getPath("userData"), "ProxyData")
-    const configLocation = join(userdata, "config.json")
+    const configLocation = join(userdata, configFile)
 
     Logger.log(logSource, `Loading config from: ${configLocation}`)
 
@@ -102,7 +126,7 @@ function loadConfig(electronApp) {
  * Save config to disk
  */
 function saveConfig() {
-    const configLocation = join(userdata, "config.json")
+    const configLocation = join(userdata, configFile)
     Logger.log(logSource, `Saving config to ${configLocation}`)
 
     ensureDirSync(dirname(configLocation))

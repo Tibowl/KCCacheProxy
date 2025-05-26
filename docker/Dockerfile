@@ -20,10 +20,7 @@ COPY . .
 # RELEASE
 FROM base
 
-ENV DATA_DIR=/data
-
-VOLUME /data
-VOLUME /cache
+RUN apk add --no-cache bash curl
 
 RUN mkdir /data
 RUN mkdir /cache
@@ -36,6 +33,10 @@ COPY --from=builder      /app/src/proxy ./src
 COPY --from=builder      /app/docker/config.json ./config.json
 
 EXPOSE 8080
+
+ENV NODE_ENV=production
+ENV DATA_DIR=/data
+ENV CONFIG_DEFAULT_FILE=/app/config.json
 
 ENTRYPOINT [ "/sbin/tini", "--", "/bin/sh", "/docker-entrypoint.sh" ]
 
