@@ -251,7 +251,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * @param {any} cachedFile Cache metadata
  * @param {boolean} forceCache Bypass verification check, forcefully send cached file
  */
-async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
+async function send(req, res, url, cacheFile, contents, file, cachedFile, forceCache = false) {
     if (!res) return
 
     if (contents == undefined)
@@ -260,7 +260,7 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
     if (!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
         Logger.error(logSource, cacheFile, "length doesn't match!", contents.length, cachedFile.length)
         Logger.addStatAndSend("bandwidthSaved", -contents.length)
-        return handleCaching(req, res, true)
+        return handleCaching(req, res, url, true)
     }
 
     let gvo = getConfig().gameVersionOverwrite
@@ -331,11 +331,10 @@ async function send(req, res, cacheFile, contents, file, cachedFile, forceCache 
  * @param {ServerResponse} res Response of server
  * @param {boolean} forceCache Bypass verification
  */
-async function handleCaching(req, res, forceCache = false) {
+async function handleCaching(req, res, url, forceCache = false) {
     const { headers } = req
-    let { url } = req
     if (url.startsWith("/"))
-        url = `http://${headers.host}${url}`
+        url = `https://${headers.host}${url}`
 
     const { file, cacheFile, version } = extractURL(url)
 
@@ -346,7 +345,7 @@ async function handleCaching(req, res, forceCache = false) {
         if (!(headers.host == `127.0.0.1:${getConfig().port}` || headers.host == `${getConfig().hostname}:${getConfig().port}`
             || headers.host == "127.0.0.1" || headers.host == getConfig().hostname)) {
             getConfig().serverIP = headers.host
-            Logger.log(logSource, `Detected KC server IP ${getConfig().serverIP}`)
+            //Logger.log(logSource, `Detected KC server IP ${getConfig().serverIP}`)
             saveConfig()
         }
     }
@@ -362,7 +361,7 @@ async function handleCaching(req, res, forceCache = false) {
             const contents = await read(cacheFile)
             Logger.addStatAndSend("inCache")
             Logger.addStatAndSend("bandwidthSaved", contents.length)
-            return await send(req, res, cacheFile, contents, file, cachedFile, forceCache)
+            return await send(req, res, url, cacheFile, contents, file, cachedFile, forceCache)
         }
 
         // Version doesn't match, lastmodified set
@@ -386,11 +385,11 @@ async function handleCaching(req, res, forceCache = false) {
 
     if (!result.downloaded)
         Logger.addStatAndSend("bandwidthSaved", result.contents.length)
-    return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
+    return await send(req, res, url, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
 async function getKCAVersion(host) {
-    const url = `http://${host}/kca/version.json`
+    const url = `https://${host}/kca/version.json`
     const { file, cacheFile } = extractURL(url)
 
     Logger.addStatAndSend("totalHandled")

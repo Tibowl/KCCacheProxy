@@ -1,4 +1,5 @@
-const { createServer } = require("http")
+const http = require("http")
+const https = require("https")
 const { createProxyServer } = require("http-proxy")
 const { connect } = require("net")
 const { parse } = require("url")
@@ -28,31 +29,64 @@ class Proxy {
 
         this.proxy = createProxyServer()
 
-        this.server = createServer(async (req, res) => {
-            const { method, url } = req
+        this.server = http.createServer(async (req, res) => {
+            const { method } = req
+             // strip the proxy address
+            const oldPath = req.url.replace(/^(https?:\/\/[^\/]+)?(.*)$/, '$2')
+            // if the path contains host information, convert it to an absolute url
+            const newUrlStr = oldPath.replace(/^\/(https?)\//, '$1://')
+            // if the path is relative, prepend the server address
+            const base = `https://${this.config.serverIP}`
+            const url = new URL(newUrlStr, base)
 
+            
+            if (req.headers) {
+                delete req.headers.referer
+                req.headers.host = url.host
+            }
+            
             Logger.log(logSource, `${method}: ${url}`)
             Logger.send(logSource, "help", "connected")
 
-            if (method !== "GET" || (!KC_PATHS.some(path => url.includes(path))) || url.includes(".php")) {
-                if (url.includes("/kcs2/index.php"))
+            if (method !== "GET" || (!KC_PATHS.some(path => url.pathname.includes(path))) || url.pathname.includes(".php")) {
+                if (url.pathname.includes("/kcs2/index.php"))
                     Logger.send(logSource, "help", "indexHit")
 
-                if (req.headers.host == `127.0.0.1:${this.config.port}` || req.headers.host == `${this.config.hostname}:${this.config.port}`
-                    || req.headers.host == "127.0.0.1" || req.headers.host == this.config.hostname)
-                    return res.end(500)
-
+                if ((url.hostname == '127.0.0.1' || url.hostname == 'localhost' || url.hostname == this.config.host)
+                    && url.port == this.config.port) {
+                    // don't allow loopback
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    return res.end('500 Unable to proxy this request.');
+                }
+                
                 Logger.addStatAndSend("passthroughHTTP")
                 Logger.addStatAndSend("passthrough")
 
-                return this.proxy.web(req, res, {
-                    target: `http://${req.headers.host}/`,
-                    timeout: config.getConfig().timeout
+                Logger.log(logSource, url.href)
+                const isHttps = url.protocol === 'https:'
+                const client = isHttps ? https : http
+                const newReq = client.request({
+                    hostname: url.hostname,
+                    port: url.port || (isHttps ? 443 : 80),
+                    path: url.pathname + url.search,
+                    method: req.method,
+                    headers: req.headers
+                }, newRes => {
+                    res.writeHead(newRes.statusCode, newRes.headers)
+                    newRes.pipe(res, { end: true })
                 })
+
+                newReq.on('error', err => {
+                    res.writeHead(502, { 'Content-Type': 'text/plain' })
+                    res.end(`Error proxying request: ${err.message}`)
+                })
+
+                req.pipe(newReq, { end: true })
+                return
             }
 
             Logger.addStatAndSend("totalHandled")
-            return await cacher.handleCaching(req, res)
+            return await cacher.handleCaching(req, res, url.href)
         })
 
         // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js

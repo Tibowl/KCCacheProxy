@@ -9,11 +9,12 @@ const logSource = "kccp-preload"
 const { getConfig, getCacheLocation, preloader } = require("./config")
 preloader()
 
-const GADGET = "http://w00g.kancolle-server.com/"
+const GADGET = "https://w00g.kancolle-server.com/"
 let INCLUDE_RARE = false
 
 const SPECIAL_CG = [541, 571, 573, 576, 601, 1496]
 
+let SERVER_IP = ""
 let SERVER = ""
 let GAME_VERSION = ""
 let VERSIONS = {}
@@ -29,14 +30,17 @@ const run = async (rare = false) => {
     if (getConfig().preloader.recommended.gadget)
         await cacheGadget()
 
-    if (!getConfig().serverIP) return
+    SERVER_IP = getConfig().serverIP
+
+    if (!SERVER_IP) return
 
     const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //* / await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
-    SERVER = `http://${getConfig().serverIP}/` // kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
+    
+    SERVER = `https://${SERVER_IP}/` // kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
     Logger.log(logSource, "Game version: " + GAME_VERSION)
-    Logger.log(logSource, `Server IP: ${SERVER.split("/")[2]}`)
+    Logger.log(logSource, `Server IP: ${SERVER_IP}`)
     Logger.log(logSource, "Loading api_start2...")
     START2 = await (await fetch("https://raw.githubusercontent.com/Tibowl/api_start2/master/start2.json")).json()
 
