@@ -288,6 +288,13 @@ const settable = {
         "input": {
             "type": "checkbox"
         }
+    },
+    "autoUpdateGitMods": {
+        "label": "Auto-update Git mods",
+        "title": "Whether to automatically check for and update installed Git mods. You'll need to save to apply changes.",
+        "input": {
+            "type": "checkbox"
+        }
     }
 }
 /**
@@ -459,7 +466,13 @@ function updateHidden() {
 
                 if (modData.updateUrl) {
                     if (mod.latestVersion != undefined && mod.latestVersion != modData.version) {
-                        addButton(`v${mod.latestVersion} available!`, () => shell.openExternal(mod.url || modData.downloadUrl || modData.url || modData.updateUrl), false, "blink")
+                        addButton(`v${mod.latestVersion} available!`, () => {
+                            if (mod.git) {
+                                ipcRenderer.send("updateGitMod", mod.path, mod.git)
+                            } else {
+                                shell.openExternal(mod.url || modData.downloadUrl || modData.url || modData.updateUrl)
+                            }
+                        }, false, "blink")
                         add("span", " ")
                     }
 
@@ -687,6 +700,39 @@ document.getElementById("reloadMods").onclick = () => {
     updateHidden()
     ipcRenderer.send("reloadModCache")
 }
+
+document.getElementById("installGitMod").onclick = () => {
+    const gitModInstall = document.getElementById("gitModInstall")
+    gitModInstall.style.display = gitModInstall.style.display === "none" ? "block" : "none"
+}
+
+ipcRenderer.on("gitModUpdated", (event, success) => {
+    addLog("info", new Date(), success ? "Git mod downloaded successfully." : "Failed to download git mod.")
+    if (success) {
+        ipcRenderer.send("getConfig")
+    }
+})
+
+document.getElementById("confirmGitModInstall").onclick = () => {
+    const urlInput = document.getElementById("gitModUrl")
+    const url = urlInput.value.trim()
+    if (!url) return
+
+    try {
+        addLog("info", new Date(), `Installing mod from ${url}...`)
+        ipcRenderer.send("installGitMod", url)
+        urlInput.value = ""
+        document.getElementById("gitModInstall").style.display = "none"
+    } catch (error) {
+        addLog("error", new Date(), `Failed to install mod: ${error}`)
+    }
+}
+
+document.getElementById("cancelGitModInstall").onclick = () => {
+    document.getElementById("gitModUrl").value = ""
+    document.getElementById("gitModInstall").style.display = "none"
+}
+
 document.getElementById("extractSpritesheet").onclick = async () => {
     const cachePath = getImgCachePath()
     const source = await remote.dialog.showOpenDialog({

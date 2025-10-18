@@ -28,6 +28,7 @@ const defaultConfig = {
     "preloadOnStart": false,
     "showExtraButtons": false,
     "enableModder": false,
+    "autoUpdateGitMods": true,
     "mods": [],
     "preloader": {
         "maxSimulPreload": 4,

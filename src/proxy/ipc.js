@@ -173,6 +173,7 @@ async function checkVersion(manual) {
  */
 function registerElectron(ipcMain, app, al) {
     statsPath = join(app.getPath("userData"), "ProxyData", "stats.json")
+    const modsPath = join(app.getPath("userData"), "ProxyData", "mods")
     loadStats()
     send(logSource, "stats", stats)
 
@@ -180,6 +181,7 @@ function registerElectron(ipcMain, app, al) {
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
     const { extractSplit, importExternalMod, outlines } = require("./mod/modderUtils")
     const { reloadModCache, prepatch } = require("./mod/patcher")
+    const { handleModInstallation, updateMod } = require("./mod/gitModHandler")
 
     ipcMain.on("getRecent", () => sendRecent())
     ipcMain.on("getConfig", () => mainWindow.webContents.send("config", config.getConfig()))
@@ -196,6 +198,15 @@ function registerElectron(ipcMain, app, al) {
     ipcMain.on("importExternalMod", (e, source, target) => importExternalMod(source, target))
     ipcMain.on("reloadModCache", () => reloadModCache())
     ipcMain.on("prepatch", () => prepatch())
+    ipcMain.on("installGitMod", async (e, url) => {
+        const success = await handleModInstallation(modsPath, url, config.getConfig(), config)
+        mainWindow.webContents.send("gitModUpdated", success)
+    })
+    ipcMain.on("updateGitMod", async (e, modPath, gitRemote) => {
+        const success = await updateMod(modPath, gitRemote)
+        mainWindow.webContents.send("gitModUpdated", success)
+    })
+
     ipcMain.on("startHelp", () => {
         sendHelp = true
         clearMain()

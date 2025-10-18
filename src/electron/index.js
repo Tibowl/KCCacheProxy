@@ -17,6 +17,8 @@ const config = require("../proxy/config")
 config.loadConfig(app)
 
 const { Proxy } = require("../proxy/proxy")
+const { updateMod } = require("../proxy/mod/gitModHandler")
+const { reloadModCache } = require("../proxy/mod/patcher")
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -87,6 +89,25 @@ async function checkVersion() {
     config.saveConfig()
 }
 
+async function checkGitModUpdates() {
+    const conf = config.getConfig()
+    if (!conf.autoUpdateGitMods) return
+
+    for (const mod of conf.mods) {
+        if (mod.git) {
+            try {
+                const updated = await updateMod(mod.path, mod.git)
+                if (updated && global.mainWindow) {
+                    global.mainWindow.webContents.send("gitModUpdated", true)
+                    reloadModCache()
+                }
+
+            } catch (error) {
+                ipc.error(logSource, `Failed to update Git mod ${mod.git}:`, error)
+            }
+        }
+    }
+}
 
 function registerMainWindow(window) {
     global.mainWindow = window
@@ -186,6 +207,8 @@ async function createWindow() {
 
     setTimeout(checkVersion, 3 * 1000)
     setInterval(checkVersion, 6 * 60 * 60 * 1000)
+    setTimeout(checkGitModUpdates, 5 * 1000)
+    setInterval(checkGitModUpdates, 6 * 60 * 60 * 1000)
 }
 
 // This method will be called when Electron has finished
