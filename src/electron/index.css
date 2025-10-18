@@ -34,9 +34,6 @@ h2, .h2, h4 {
   height: 100%;
   vertical-align: middle;
 }
-#support {
-  white-space: nowrap; 
-}
 
 button {
   cursor: pointer;

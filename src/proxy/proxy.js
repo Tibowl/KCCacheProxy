@@ -31,25 +31,25 @@ class Proxy {
 
         this.server = http.createServer(async (req, res) => {
             const { method } = req
-             // strip the proxy address
+            // strip the proxy address
 
             const getNewUrl = function (url, config) {
-                const oldPath = url.replace(/^(https?:\/\/[^\/]+)?(.*)$/, '$2')
+                const oldPath = url.replace(/^(https?:\/\/[^/]+)?(.*)$/, "$2")
                 // if the path contains host information, convert it to an absolute url
-                const newUrlStr = oldPath.replace(/^\/(https?)\//, '$1://')
+                const newUrlStr = oldPath.replace(/^\/(https?)\//, "$1://")
                 // if the path is relative, prepend the server address
                 const base = `https://${config.serverIP}`
                 const newUrl = new URL(newUrlStr, base)
                 return newUrl
             }
             const url = getNewUrl(req.url, this.config)
-            
+
             if (req.headers) {
                 if (req.headers.referer)
                     req.headers.referer = getNewUrl(req.headers.referer, this.config).href
                 req.headers.host = url.host
             }
-            
+
             Logger.log(logSource, `${method}: ${url}`)
             Logger.send(logSource, "help", "connected")
 
@@ -57,18 +57,18 @@ class Proxy {
                 if (url.pathname.includes("/kcs2/index.php"))
                     Logger.send(logSource, "help", "indexHit")
 
-                if ((url.hostname == '127.0.0.1' || url.hostname == 'localhost' || url.hostname == this.config.host)
+                if ((url.hostname == "127.0.0.1" || url.hostname == "localhost" || url.hostname == this.config.host)
                     && url.port == this.config.port) {
                     // don't allow loopback
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    return res.end('500 Unable to proxy this request.');
+                    res.writeHead(500, { "Content-Type": "text/plain" })
+                    return res.end("500 Unable to proxy this request.")
                 }
-                
+
                 Logger.addStatAndSend("passthroughHTTP")
                 Logger.addStatAndSend("passthrough")
 
                 Logger.log(logSource, url.href)
-                const isHttps = url.protocol === 'https:'
+                const isHttps = url.protocol === "https:"
                 const client = isHttps ? https : http
                 const newReq = client.request({
                     hostname: url.hostname,
@@ -81,8 +81,8 @@ class Proxy {
                     newRes.pipe(res, { end: true })
                 })
 
-                newReq.on('error', err => {
-                    res.writeHead(502, { 'Content-Type': 'text/plain' })
+                newReq.on("error", err => {
+                    res.writeHead(502, { "Content-Type": "text/plain" })
                     res.end(`Error proxying request: ${err.message}`)
                 })
 
@@ -126,7 +126,7 @@ class Proxy {
 
         // SOCKS5 support
         if (this.config.socks5Enabled) {
-            this.socksServer = new socks.Server({}, async function (info, accept, deny) {
+            this.socksServer = new socks.Server({}, async function (info, accept, _) {
                 if (info.destination.host === config.getConfig().serverIP && info.destination.port === 80) {
                     Logger.log(logSource, `SOCKS5: ${info.destination.host}:${info.destination.port}`)
                     info.destination.host = this.config.hostname
