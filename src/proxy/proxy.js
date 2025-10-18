@@ -32,16 +32,21 @@ class Proxy {
         this.server = http.createServer(async (req, res) => {
             const { method } = req
              // strip the proxy address
-            const oldPath = req.url.replace(/^(https?:\/\/[^\/]+)?(.*)$/, '$2')
-            // if the path contains host information, convert it to an absolute url
-            const newUrlStr = oldPath.replace(/^\/(https?)\//, '$1://')
-            // if the path is relative, prepend the server address
-            const base = `https://${this.config.serverIP}`
-            const url = new URL(newUrlStr, base)
 
+            const getNewUrl = function (url, config) {
+                const oldPath = url.replace(/^(https?:\/\/[^\/]+)?(.*)$/, '$2')
+                // if the path contains host information, convert it to an absolute url
+                const newUrlStr = oldPath.replace(/^\/(https?)\//, '$1://')
+                // if the path is relative, prepend the server address
+                const base = `https://${config.serverIP}`
+                const newUrl = new URL(newUrlStr, base)
+                return newUrl
+            }
+            const url = getNewUrl(req.url, this.config)
             
             if (req.headers) {
-                delete req.headers.referer
+                if (req.headers.referer)
+                    req.headers.referer = getNewUrl(req.headers.referer, this.config).href
                 req.headers.host = url.host
             }
             
