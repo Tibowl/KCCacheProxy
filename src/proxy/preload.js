@@ -107,7 +107,7 @@ const cacheURLs = async (urls) => {
                 host: SERVER.split("/")[2]
             },
             end: () => 0
-        }, undefined)
+        }, undefined, full)
     })
 }
 
@@ -163,7 +163,7 @@ const cacheGadget = async () => {
                 host: GADGET.split("/")[2]
             },
             end: () => 0
-        }, undefined)
+        }, undefined, full)
     })
 }
 

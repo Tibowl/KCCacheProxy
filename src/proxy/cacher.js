@@ -245,6 +245,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * Send a file to user
  * @param {IncomingMessage} req Proxy request
  * @param {ServerResponse} res Proxy response
+ * @param {string} url URL of the file being cached
  * @param {string} cacheFile Cache file location
  * @param {string|Buffer} contents Contents of file, if undefined, will be loaded from cacheFile
  * @param {string} file File path
@@ -329,6 +330,7 @@ async function send(req, res, url, cacheFile, contents, file, cachedFile, forceC
  * Handle caching of a request and send response
  * @param {IncomingMessage} req Request of user
  * @param {ServerResponse} res Response of server
+ * @param {string} url URL of the file being cached
  * @param {boolean} forceCache Bypass verification
  */
 async function handleCaching(req, res, url, forceCache = false) {
