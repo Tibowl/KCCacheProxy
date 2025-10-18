@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, shell, Notification, ipcMain } = require("electron")
 const path = require("path")
 
+
 const AutoLaunch = require("auto-launch")
 
 const al = new AutoLaunch({
@@ -14,6 +15,8 @@ const ipc = require("../proxy/ipc")
 ipc.registerElectron(ipcMain, app, al)
 const config = require("../proxy/config")
 config.loadConfig(app)
+
+const { Proxy } = require("../proxy/proxy")
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -175,7 +178,9 @@ async function createWindow() {
     if (config.getConfig().startHidden)
         mainWindow.hide()
 
-    require("../proxy/proxy")
+    var proxy = new Proxy()
+    proxy.init()
+    proxy.start()
 
     config.getConfig().autoStartup = await al.isEnabled()
 
