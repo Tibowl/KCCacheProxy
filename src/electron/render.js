@@ -67,8 +67,16 @@ function update(message) {
     }
 }
 
+function disableLogClicks() {
+    document.querySelectorAll("#log .loggable").forEach(log => {
+        
+    });
+}
+
 let recent = []
 const log = document.getElementById("log")
+const navLog = document.getElementById("nav-logs")
+const logFooter = document.getElementById("log-footer");
 /**
  * Add a log element to log
  * @param {"error"|"log"} messageType Type of message, affects color
@@ -77,7 +85,7 @@ const log = document.getElementById("log")
  */
 function addLog(messageType, messageDate, ...message) {
     recent.unshift(message)
-    while (recent.length >= 50) {
+    while (recent.length >= 100) {
         log.removeChild(log.children[log.children.length - 1])
         recent.pop()
     }
@@ -110,7 +118,19 @@ function addLog(messageType, messageDate, ...message) {
     }).join(" ")
     elem.appendChild(msg)
 
-    log.insertBefore(elem, log.firstChild)
+    elem.addEventListener("mouseover", () => {
+        elem.style.overflowX = "auto"
+    })
+
+    elem.addEventListener("mouseout", () => {
+        elem.style.overflowX = "hidden"
+    })
+
+    log.appendChild(elem, log.firstChild)
+    logFooter.textContent = `${date.innerText}: ${msg.innerText}`
+
+    navLog.scrollTop = navLog.scrollHeight
+    navLog.scrollLeft = navLog.scrollWidth
 }
 
 /** @typedef {"date"|"number"|"numberH"|"bytes"|"show"} Render */
@@ -239,14 +259,14 @@ const settable = {
     },
     "startHidden": {
         "label": "Start in system tray",
-        "title": "Whenever or not window should start in system tray. Don't forget to save before restarting",
+        "title": "Whenever or not window should start in system tray. You'll need to save to apply changes.",
         "input": {
             "type": "checkbox"
         }
     },
     "autoStartup": {
         "label": "Start up with system",
-        "title": "Whenever or not to start up with system. Don't forget to save",
+        "title": "Whenever or not to start up with system. You'll need to save to apply changes.",
         "input": {
             "type": "checkbox"
         }
@@ -273,9 +293,9 @@ const settable = {
         }
     },
     "gameVersionOverwrite": {
-        "label": "Overwrite game version ('false' to disable, 'kca' to use KCA version)",
+        "label": "Overwrite game version",
         "ifEmpty": "false",
-        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes",
+        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes.",
         "input": {
             "type": "text"
         },
@@ -413,7 +433,7 @@ function reload() {
 function updateHidden() {
     // Add hidden areas
     document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
-    document.getElementById("modder").style = config.enableModder ? "" : "display:none"
+    document.getElementById("modder").style = config.enableModder ? "display:none" : ""
 
     // Modder
     const list = document.getElementById("mods")
@@ -611,8 +631,12 @@ function getImgCachePath() {
     cachePath = join(cachePath, "kcs2", "img")
     return cachePath
 }
-for (const type of ["importCache", "reloadCache", "checkVersion", "prepatch"])
+for (const type of ["importCache", "reloadCache", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
+
+document.getElementById("checkVersion").addEventListener("click", () => {
+    ipcRenderer.send("checkVersion")
+})
 
 document.getElementById("createDiff").onclick = async () => {
     const source = await remote.dialog.showOpenDialog({
@@ -798,7 +822,9 @@ document.getElementById("importExternalMod").onclick = async () => {
     ipcRenderer.send("importExternalMod", source.filePaths[0], target.filePaths[0])
 }
 
-document.getElementById("startHelp").onclick = () => updateHelp("startedHelp")
+document.getElementById("startHelp").addEventListener("click", () => {
+    updateHelp("startedHelp")
+})
 document.getElementById("stopHelp").onclick = () => {
     helpSequence = undefined
     document.getElementById("help").style = "display:none;"
@@ -819,4 +845,4 @@ document.getElementById("openAssetsWiki").onclick = () => shell.openExternal(`${
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
 
-document.title = document.getElementById("mainTitle").innerText = `KCCacheProxy: v${remote.app.getVersion()}`
+document.title = document.getElementById("checkVersion").innerText = `KCCacheProxy v${remote.app.getVersion()}`

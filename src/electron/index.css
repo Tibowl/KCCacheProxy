@@ -1,15 +1,171 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin: auto;
-  /* max-width: 38rem; */
-  padding: 2rem;
-  background-color: #1d1d1d;
-  color: white;
+html {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 }
 
-a {
+*,
+*:before,
+*:after {
+	-webkit-box-sizing: inherit;
+	-moz-box-sizing: inherit;
+	box-sizing: inherit;
+}
+
+* {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+	padding: 0;
+	height: 100vh;
+	width: 100vw;
+	font-size: 1rem;
+	line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	color: #cccccc;
+	background: #2a3438;
+}
+
+header {
+  background-color: #334146;
+  grid-column: 1 / -1;
+}
+
+header img {
+	display: block;
+  margin: 4px 8px;
+}
+
+#checkVersion {
+  color: #526870;
+  padding: 4px 0px;
+  cursor: pointer;
+}
+
+nav {
+  display: flex;
+  grid-row: 2;
+  grid-column: 1;
+	background-color: #334146;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.nav-item {
+	padding: 1rem;
+	cursor: pointer;
+}
+
+.nav-item-active {
+	cursor: default;
+	background-color: #516870;
+}
+
+.nav-item img {
+	display: block;
+	margin: 0 auto;
+	max-width: 100%;
+	filter: brightness(0) invert(0.8);
+	height: auto;
+}
+
+.flat-icon {
+	filter: brightness(0) invert(0.8);
+}
+
+main {
+  grid-row: 2;
+  grid-column: 2;
+  padding: 1rem;
+	overflow-y: auto;
+}
+
+.main-item {
+  display: none;
+}
+
+.main-item-active {
+  display: block;
+}
+
+.content-item {
+  display: none;
+  grid-row: 3;
+  grid-column: 2;
+  cursor: default;
+}
+
+.content-item-active {
+  display: block;
+  overflow-y: auto;
+}
+
+footer {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  grid-template-columns: auto 1fr;
+  grid-row: 3;
+  grid-column: 1 / -1;
+  max-width: 100vw;
+  background: #334146;
+  padding: 0 1rem 1rem 1rem;
+  z-index: 1;
+  cursor: pointer;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-items: flex-end;
+}
+
+footer .flat-icon {
+  margin-right: 1rem;
+  grid-row: 1 / -1;
+  grid-column: 1;
+}
+
+.loggable {
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+.pull-item {
+  position: relative;
+  bottom: auto;
+  grid-row: 1;
+  grid-column: 1;
+  z-index: 2;
+}
+
+.pull-item img {
+	display: block;
+	max-width: 100%;
+	filter: brightness(0) invert(0.8);
+	height: auto;
+}
+
+#log-footer {
+  grid-row: 1;
+  grid-column: 2;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+#nav-logs {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+a { 
   color:aqua;
-  font-size: 1rem;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -20,45 +176,65 @@ h1 {
   margin-block-end: auto;
   display: inline;
 }
-h2, .h2, h4 {
-  margin-block-start: 0.75rem;
-  margin-block-end: 0.5rem;
+
+h2, h4 {
+  margin-block-start: 0rem;
+  margin-block-end: 0rem;
 }
+
+.h2 {
+  display: flex;
+  margin-block-start: 0rem;
+  margin-block-end: 0rem;
+  align-items: center;
+  gap: 8px;
+}
+
+#openConfigWiki {
+  text-decoration: none;
+  display: inline-block;
+  line-height: 0;
+}
+
+/* .settings-title {
+  vertical-align: middle;
+} */
+
 #title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
+
 .align {
   display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
 
-button {
-  cursor: pointer;
-}
-
 /* Update notification */
 #update {
   color:crimson;
-  font-size: 1.5rem;
+  padding: 4px 8px;
 }
+
+#modder {
+  color:crimson;
+}
+
 #newVersion {
   font-weight: bold;
 }
+
 button {
   border-radius: 3px;
-  border: 1px solid #d6d6d6;
-  color: #d6d6d6;
-  background-color: #0a0a0a;
-  border: none;
-  padding: 3px 6px;
+  border: 1px solid #cccccc;
+  color: #cccccc;
+  background-color: #334146;
+  padding: 6px 12px;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
   display: inline-block;
-  font-size: 12px;
   margin: 2px;
 }
 
@@ -77,6 +253,7 @@ button {
 .info {
   text-decoration: underline;
 }
+
 ul {
   margin-block-start: 0;
   margin-block-end: 0;
@@ -84,15 +261,11 @@ ul {
 
 /* Proxy log */
 #log {
+  position: relative;
+  bottom: auto;
+  max-height: 100%;
   background-color: #000000;
-}
-
-.loggable {
-  overflow-x: hidden;
-  white-space: nowrap;
-}
-.loggable:hover {
-  overflow-x: auto;
+  overflow-y: auto;
 }
 
 .log {

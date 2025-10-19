@@ -194,7 +194,10 @@ async function createWindow() {
 
         return false
     })
-    mainWindow.on("show", ipc.sendRecent)
+    mainWindow.on("show", () => {
+        // mainWindow.openDevTools()
+        ipc.sendRecent
+    })
 
     if (config.getConfig().startHidden)
         mainWindow.hide()
