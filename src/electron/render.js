@@ -534,6 +534,11 @@ function updateHidden() {
             updateHidden()
         }
         // Icons
+        const desktopIcon = document.createElement("img")
+        desktopIcon.className = "flat-icon"
+        desktopIcon.src = "resources/folder-open.svg"
+        desktopIcon.height = 16
+        desktopIcon.width = 16
         const webIcon = document.createElement("img")
         webIcon.className = "flat-icon"
         webIcon.src = "resources/site-alt.svg"
@@ -572,15 +577,20 @@ function updateHidden() {
                 addIconButton(upIcon, () => move(-1), config.mods[0] === mod, "mod-controls", "1", "5")
 
                 addIconButton(webIcon, () => {
-                    shell.openExternal(modData.url), false
+                    shell.openExternal(modData.url)
                 }, !modData.url, "mod-controls", "1", "6")
+
+                addIconButton(desktopIcon, () => {
+                    const i = Math.max(mod.path.lastIndexOf("/"), mod.path.lastIndexOf("\\"));
+                    if (i !== -1) shell.openExternal(mod.path.substring(0, i + 1));
+                }, false, "mod-controls", "1", "7");
 
                 addIconButton(trashIcon, () => {
                     const ind = config.mods.indexOf(mod)
                     config.mods.splice(ind, 1)
                     reload()
                     updateHidden()
-                }, false, "mod-controls", "1", "7")
+                }, false, "mod-controls", "1", "8")
 
                 add("small", `by ${modData.authors.join(", ")} `, "2", "1/3")
 
