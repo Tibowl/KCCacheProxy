@@ -50,6 +50,7 @@ class Proxy {
                     if (req.headers[r])
                         req.headers[r] = getNewUrl(req.headers[r], this.config).href
                 })
+                req.headers.host = url.host
             }
 
             Logger.log(kccpLogSource, `${method}: ${url}`)
