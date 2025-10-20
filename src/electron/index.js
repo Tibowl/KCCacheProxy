@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, shell, Notification, ipcMain } = require("electron")
+const { app, BrowserWindow, Tray, Menu, shell, Notification, ipcMain, ipcRenderer } = require("electron")
 const path = require("path")
 
 
@@ -97,6 +97,8 @@ async function checkGitModUpdates() {
         if (mod.git) {
             try {
                 const updated = await updateMod(mod.path, mod.git)
+                const englishPatchInstalled = mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git"
+                global.mainWindow.webContents.send("englishPatchInstalled", englishPatchInstalled)
                 if (updated && global.mainWindow) {
                     global.mainWindow.webContents.send("gitModUpdated", true)
                     reloadModCache()

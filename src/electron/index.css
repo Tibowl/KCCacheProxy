@@ -87,7 +87,7 @@ main {
 .content-item {
   display: none;
   cursor: default;
-  max-height: 200px;
+  max-height: 40vh;
 }
 
 .content-item-active {
@@ -198,9 +198,9 @@ button:hover {
 }
 
 button:disabled {
-  display: none;
   color: #7a7a7a;
   background-color: #2a3438;
+  cursor: default;
 }
 
 .mod-controls {

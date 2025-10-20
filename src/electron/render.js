@@ -5,6 +5,11 @@ const { readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
+let englishPatchInstalled = false;
+
+ipcRenderer.on("englishPatchInstalled", (e, message) => {
+    englishPatchInstalled = message;
+});
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
@@ -230,25 +235,29 @@ const settable = {
     "hostname": {
         "label": "Hostname",
         "ifEmpty": "127.0.0.1",
-        "title": "Hostname used by proxy. You'll need to save and restart to apply changes.",
+        "title": "Hostname used by proxy. You'll need to restart to apply changes.",
         "input": {
             "type": "text"
-        }
+        },
+        "verify": (v) => v.match(/^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$/),
+        "verifyError": "Invalid IPv4 address"
     },
     "port": {
         "label": "Port",
         "ifEmpty": "8081",
-        "title": "Port used by proxy. You'll need to save and restart to apply changes.",
+        "title": "Port used by proxy. You'll need to restart to apply changes.",
         "input": {
             "type": "number",
             "min": 1,
             "max": 65536,
-        }
+        },
+        "verify": (v) => v < 65537 && v > 0,
+        "verifyError": "Invalid port, needs to be between 1 and 65536"
     },
     "cacheLocation": {
         "label": "Cache location",
         "ifEmpty": "default",
-        "title": "Cache location used by proxy. You'll need to save to apply changes.",
+        "title": "Cache location used by proxy.",
         "input": {
             "type": "text"
         },
@@ -260,7 +269,7 @@ const settable = {
     "gameVersionOverwrite": {
         "label": "Overwrite game version",
         "ifEmpty": "false",
-        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes.",
+        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag.",
         "input": {
             "type": "text"
         },
@@ -269,49 +278,49 @@ const settable = {
     },
     "startHidden": {
         "label": "Start in system tray",
-        "title": "Whenever or not window should start in system tray. You'll need to save to apply changes.",
+        "title": "Whenever or not window should start in system tray.",
         "input": {
             "type": "checkbox"
         }
     },
     "autoStartup": {
         "label": "Start up with system",
-        "title": "Whenever or not to start up with system. You'll need to save to apply changes.",
+        "title": "Whenever or not to start up with system.",
         "input": {
             "type": "checkbox"
         }
     },
     "enableModder": {
-        "label": "Enable assets modifier",
-        "title": "Whenever or not the proxy should process assets modifiers. You'll need to save to apply changes.",
+        "label": "Enable mods",
+        "title": "Whenever or not the proxy should process mods.",
         "input": {
             "type": "checkbox"
         }
     },
     "autoUpdateGitMods": {
         "label": "Auto-update Git mods",
-        "title": "Whether to automatically check for and update installed Git mods. You'll need to save to apply changes.",
+        "title": "Whether to automatically check for and update installed Git mods.",
         "input": {
             "type": "checkbox"
         }
     },
     "disableBrowserCache": {
         "label": "Disable browser caching",
-        "title": "Whenever or not the proxy should tell the browser to cache the files or not. You'll need to save to apply changes.",
+        "title": "Whenever or not the proxy should tell the browser to cache the files or not.",
         "input": {
             "type": "checkbox"
         }
     },
     "verifyCache": {
         "label": "Automatically verify cache integrity",
-        "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes.",
+        "title": "Whenever or not the proxy should automatically save cache.",
         "input": {
             "type": "checkbox"
         }
     },
     "bypassGadgetUpdateCheck": {
         "label": "Bypass gadget server",
-        "title": "Whenever or not the proxy should check for updates of files on gadget server. You'll need to save to apply changes.",
+        "title": "Whenever or not the proxy should check for updates of files on gadget server.",
         "input": {
             "type": "checkbox"
         }
@@ -325,13 +334,26 @@ function updateConfig(c) {
     settings.innerHTML = ""
     config = c
 
+    const enableModder = document.getElementById("enableModder")
+    enableModder.checked = config["enableModder"]
+    enableModder.onchange = checkSaveable
+
+    const autoUpdateGitMods = document.getElementById("autoUpdateGitMods")
+    autoUpdateGitMods.checked = config["autoUpdateGitMods"]
+    autoUpdateGitMods.onchange = checkSaveable
+
     // Add settings UI
     for (const [key, value] of Object.entries(settable)) {
+        if (key == "enableModder" || key == "autoUpdateGitMods") {
+            // These keys are in the Assets modifier tab and hardcoded directly in index.html
+            continue
+        }
+
         const label = document.createElement("label")
         if (value.title)
             label.title = value.title
         const text = document.createElement("p")
-        text.innerText = `${value.label} `
+        text.innerText = `${value.label}`
         text.className = "setting-key"
 
         const input = document.createElement("input")
@@ -404,6 +426,7 @@ function checkSaveable() {
     newConfig = JSON.parse(JSON.stringify(config))
 
     let foundDifferent = false
+    let changedParameter = ""
     for (const [key, settings] of Object.entries(settable)) {
         const input = document.getElementById(key)
         let value = getValue(key, input)
@@ -416,13 +439,15 @@ function checkSaveable() {
             value = input.value = newConfig[key] = config[key]
         }
 
-        if (value != config[key])
+        if (value != config[key]) {
+            changedParameter = key
             foundDifferent = true
+        }  
 
         newConfig[key] = value
     }
-    saveButton.disabled = !foundDifferent
-    saveButton.onclick = saveConfig
+    if (foundDifferent)
+        saveConfig()
 
     function getValue(key, input) {
         switch (settable[key].input.type) {
@@ -467,25 +492,35 @@ function updateHidden() {
 
     for (const mod of config.mods) {
         const elem = document.createElement("li")
+        elem.style.display = "grid"
+        elem.style.alignItems = "center"
+        elem.style.gridTemplateColumns = "auto auto 1fr 0fr";
+        elem.style.gap = "4px";
         list.appendChild(elem)
 
-        const add = function (tag, text) {
+        const add = function (tag, text, gridRow, gridColumn) {
             const child = document.createElement(tag)
             child.innerText = text
+            child.style.gridRow = gridRow
+            child.style.gridColumn = gridColumn
             elem.appendChild(child)
         }
-        const addButton = function (text, callback, disabled = false, className = "") {
+        const addButton = function (text, callback, disabled = false, className = "", gridRow, gridColumn) {
             const button = document.createElement("button")
             button.innerText = text
             button.disabled = disabled
             button.className = className
+            button.style.gridRow = gridRow
+            button.style.gridColumn = gridColumn
             button.onclick = callback
             elem.appendChild(button)
         }
-        const addIconButton = function (element, callback, disabled = false, className = "") {
+        const addIconButton = function (element, callback, disabled = false, className = "", gridRow, gridColumn) {
             const button = document.createElement("button")
             button.disabled = disabled
             button.className = className
+            button.style.gridRow = gridRow
+            button.style.gridColumn = gridColumn
             button.onclick = callback
             button.appendChild(element)
             elem.appendChild(button)
@@ -523,34 +558,31 @@ function updateHidden() {
             try {
                 const modData = JSON.parse(readFileSync(mod.path))
 
-                add("b", `${modData.name}`)
-                add("small", ` v${modData.version}`)
+                add("b", `${modData.name}`, "1", "1")
+                add("small", ` v${modData.version}`, "1", "2")
 
                 if (mod.git) {
-                    add("small", " (Git)")
+                    add("small", " (Git)", "1", "3")
                 }
                 else {
-                    add("small", " (Local)")
+                    add("small", " (Local)", "1", "3")
                 }
 
-                addIconButton(downIcon, () => move(1), config.mods[config.mods.length - 1] === mod, "mod-controls")
-                addIconButton(upIcon, () => move(-1), config.mods[0] === mod, "mod-controls")
+                addIconButton(downIcon, () => move(1), config.mods[config.mods.length - 1] === mod, "mod-controls", "1", "4")
+                addIconButton(upIcon, () => move(-1), config.mods[0] === mod, "mod-controls", "1", "5")
 
-                if (modData.url) {
-                    addIconButton(webIcon, () => {
-                        shell.openExternal(modData.url), false
-                    }, false, "mod-controls")
-                }
+                addIconButton(webIcon, () => {
+                    shell.openExternal(modData.url), false
+                }, !modData.url, "mod-controls", "1", "6")
 
                 addIconButton(trashIcon, () => {
                     const ind = config.mods.indexOf(mod)
                     config.mods.splice(ind, 1)
                     reload()
                     updateHidden()
-                }, false, "mod-controls")
+                }, false, "mod-controls", "1", "7")
 
-                add("br")
-                add("small", `by ${modData.authors.join(", ")} `)
+                add("small", `by ${modData.authors.join(", ")} `, "2", "1/3")
 
                 if (modData.updateUrl) {
                     if (mod.latestVersion != undefined && mod.latestVersion != modData.version) {
@@ -798,6 +830,10 @@ document.getElementById("reloadMods").onclick = () => {
 document.getElementById("installGitMod").onclick = () => {
     const gitModInstall = document.getElementById("gitModInstall")
     gitModInstall.style.display = gitModInstall.style.display === "none" ? "block" : "none"
+    if (gitModInstall.style.display === "none")
+        return
+    const getEnglishPatchButton = document.getElementById("getEnglishPatch")
+    getEnglishPatchButton.style.display = englishPatchInstalled ? "none" : "inline-block"
 }
 
 ipcRenderer.on("gitModUpdated", (event, success) => {
@@ -817,6 +853,20 @@ document.getElementById("confirmGitModInstall").onclick = () => {
         ipcRenderer.send("installGitMod", url)
         urlInput.value = ""
         document.getElementById("gitModInstall").style.display = "none"
+    } catch (error) {
+        addLog("error", new Date(), `Failed to install mod: ${error}`)
+    }
+}
+
+document.getElementById("getEnglishPatch").onclick = () => {
+    const urlInput = document.getElementById("gitModUrl")
+
+    try {
+        addLog("info", new Date(), `Installing mod from https://github.com/Oradimi/KanColle-English-Patch-KCCP.git...`)
+        ipcRenderer.send("installGitMod", "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git")
+        urlInput.value = ""
+        document.getElementById("gitModInstall").style.display = "none"
+        englishPatchInstalled = true
     } catch (error) {
         addLog("error", new Date(), `Failed to install mod: ${error}`)
     }

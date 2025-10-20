@@ -57,16 +57,29 @@
     </div>
     <div class="main-item" id="nav-mods">
       <div class="h2">
-        <h2 style="display: inline;">Assets modifier </h2>
+        <h2 style="display: inline;">Mods </h2>
         <a id="openAssetsWiki">
           <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
         </a>
       </div>
-      <div class="" id="modder">
-        Assets modifier is disabled. Enable it in the settings menu to see effects in-game.
+      <div id="modder">
+        Mods disabled. Enable it below to see effects in-game.
       </div>
-      <b>NOTE:</b> Use this feature on your own risk.
-      <h4>Enabled mods</h4>
+      <b>NOTE:</b> Use this feature at your own risk.
+      <br>
+      <label title="Whether or not the proxy should process mods.">
+        <div style="display: inline-flex; align-items: center;">
+          <input type="checkbox" id="enableModder" class="setting-value" style="margin-right: 8px;">
+          <p class="setting-key">Enable mods</p>
+        </div>
+      </label>
+      <label title="Whether to automatically check for and update installed Git mods.">
+        <div style="display: inline-flex; align-items: center;">
+          <input type="checkbox" id="autoUpdateGitMods" class="setting-value" style="margin-right: 8px;">
+          <p class="setting-key">Auto-update Git mods</p>
+        </div>
+      </label>
+      <h4>Added mods</h4>
       <ol id="mods"></ol>
       <button id="installGitMod">Add mod from GitHub</button>
       <button id="addMod">Add local mod</button>
@@ -76,6 +89,7 @@
         <input type="text" id="gitModUrl" placeholder="Enter GitHub repository URL" style="width: 300px; margin-right: 5px;">
         <button id="confirmGitModInstall">Install</button>
         <button id="cancelGitModInstall">Cancel</button>
+        <button id="getEnglishPatch">Get English Patch</button>
       </div>
       <h4>Advanced tools</h4>
       <button id="extractSpritesheet">Extract a spritesheet</button>
