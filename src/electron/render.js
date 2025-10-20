@@ -746,6 +746,10 @@ function getImgCachePath() {
 for (const type of ["importCache", "reloadCache", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
 
+document.getElementById("openCache").addEventListener("click", () => {
+    shell.openExternal(join(remote.app.getPath("userData"), "ProxyData", "cache"))
+})
+
 document.getElementById("checkVersion").addEventListener("click", () => {
     ipcRenderer.send("checkVersion")
 })
