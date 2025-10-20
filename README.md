@@ -8,6 +8,16 @@ See [Installation and setup](https://github.com/Tibowl/KCCacheProxy/wiki/Install
 
 ## Docker usage
 
+### Config
+
+`hostname` must be `0.0.0.0`
+
+```json
+{
+  "hostname": "0.0.0.0",
+}
+```
+
 ### Running
 
 Download [docker-compose.yaml](./docker-compose.yaml) or copy below code
