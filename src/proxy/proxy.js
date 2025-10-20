@@ -45,9 +45,11 @@ class Proxy {
             const url = getNewUrl(req.url, this.config)
 
             if (req.headers) {
-                if (req.headers.referer)
-                    req.headers.referer = getNewUrl(req.headers.referer, this.config).href
-                req.headers.host = url.host
+                const replace = ['origin','referer']
+                replace.forEach(r => {
+                    if (req.headers[r])
+                        req.headers[r] = getNewUrl(req.headers[r], this.config).href
+                })
             }
 
             Logger.log(logSource, `${method}: ${url}`)
