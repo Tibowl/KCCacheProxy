@@ -6,7 +6,6 @@ const Logger = require("../ipc")
 const { reloadModCache } = require("./patcher")
 const http = require("isomorphic-git/http/node")
 const { readFile } = require("fs/promises")
-const { Notification } = require("electron")
 
 const logSource = "kccp-git"
 let lastLogTime = 0
@@ -31,6 +30,7 @@ async function handleModInstallation(modsPath, url, config, configManager) {
         // Extract repo name from URL
         const repoName = url.split("/").pop().replace(".git", "")
         const modPath = join(modsPath, repoName)
+        const result = { modPath }
 
         // Clone repository with depth=1 (shallow clone)
         await git.clone({
@@ -62,16 +62,21 @@ async function handleModInstallation(modsPath, url, config, configManager) {
         currentConfig.mods.push({ path: modConfigPath, git: url })
         configManager.setConfig(currentConfig, true)
         await reloadModCache()
-        return true
-    } catch (err) {
-        Logger.error(logSource, `Failed to install mod: ${err}`)
-        return false
+
+        result.success = true
+        result.modMeta = JSON.parse(await readFile(modPath, "utf-8"))
+    } catch (error) {
+        Logger.error(logSource, `Failed to install mod: ${error}`)
+        result.success = false
+        result.error = error
     }
+    return result
 }
 
 async function updateMod(modPath, gitRemote) {
     const repoPath = dirname(modPath)
     const cache = {}
+    const result = { modPath }
 
     try {
         Logger.log(logSource, `Updating mod from ${gitRemote}...`)
@@ -120,20 +125,14 @@ async function updateMod(modPath, gitRemote) {
             onProgress: onProgress
         })
 
-        const modMeta = JSON.parse(await readFile(modPath, "utf-8"))
-        const notification = new Notification({
-            title: "KCCacheProxy: Mod Updated",
-            body: `${modMeta.name} has been updated to version ${modMeta.version}.`,
-            timeoutType: "default",
-            silent: false,
-        })
-        notification.show()
-
-        return true
+        result.success = true
+        result.modMeta = JSON.parse(await readFile(modPath, "utf-8"))
     } catch (error) {
         Logger.error(logSource, "Error updating mod:", error)
-        return false
+        result.success = false
+        result.error = error
     }
+    return result
 }
 
 module.exports = {

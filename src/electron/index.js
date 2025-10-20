@@ -96,9 +96,9 @@ async function checkGitModUpdates() {
     for (const mod of conf.mods) {
         if (mod.git) {
             try {
-                const updated = await updateMod(mod.path, mod.git)
-                if (updated && global.mainWindow) {
-                    global.mainWindow.webContents.send("gitModUpdated", true)
+                const updateResult = await updateMod(mod.path, mod.git)
+                if (updateResult.success && global.mainWindow) {
+                    global.mainWindow.webContents.send("gitModUpdated", updateResult)
                     reloadModCache()
                 }
 
