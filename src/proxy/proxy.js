@@ -14,6 +14,7 @@ const kccpLogSource = "kccp-proxy"
 const { verifyCache } = require("./cacheHandler")
 const config = require("./config")
 const { reloadModCache } = require("./mod/patcher")
+const { Readable } = require("stream")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
@@ -29,72 +30,17 @@ class Proxy {
 
         this.proxy = createProxyServer()
 
-        this.server = http.createServer(async (req, res) => {
-            const { method } = req
-            // strip the proxy address
-
-            const getNewUrl = function (url, config) {
-                const oldPath = url.replace(/^(https?:\/\/[^/]+)?(.*)$/, "$2")
-                // if the path contains host information, convert it to an absolute url
-                const newUrlStr = oldPath.replace(/^\/(https?)\//, "$1://")
-                // if the path is relative, prepend the server address
-                const base = `https://${config.serverIP}`
-                const newUrl = new URL(newUrlStr, base)
-                return newUrl
-            }
-            const url = getNewUrl(req.url, this.config)
-
-            if (req.headers) {
-                const replace = ['origin','referer']
-                replace.forEach(r => {
-                    if (req.headers[r])
-                        req.headers[r] = getNewUrl(req.headers[r], this.config).href
-                })
-                req.headers.host = url.host
-            }
-
-            Logger.log(kccpLogSource, `${method}: ${url}`)
-            Logger.send(kccpLogSource, "help", "connected")
-
-            if (method !== "GET" || (!KC_PATHS.some(path => url.pathname.includes(path))) || url.pathname.includes(".php")) {
-                if (url.pathname.includes("/kcs2/index.php"))
-                    Logger.send(kccpLogSource, "help", "indexHit")
-
-                if ((url.hostname == "127.0.0.1" || url.hostname == "localhost" || url.hostname == this.config.host)
-                    && url.port == this.config.port) {
-                    // don't allow loopback
-                    res.writeHead(500, { "Content-Type": "text/plain" })
-                    return res.end("500 Unable to proxy this request.")
-                }
-
-                Logger.addStatAndSend("passthroughHTTP")
-                Logger.addStatAndSend("passthrough")
-
-                Logger.log(kccpLogSource, url.href)
-                const isHttps = url.protocol === "https:"
-                const client = isHttps ? https : http
-                const newReq = client.request({
-                    hostname: url.hostname,
-                    port: url.port || (isHttps ? 443 : 80),
-                    path: url.pathname + url.search,
-                    method: req.method,
-                    headers: req.headers
-                }, newRes => {
-                    res.writeHead(newRes.statusCode, newRes.headers)
-                    newRes.pipe(res, { end: true })
-                })
-
-                newReq.on("error", err => {
-                    res.writeHead(502, { "Content-Type": "text/plain" })
-                    res.end(`Error proxying request: ${err.message}`)
-                })
-
-                req.pipe(newReq, { end: true })
-                return
-            }
-
-            Logger.addStatAndSend("totalHandled")
-            return await cacher.handleCaching(req, res, url.href)
+        this.server = http.createServer((req, res) => {
+            this.proxyRequest({
+                method: req.method,
+                headers: req.headers,
+                url: req.url,
+                bodyStream: req
+            },
+            ({ statusCode, headers, data }) => {
+                res.writeHead(statusCode || 500, headers || {})
+                data.pipe(res, { end: true })
+            })
         })
 
         // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
@@ -160,6 +106,84 @@ class Proxy {
             }
         }
     }
+
+    async proxyRequest({ method, headers, url, bodyStream }, callback) {
+        const respondWithError = function (code, error) {
+            callback({
+                statusCode: code,
+                headers: { "Content-Type": "text/plain" },
+                data: Readable.from([error])
+            })
+        }
+        // strip the proxy address
+        const getNewUrl = function (oldUrl, config) {
+            const oldPath = oldUrl.replace(/^(https?:\/\/[^/]+)?(.*)$/, "$2")
+            // if the path contains host information, convert it to an absolute url
+            const newUrlStr = oldPath.replace(/^\/(https?)\//, "$1://")
+            // if the path is relative, prepend the server address
+            const base = `https://${config.serverIP}`
+            const newUrl = new URL(newUrlStr, base)
+            return newUrl
+        }
+        url = getNewUrl(url, this.config)
+
+        // adjust headers
+        if (headers) {
+            const replace = ['origin','referer']
+            replace.forEach(r => {
+                if (headers[r])
+                    headers[r] = getNewUrl(headers[r], this.config).href
+            })
+            headers.host = url.host
+        }
+
+        Logger.log(kccpLogSource, `${method}: ${url}`)
+        Logger.send(kccpLogSource, "help", "connected")
+
+        if (method !== "GET" || (!KC_PATHS.some(path => url.pathname.includes(path))) || url.pathname.includes(".php")) {
+            if (url.pathname.includes("/kcs2/index.php"))
+                Logger.send(kccpLogSource, "help", "indexHit")
+
+            if ((url.hostname == "127.0.0.1" || url.hostname == "localhost" || url.hostname == this.config.host)
+                && url.port == this.config.port) {
+                // don't allow loopback
+                respondWithError(500, "Attempted to proxy a loopback connection.")
+                return
+            }
+
+            Logger.addStatAndSend("passthroughHTTP")
+            Logger.addStatAndSend("passthrough")
+
+            Logger.log(kccpLogSource, url.href)
+            const isHttps = url.protocol === "https:"
+            const client = isHttps ? https : http
+            const newReq = client.request(url, { method, headers },
+                newRes => callback({
+                    statusCode: newRes.statusCode,
+                    headers: newRes.headers,
+                    data: newRes
+                })
+            )
+
+            newReq.on("error", err => {
+                const message = `Error proxying request: ${err.message}`
+                Logger.send(kccpLogSource, message)
+                respondWithError(502, message)
+            })
+
+            if (bodyStream)
+                bodyStream.pipe(newReq, { end: true })
+            else newReq.end()
+            return
+        }
+
+        Logger.addStatAndSend("totalHandled")
+        const res = { statusCode: 200, headers: {} }
+        await cacher.handleCaching({ method, headers, url: url.href, bodyStream }, res)
+        res.data = Readable.from(res.data || [])
+        callback(res)
+    }
+
 
     async start() {
         cacher.loadCached()
