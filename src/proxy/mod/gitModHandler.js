@@ -26,12 +26,12 @@ function onProgress(progress) {
 }
 
 async function handleModInstallation(modsPath, url, config, configManager) {
-    try {
-        // Extract repo name from URL
-        const repoName = url.split("/").pop().replace(".git", "")
-        const modPath = join(modsPath, repoName)
-        const result = { modPath }
+    // Extract repo name from URL
+    const repoName = url.split("/").pop().replace(".git", "")
+    const modPath = join(modsPath, repoName)
+    const result = { modPath }
 
+    try {
         // Clone repository with depth=1 (shallow clone)
         await git.clone({
             fs,
@@ -64,7 +64,7 @@ async function handleModInstallation(modsPath, url, config, configManager) {
         await reloadModCache()
 
         result.success = true
-        result.modMeta = JSON.parse(await readFile(modPath, "utf-8"))
+        result.modMeta = JSON.parse(await readFile(modConfigPath, "utf-8"))
     } catch (error) {
         Logger.error(logSource, `Failed to install mod: ${error}`)
         result.success = false

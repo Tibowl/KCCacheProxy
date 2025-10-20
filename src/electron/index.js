@@ -95,8 +95,6 @@ async function checkGitModUpdates() {
 
     for (const mod of conf.mods) {
         if (mod.git) {
-            const englishPatchInstalled = mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git"
-            global.mainWindow.webContents.send("englishPatchInstalled", englishPatchInstalled)
             try {
                 const updateResult = await updateMod(mod.path, mod.git)
                 if (updateResult.success && global.mainWindow) {

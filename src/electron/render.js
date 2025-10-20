@@ -5,11 +5,6 @@ const { readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
-let englishPatchInstalled = false;
-
-ipcRenderer.on("englishPatchInstalled", (e, message) => {
-    englishPatchInstalled = message;
-});
 
 ipcRenderer.on("update", (e, message) => update(message))
 ipcRenderer.on("recent", (e, message) => {
@@ -588,6 +583,7 @@ function updateHidden() {
                     config.mods.splice(ind, 1)
                     reload()
                     updateHidden()
+                    refreshEnglishPatchButton()
                 }, false, "mod-controls", "1", "8")
 
                 add("small", `by ${modData.authors.join(", ")} `, "2", "1/3")
@@ -844,12 +840,23 @@ document.getElementById("installGitMod").onclick = () => {
     gitModInstall.style.display = gitModInstall.style.display === "none" ? "block" : "none"
     if (gitModInstall.style.display === "none")
         return
+    refreshEnglishPatchButton()
+}
+
+function refreshEnglishPatchButton() {
+    let englishPatchInstalled = false
+    for (const mod of config.mods) {
+        if (mod.git && mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git") {
+            englishPatchInstalled = true
+            break;
+        }
+    }
     const getEnglishPatchButton = document.getElementById("getEnglishPatch")
     getEnglishPatchButton.style.display = englishPatchInstalled ? "none" : "inline-block"
 }
 
 ipcRenderer.on("gitModUpdated", (event, result) => {
-    let notification = new Notification({
+    new Notification({
         title: "KCCacheProxy: " + (result.success ? "Mod Updated" : "Mod Update Failed"),
         body: result.success
             ? `${result.modMeta.name} has been updated to version ${result.modMeta.version}.`
@@ -857,7 +864,6 @@ ipcRenderer.on("gitModUpdated", (event, result) => {
             timeoutType: "default",
             silent: false,
     })
-    notification.show()
 
     addLog("info", new Date(), result.success ? "Git mod downloaded successfully." : "Failed to download git mod.")
     if (result.success) {
@@ -888,7 +894,6 @@ document.getElementById("getEnglishPatch").onclick = () => {
         ipcRenderer.send("installGitMod", "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git")
         urlInput.value = ""
         document.getElementById("gitModInstall").style.display = "none"
-        englishPatchInstalled = true
     } catch (error) {
         addLog("error", new Date(), `Failed to install mod: ${error}`)
     }
