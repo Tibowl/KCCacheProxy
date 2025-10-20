@@ -9,7 +9,7 @@ const socks = require("node-socksv5-dns-looukp")
 
 const cacher = require("./cacher")
 const Logger = require("./ipc")
-const logSource = "kccp-proxy"
+const kccpLogSource = "kccp-proxy"
 
 const { verifyCache } = require("./cacheHandler")
 const config = require("./config")
@@ -52,12 +52,12 @@ class Proxy {
                 })
             }
 
-            Logger.log(logSource, `${method}: ${url}`)
-            Logger.send(logSource, "help", "connected")
+            Logger.log(kccpLogSource, `${method}: ${url}`)
+            Logger.send(kccpLogSource, "help", "connected")
 
             if (method !== "GET" || (!KC_PATHS.some(path => url.pathname.includes(path))) || url.pathname.includes(".php")) {
                 if (url.pathname.includes("/kcs2/index.php"))
-                    Logger.send(logSource, "help", "indexHit")
+                    Logger.send(kccpLogSource, "help", "indexHit")
 
                 if ((url.hostname == "127.0.0.1" || url.hostname == "localhost" || url.hostname == this.config.host)
                     && url.port == this.config.port) {
@@ -69,7 +69,7 @@ class Proxy {
                 Logger.addStatAndSend("passthroughHTTP")
                 Logger.addStatAndSend("passthrough")
 
-                Logger.log(logSource, url.href)
+                Logger.log(kccpLogSource, url.href)
                 const isHttps = url.protocol === "https:"
                 const client = isHttps ? https : http
                 const newReq = client.request({
@@ -98,11 +98,11 @@ class Proxy {
 
         // https://github.com/http-party/node-http-proxy/blob/master/examples/http/reverse-proxy.js
         this.server.on("connect", (req, socket) => {
-            Logger.log(logSource, `${req.method}: ${req.url}`)
+            Logger.log(kccpLogSource, `${req.method}: ${req.url}`)
             Logger.addStatAndSend("passthroughHTTPS")
             Logger.addStatAndSend("passthrough")
 
-            socket.on("error", (...a) => Logger.error(logSource, "Socket error", ...a))
+            socket.on("error", (...a) => Logger.error(kccpLogSource, "Socket error", ...a))
 
             const serverUrl = parse("https://" + req.url)
             const srvSocket = connect(serverUrl.port, serverUrl.hostname, () => {
@@ -113,10 +113,10 @@ class Proxy {
                 srvSocket.pipe(socket)
                 socket.pipe(srvSocket)
             })
-            srvSocket.on("error", (...a) => Logger.error(logSource, "Server socket error", ...a))
+            srvSocket.on("error", (...a) => Logger.error(kccpLogSource, "Server socket error", ...a))
         })
         this.server.on("error", async (...a) => {
-            Logger.error(logSource, "Proxy server error", ...a)
+            Logger.error(kccpLogSource, "Proxy server error", ...a)
             if (a[0].code === "EADDRINUSE") {
                 if (this.closing) return
                 setTimeout(() => {
@@ -124,13 +124,13 @@ class Proxy {
                 }, 5000)
             }
         })
-        this.proxy.on("error", (error) => Logger.error(logSource, `Proxy error: ${error.code}: ${error.hostname}`))
+        this.proxy.on("error", (error) => Logger.error(kccpLogSource, `Proxy error: ${error.code}: ${error.hostname}`))
 
         // SOCKS5 support
         if (this.config.socks5Enabled) {
             this.socksServer = new socks.Server({}, async function (info, accept, _) {
                 if (info.destination.host === config.getConfig().serverIP && info.destination.port === 80) {
-                    Logger.log(logSource, `SOCKS5: ${info.destination.host}:${info.destination.port}`)
+                    Logger.log(kccpLogSource, `SOCKS5: ${info.destination.host}:${info.destination.port}`)
                     info.destination.host = this.config.hostname
                     info.destination.port = this.config.port
                 }
@@ -140,16 +140,16 @@ class Proxy {
             if (this.config.socks5Users.length > 0) {
                 this.socksServer.useAuth(socks.Auth.userPass(function (username, password) {
                     if (!username) {
-                        Logger.error(logSource, "SOCKS5: No username provided.")
+                        Logger.error(kccpLogSource, "SOCKS5: No username provided.")
                         return Promise.reject()
                     }
                     const user = this.config.socks5Users.find(u => u.user === username)
                     if (!user) {
-                        Logger.error(logSource, `SOCKS5: No user matching username ${username}.`)
+                        Logger.error(kccpLogSource, `SOCKS5: No user matching username ${username}.`)
                         return Promise.reject()
                     }
                     if (!user || user.password !== password) {
-                        Logger.error(logSource, `SOCKS5: Password for user ${username} incorrect.`)
+                        Logger.error(kccpLogSource, `SOCKS5: Password for user ${username} incorrect.`)
                         return Promise.reject()
                     }
                     return Promise.resolve()
@@ -170,7 +170,7 @@ class Proxy {
         }
 
         const listen = () => {
-            Logger.log(logSource, `Starting proxy on ${this.config.hostname} with port ${this.config.port}...`)
+            Logger.log(kccpLogSource, `Starting proxy on ${this.config.hostname} with port ${this.config.port}...`)
             this.server.listen(this.config.port, this.config.hostname)
         }
 
@@ -185,7 +185,7 @@ class Proxy {
 
         if (this.socksServer) {
             this.socksServer.listen(this.config.socks5Port, this.config.hostname, function () {
-                Logger.log(logSource, `SOCKS5 server listening on port ${this.config.socks5Port}`)
+                Logger.log(kccpLogSource, `SOCKS5 server listening on port ${this.config.socks5Port}`)
             })
         }
 
@@ -200,7 +200,7 @@ class Proxy {
     }
 
     close() {
-        Logger.log(logSource, "KCCacheProxy shutting down.")
+        Logger.log(kccpLogSource, "KCCacheProxy shutting down.")
         this.closing = true
         if (this.proxy)
             this.proxy.close()
@@ -214,5 +214,5 @@ if (require.main === module) {
     proxy.init()
     proxy.start()
 } else {
-    module.exports = { Proxy, config, logger: Logger }
+    module.exports = { Proxy, config, logger: Logger, kccpLogSource }
 }
