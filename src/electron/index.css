@@ -203,6 +203,10 @@ button:disabled {
   cursor: default;
 }
 
+button:disabled .flat-icon {
+  filter: brightness(0) invert(0.4);
+}
+
 .mod-controls {
   position: relative;
   right: auto;
