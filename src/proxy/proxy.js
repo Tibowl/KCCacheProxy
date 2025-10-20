@@ -115,6 +115,7 @@ class Proxy {
                 data: Readable.from([error])
             })
         }
+
         // strip the proxy address
         const getNewUrl = function (oldUrl, config) {
             const oldPath = oldUrl.replace(/^(https?:\/\/[^/]+)?(.*)$/, "$2")
@@ -125,21 +126,24 @@ class Proxy {
             const newUrl = new URL(newUrlStr, base)
             return newUrl
         }
+
         url = getNewUrl(url, this.config)
 
         // adjust headers
         if (headers) {
-            const replace = ["origin","referer"]
+            const replace = ["origin", "referer"]
             replace.forEach(r => {
                 if (headers[r])
                     headers[r] = getNewUrl(headers[r], this.config).href
             })
             headers.host = url.host
-            
+
             const kcpHeaders = ["x-kcp-host", "x-host"]
-            let hostHeader = kcpHeaders.find(x => !!headers[x])
-            if (hostHeader)
+            const hostHeader = kcpHeaders.find(x => !!headers[x])
+            if (hostHeader) {
+                headers.host = headers[hostHeader]
                 url.host = headers[hostHeader]
+            }
             kcpHeaders.forEach(x => delete headers[x])
         }
 
