@@ -73,3 +73,24 @@ Before running any below command, start `kccp` container
   docker exec -it kccp node src/kce toggle
   docker restart kccp
   ```
+
+## For developers
+
+- Redirect using `config.serverIP`
+
+  ```sh
+  curl --location 'http://127.0.0.1:8001/kcs2/resources/ship/full/0147_2230_gmqsmiszmftf.png?version=21'
+  ```
+
+- Redirect using absolute url
+
+  ```sh
+  curl --location 'http://127.0.0.1:8001/https/w17k.kancolle-server.com/kcs2/resources/ship/full/0147_2230_gmqsmiszmftf.png?version=21'
+  ```
+
+- Redirect using `x-host` header
+
+  ```sh
+  curl --location 'http://127.0.0.1:8001/kcs2/resources/ship/full/0147_2230_gmqsmiszmftf.png?version=21' \
+  --header 'x-host: w17k.kancolle-server.com'
+  ```

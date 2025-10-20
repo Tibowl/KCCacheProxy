@@ -35,7 +35,7 @@ const run = async (rare = false) => {
     if (!SERVER_IP) return
 
     const kcs_const = readFileSync(join(getCacheLocation(), "/gadget_html5/js/kcs_const.js")).toString() //* / await (await fetch(`${GADGET}gadget_html5/js/kcs_const.js`)).text()
-    
+
     SERVER = `https://${SERVER_IP}/` // kcs_const.split("\n").find(k => k.includes(`ConstServerInfo.World_${serverID} `)).match(/".*"/)[0].replace(/"/g, "")
     GAME_VERSION = kcs_const.split("\n").find(k => k.includes("VersionInfo.scriptVesion ")).match(/".*"/)[0].replace(/"/g, "")
 
