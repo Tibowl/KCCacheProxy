@@ -22,7 +22,6 @@ body {
   grid-template-rows: auto 1fr auto;
   grid-template-columns: auto 1fr;
   margin: 0;
-	padding: 0;
 	height: 100vh;
 	width: 100vw;
 	font-size: 1rem;
@@ -49,11 +48,7 @@ header img {
 }
 
 nav {
-  display: flex;
-  grid-row: 2;
-  grid-column: 1;
 	background-color: #334146;
-	flex-direction: column;
 	overflow-y: auto;
 }
 
@@ -69,10 +64,7 @@ nav {
 
 .nav-item img {
 	display: block;
-	margin: 0 auto;
-	max-width: 100%;
 	filter: brightness(0) invert(0.8);
-	height: auto;
 }
 
 .flat-icon {
@@ -80,8 +72,6 @@ nav {
 }
 
 main {
-  grid-row: 2;
-  grid-column: 2;
   padding: 1rem;
 	overflow-y: auto;
 }
@@ -96,9 +86,8 @@ main {
 
 .content-item {
   display: none;
-  grid-row: 3;
-  grid-column: 2;
   cursor: default;
+  max-height: 200px;
 }
 
 .content-item-active {
@@ -108,24 +97,17 @@ main {
 
 footer {
   display: grid;
-  grid-template-rows: 1fr auto;
   grid-template-columns: auto 1fr;
-  grid-row: 3;
   grid-column: 1 / -1;
-  max-width: 100vw;
   background: #334146;
   padding: 0 1rem 1rem 1rem;
-  z-index: 1;
   cursor: pointer;
-  overflow-x: hidden;
-  overflow-y: auto;
   align-items: flex-end;
+  overflow-y: auto;
 }
 
 footer .flat-icon {
   margin-right: 1rem;
-  grid-row: 1 / -1;
-  grid-column: 1;
 }
 
 .loggable {
@@ -133,19 +115,9 @@ footer .flat-icon {
   white-space: nowrap;
 }
 
-.pull-item {
-  position: relative;
-  bottom: auto;
-  grid-row: 1;
-  grid-column: 1;
-  z-index: 2;
-}
-
 .pull-item img {
 	display: block;
-	max-width: 100%;
 	filter: brightness(0) invert(0.8);
-	height: auto;
 }
 
 #log-footer {
@@ -153,15 +125,6 @@ footer .flat-icon {
   grid-column: 2;
   overflow-x: hidden;
   white-space: nowrap;
-}
-
-#nav-logs {
-  grid-row: 1;
-  grid-column: 2;
-  min-width: 0;
-  min-height: 0;
-  max-height: 200px;
-  overflow-y: auto;
 }
 
 a { 
@@ -184,8 +147,6 @@ h2, h4 {
 
 .h2 {
   display: flex;
-  margin-block-start: 0rem;
-  margin-block-end: 0rem;
   align-items: center;
   gap: 8px;
 }
@@ -195,10 +156,6 @@ h2, h4 {
   display: inline-block;
   line-height: 0;
 }
-
-/* .settings-title {
-  vertical-align: middle;
-} */
 
 #title {
   display: flex;
@@ -227,15 +184,80 @@ h2, h4 {
 
 button {
   border-radius: 3px;
+  border: none;
+  color: #cccccc;
+  background-color: #334146;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin: 2px;
+  white-space: nowrap;
+}
+
+button:hover {
+  background-color: #516870;
+}
+
+button:disabled {
+  display: none;
+  color: #7a7a7a;
+  background-color: #2a3438;
+}
+
+.mod-controls {
+  position: relative;
+  right: auto;
+}
+
+ol {
+  margin-block-start: 8px;
+  margin-block-end: 8px;
+  padding-inline-start: 1rem;
+}
+
+li {
+  line-height: 1.2;
+}
+
+input {
+  border-radius: 3px;
   border: 1px solid #cccccc;
   color: #cccccc;
   background-color: #334146;
   padding: 6px 12px;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  display: inline-block;
   margin: 2px;
+}
+
+div#settings {
+  display: grid;
+  grid-template-columns: 0fr 1fr;
+  margin-bottom: 2px;
+}
+
+label {
+  margin: 2px;
+}
+
+.cache-location {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.cache-location input {
+  width: 100%;
+}
+
+p {
+  margin-block-start: 0rem;
+  margin-block-end: 0rem;
+}
+
+.setting-key {
+  white-space: nowrap;
+}
+
+.setting-value {
+  white-space: nowrap;
 }
 
 #save:enabled, .blink {
@@ -261,11 +283,7 @@ ul {
 
 /* Proxy log */
 #log {
-  position: relative;
-  bottom: auto;
-  max-height: 100%;
   background-color: #000000;
-  overflow-y: auto;
 }
 
 .log {

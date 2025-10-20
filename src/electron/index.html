@@ -43,11 +43,13 @@
       <div id="settings"></div>
       <button id="reloadCache">Reload cache</button>
       <button id="verifyCache">Verify entire cache</button>
-      <button id="importCache">Import built-in basic cache dump</button>
-      <button id="importCustomCache">Import cache dump</button>
-      <a id="openCacheDump">
-        <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
-      </a>
+      <button id="importCache" style="display: none;">Import built-in basic cache dump</button>
+      <div style="display: inline-block">
+        <button id="importCustomCache">Import cache dump</button>
+        <a id="openCacheDump">
+          <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
+        </a>
+      </div>
       <div style="display:none" id="extraButtons">
         <button id="preload">Preload</button>
         <button id="createDiff">Create diff</button>
@@ -70,14 +72,16 @@
       <button id="addMod">Add local mod</button>
       <button id="reloadMods">Reload mod data</button>
       <button id="prepatch">Pre-patch all assets</button><br>
-      <button id="extractSpritesheet">Extract a spritesheet</button>
-      <button id="outlines">Make outlines of spritesheet</button>
-      <button id="importExternalMod">Convert from poi</button>
       <div id="gitModInstall" style="display:none; margin: 10px 0;">
         <input type="text" id="gitModUrl" placeholder="Enter GitHub repository URL" style="width: 300px; margin-right: 5px;">
         <button id="confirmGitModInstall">Install</button>
         <button id="cancelGitModInstall">Cancel</button>
       </div>
+      <h4>Advanced tools</h4>
+      <button id="extractSpritesheet">Extract a spritesheet</button>
+      <button id="outlines">Make outlines of spritesheet</button>
+      <button id="importExternalMod">Convert from poi</button>
+      
     </div>
     <div class="main-item" id="nav-stats">
       <h2>Stats</h2>
@@ -112,12 +116,7 @@
           <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
         </a>
       </div>
-      <!-- <button id="checkVersion">Check for updates</button><br> -->
-      <!-- <button id="startHelp">Having troubles? Start the troubleshooter</button> -->
-      <!-- <a id="openFAQ">FAQ</a> -->
-      <!-- <br> -->
       <div id="help" style="display:none;">
-        <!-- <h2>Troubleshooter</h2> -->
         <div id="not-started">
           Please refresh your game and wait a bit, game might take a bit to load.<br>
         </div>
@@ -145,11 +144,11 @@
       <img id="copy-button" class="flat-icon" src="resources/journal-alt.svg" height="32" width="32" />
     </div>
     <div id="log-footer">
-      20:20:20.998: Very long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log
+      <!-- 20:20:20.998: Very long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log -->
     </div>
     <div class="content-item" id="nav-logs">
       <div id="log">
-        <div class="loggable log">20:20:20.998: Very long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log</div>
+        <!-- <div class="loggable log">20:20:20.998: Very long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log long log</div>
         <div class="loggable log">20:20:19.998: this log</div>
         <div class="loggable log">20:20:19.998: this log</div>
         <div class="loggable log">20:20:19.998: this log</div>
@@ -157,7 +156,7 @@
         <div class="loggable log">20:20:19.998: this log</div>
         <div class="loggable log">20:20:19.998: this log</div>
         <div class="loggable log">20:20:19.998: this log</div>
-        <div class="loggable log">20:20:19.998: this log</div>
+        <div class="loggable log">20:20:19.998: this log</div> -->
       </div>
     </div>
   </footer>
