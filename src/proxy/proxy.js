@@ -129,12 +129,18 @@ class Proxy {
 
         // adjust headers
         if (headers) {
-            const replace = ['origin','referer']
+            const replace = ["origin","referer"]
             replace.forEach(r => {
                 if (headers[r])
                     headers[r] = getNewUrl(headers[r], this.config).href
             })
             headers.host = url.host
+            
+            const kcpHeaders = ["x-kcp-host", "x-host"]
+            let hostHeader = kcpHeaders.find(x => !!headers[x])
+            if (hostHeader)
+                url.host = headers[hostHeader]
+            kcpHeaders.forEach(x => delete headers[x])
         }
 
         Logger.log(kccpLogSource, `${method}: ${url}`)
