@@ -95,12 +95,12 @@ async function checkGitModUpdates() {
 
     for (const mod of conf.mods) {
         if (mod.git) {
+            const englishPatchInstalled = mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git"
+            global.mainWindow.webContents.send("englishPatchInstalled", englishPatchInstalled)
             try {
-                const updated = await updateMod(mod.path, mod.git)
-                const englishPatchInstalled = mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git"
-                global.mainWindow.webContents.send("englishPatchInstalled", englishPatchInstalled)
-                if (updated && global.mainWindow) {
-                    global.mainWindow.webContents.send("gitModUpdated", true)
+                const updateResult = await updateMod(mod.path, mod.git)
+                if (updateResult.success && global.mainWindow) {
+                    global.mainWindow.webContents.send("gitModUpdated", updateResult)
                     reloadModCache()
                 }
 

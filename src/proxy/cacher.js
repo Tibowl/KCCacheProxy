@@ -245,14 +245,13 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
  * Send a file to user
  * @param {IncomingMessage} req Proxy request
  * @param {ServerResponse} res Proxy response
- * @param {string} url URL of the file being cached
  * @param {string} cacheFile Cache file location
  * @param {string|Buffer} contents Contents of file, if undefined, will be loaded from cacheFile
  * @param {string} file File path
  * @param {any} cachedFile Cache metadata
  * @param {boolean} forceCache Bypass verification check, forcefully send cached file
  */
-async function send(req, res, url, cacheFile, contents, file, cachedFile, forceCache = false) {
+async function send(req, res, cacheFile, contents, file, cachedFile, forceCache = false) {
     if (!res) return
 
     if (contents == undefined)
@@ -261,7 +260,7 @@ async function send(req, res, url, cacheFile, contents, file, cachedFile, forceC
     if (!forceCache && getConfig().verifyCache && cachedFile && cachedFile.length && contents.length != cachedFile.length) {
         Logger.error(logSource, cacheFile, "length doesn't match!", contents.length, cachedFile.length)
         Logger.addStatAndSend("bandwidthSaved", -contents.length)
-        return handleCaching(req, res, url, true)
+        return handleCaching(req, res, true)
     }
 
     let gvo = getConfig().gameVersionOverwrite
@@ -288,53 +287,52 @@ async function send(req, res, url, cacheFile, contents, file, cachedFile, forceC
     }
 
     if (file && isBlacklisted(file)) {
-        res.setHeader("Server", "nginx")
+        res.headers["Server"] = "nginx"
         if (!cachedFile || cachedFile.cache == "no-cache" || cachedFile.cache == "no-store")
-            res.setHeader("Cache-Control", "no-store")
+            res.headers["Cache-Control"] = "no-store"
         else
-            res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
+            res.headers["Cache-Control"] = "max-age=2592000, public, immutable"
     } else {
         // Copy KC server headers
-        res.setHeader("Server", "nginx")
-        res.setHeader("X-DNS-Prefetch-Control", "off")
+        res.headers["Server"] = "nginx"
+        res.headers["X-DNS-Prefetch-Control"] = "off"
 
         if (getConfig().disableBrowserCache || isInvalidated(file)) {
-            res.setHeader("Cache-Control", "no-store")
-            res.setHeader("Pragma", "no-cache")
+            res.headers["Cache-Control"] = "no-store"
+            res.headers["Pragma"] = "no-cache"
         } else {
-            res.setHeader("Cache-Control", "max-age=2592000, public, immutable")
-            res.setHeader("Pragma", "public")
+            res.headers["Cache-Control"] = "max-age=2592000, public, immutable"
+            res.headers["Pragma"] = "public"
         }
     }
 
     // TODO switch or some table
     if (cacheFile.endsWith(".php") || cacheFile.endsWith(".html")) {
-        res.setHeader("Content-Type", "text/html")
+        res.headers["Content-Type"] = "text/html"
     } else if (cacheFile.endsWith(".png")) {
-        res.setHeader("Content-Type", "image/png")
+        res.headers["Content-Type"] = "image/png"
     } else if (cacheFile.endsWith(".json")) {
-        res.setHeader("Content-Type", "application/json")
+        res.headers["Content-Type"] = "application/json"
     } else if (cacheFile.endsWith(".css")) {
-        res.setHeader("Content-Type", "text/css")
+        res.headers["Content-Type"] = "text/css"
     } else if (cacheFile.endsWith(".mp3")) {
-        res.setHeader("Accept-Ranges", "bytes")
-        res.setHeader("Content-Type", "audio/mpeg")
+        res.headers["Accept-Ranges"] = "bytes"
+        res.headers["Content-Type"] = "audio/mpeg"
     } else if (cacheFile.endsWith(".js")) {
-        res.setHeader("Content-Type", "application/x-javascript")
+        res.headers["Content-Type"] = "application/x-javascript"
     }
 
-    res.end(contents)
+    res.data = contents
 }
 
 /**
  * Handle caching of a request and send response
  * @param {IncomingMessage} req Request of user
  * @param {ServerResponse} res Response of server
- * @param {string} url URL of the file being cached
  * @param {boolean} forceCache Bypass verification
  */
-async function handleCaching(req, res, url, forceCache = false) {
-    const { headers } = req
+async function handleCaching(req, res, forceCache = false) {
+    let { headers, url } = req
     if (url.startsWith("/"))
         url = `https://${headers.host}${url}`
 
@@ -348,7 +346,7 @@ async function handleCaching(req, res, url, forceCache = false) {
             || headers.host == "127.0.0.1" || headers.host == getConfig().hostname)) {
             getConfig().serverIP = headers.host
             // Logger.log(logSource, `Detected KC server IP ${getConfig().serverIP}`)
-            saveConfig()
+            saveConfig({silent: true})
         }
     }
 
@@ -363,7 +361,7 @@ async function handleCaching(req, res, url, forceCache = false) {
             const contents = await read(cacheFile)
             Logger.addStatAndSend("inCache")
             Logger.addStatAndSend("bandwidthSaved", contents.length)
-            return await send(req, res, url, cacheFile, contents, file, cachedFile, forceCache)
+            return await send(req, res, cacheFile, contents, file, cachedFile, forceCache)
         }
 
         // Version doesn't match, lastmodified set
@@ -377,17 +375,18 @@ async function handleCaching(req, res, url, forceCache = false) {
 
     if (!result.contents) {
         res.statusCode = result.status
-        return res.end()
+        return
     }
 
     if (result.status >= 400 && result.contents) {
         res.statusCode = result.status
-        return res.end(result.contents)
+        res.data = result.contents
+        return
     }
 
     if (!result.downloaded)
         Logger.addStatAndSend("bandwidthSaved", result.contents.length)
-    return await send(req, res, url, cacheFile, result.contents, file, cached[file], forceCache)
+    return await send(req, res, cacheFile, result.contents, file, cached[file], forceCache)
 }
 
 async function getKCAVersion(host) {

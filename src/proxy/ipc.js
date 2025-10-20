@@ -199,12 +199,12 @@ function registerElectron(ipcMain, app, al) {
     ipcMain.on("reloadModCache", () => reloadModCache())
     ipcMain.on("prepatch", () => prepatch())
     ipcMain.on("installGitMod", async (e, url) => {
-        const success = await handleModInstallation(modsPath, url, config.getConfig(), config)
-        mainWindow.webContents.send("gitModUpdated", success)
+        const result = await handleModInstallation(modsPath, url, config.getConfig(), config)
+        mainWindow.webContents.send("gitModUpdated", result)
     })
     ipcMain.on("updateGitMod", async (e, modPath, gitRemote) => {
-        const success = await updateMod(modPath, gitRemote)
-        mainWindow.webContents.send("gitModUpdated", success)
+        const result = await updateMod(modPath, gitRemote)
+        mainWindow.webContents.send("gitModUpdated", result)
     })
 
     ipcMain.on("startHelp", () => {

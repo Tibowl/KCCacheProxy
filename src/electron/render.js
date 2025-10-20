@@ -846,9 +846,19 @@ document.getElementById("installGitMod").onclick = () => {
     getEnglishPatchButton.style.display = englishPatchInstalled ? "none" : "inline-block"
 }
 
-ipcRenderer.on("gitModUpdated", (event, success) => {
-    addLog("info", new Date(), success ? "Git mod downloaded successfully." : "Failed to download git mod.")
-    if (success) {
+ipcRenderer.on("gitModUpdated", (event, result) => {
+    let notification = new Notification({
+        title: "KCCacheProxy: " + (result.success ? "Mod Updated" : "Mod Update Failed"),
+        body: result.success
+            ? `${result.modMeta.name} has been updated to version ${result.modMeta.version}.`
+            : `Failed to update mod at ${result.modPath}. ${result.error}`,
+            timeoutType: "default",
+            silent: false,
+    })
+    notification.show()
+
+    addLog("info", new Date(), result.success ? "Git mod downloaded successfully." : "Failed to download git mod.")
+    if (result.success) {
         ipcRenderer.send("getConfig")
     }
 })

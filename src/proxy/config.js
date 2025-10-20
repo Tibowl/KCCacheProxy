@@ -126,9 +126,10 @@ function loadConfig(electronApp) {
 /**
  * Save config to disk
  */
-function saveConfig() {
+function saveConfig(options) {
     const configLocation = join(userdata, configFile)
-    Logger.log(logSource, `Saving config to ${configLocation}`)
+    if (options?.silent !== true)
+        Logger.log(logSource, `Saving config to ${configLocation}`)
 
     ensureDirSync(dirname(configLocation))
     writeFileSync(configLocation, JSON.stringify(getConfig(), undefined, 2))
