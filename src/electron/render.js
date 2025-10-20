@@ -238,9 +238,7 @@ const settable = {
         "title": "Hostname used by proxy. You'll need to restart to apply changes.",
         "input": {
             "type": "text"
-        },
-        "verify": (v) => v.match(/^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$/),
-        "verifyError": "Invalid IPv4 address"
+        }
     },
     "port": {
         "label": "Port",
