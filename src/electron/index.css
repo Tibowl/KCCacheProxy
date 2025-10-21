@@ -1,15 +1,134 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin: auto;
-  /* max-width: 38rem; */
-  padding: 2rem;
-  background-color: #1d1d1d;
-  color: white;
+html {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 }
 
-a {
+*,
+*:before,
+*:after {
+	-webkit-box-sizing: inherit;
+	-moz-box-sizing: inherit;
+	box-sizing: inherit;
+}
+
+* {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+	height: 100vh;
+	width: 100vw;
+	font-size: 1rem;
+	line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	color: #cccccc;
+	background: #2a3438;
+}
+
+header {
+  background-color: #334146;
+  grid-column: 1 / -1;
+}
+
+header img {
+	display: block;
+  margin: 4px 8px;
+}
+
+#checkVersion {
+  color: #526870;
+  padding: 4px 0px;
+  cursor: pointer;
+}
+
+nav {
+	background-color: #334146;
+	overflow-y: auto;
+}
+
+.nav-item {
+	padding: 1rem;
+	cursor: pointer;
+}
+
+.nav-item-active {
+	cursor: default;
+	background-color: #516870;
+}
+
+.nav-item img {
+	display: block;
+	filter: brightness(0) invert(0.8);
+}
+
+.flat-icon {
+	filter: brightness(0) invert(0.8);
+}
+
+main {
+  padding: 1rem;
+	overflow-y: auto;
+}
+
+.main-item {
+  display: none;
+}
+
+.main-item-active {
+  display: block;
+}
+
+.content-item {
+  display: none;
+  cursor: default;
+  max-height: 40vh;
+}
+
+.content-item-active {
+  display: block;
+  overflow-y: auto;
+}
+
+footer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-column: 1 / -1;
+  background: #334146;
+  padding: 0 1rem 1rem 1rem;
+  cursor: pointer;
+  align-items: flex-end;
+  overflow-y: auto;
+}
+
+footer .flat-icon {
+  margin-right: 1rem;
+}
+
+.loggable {
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+.pull-item img {
+	display: block;
+	filter: brightness(0) invert(0.8);
+}
+
+#log-footer {
+  grid-row: 1;
+  grid-column: 2;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+a { 
   color:aqua;
-  font-size: 1rem;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -20,46 +139,129 @@ h1 {
   margin-block-end: auto;
   display: inline;
 }
-h2, .h2, h4 {
-  margin-block-start: 0.75rem;
-  margin-block-end: 0.5rem;
+
+h2, h4 {
+  margin-block-start: 0rem;
+  margin-block-end: 0rem;
 }
+
+.h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#openConfigWiki {
+  text-decoration: none;
+  display: inline-block;
+  line-height: 0;
+}
+
 #title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
+
 .align {
   display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
 
-button {
-  cursor: pointer;
-}
-
 /* Update notification */
 #update {
   color:crimson;
-  font-size: 1.5rem;
+  padding: 4px 8px;
 }
+
+#modder {
+  color:crimson;
+}
+
 #newVersion {
   font-weight: bold;
 }
+
 button {
   border-radius: 3px;
-  border: 1px solid #d6d6d6;
-  color: #d6d6d6;
-  background-color: #0a0a0a;
   border: none;
-  padding: 3px 6px;
-  text-align: center;
-  text-decoration: none;
+  color: #cccccc;
+  background-color: #334146;
+  padding: 6px 12px;
   cursor: pointer;
-  display: inline-block;
-  font-size: 12px;
   margin: 2px;
+  white-space: nowrap;
+}
+
+button:hover {
+  background-color: #516870;
+}
+
+button:disabled {
+  color: #7a7a7a;
+  background-color: #2a3438;
+  cursor: default;
+}
+
+button:disabled .flat-icon {
+  filter: brightness(0) invert(0.4);
+}
+
+.mod-controls {
+  position: relative;
+  right: auto;
+}
+
+ol {
+  margin-block-start: 8px;
+  margin-block-end: 8px;
+  padding-inline-start: 1rem;
+}
+
+li {
+  line-height: 1.2;
+}
+
+input {
+  border-radius: 3px;
+  border: 1px solid #cccccc;
+  color: #cccccc;
+  background-color: #334146;
+  padding: 6px 12px;
+  margin: 2px;
+}
+
+div#settings {
+  display: grid;
+  grid-template-columns: 0fr 1fr;
+  margin-bottom: 2px;
+}
+
+label {
+  margin: 2px;
+}
+
+.cache-location {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.cache-location input {
+  width: 100%;
+}
+
+p {
+  margin-block-start: 0rem;
+  margin-block-end: 0rem;
+}
+
+.setting-key {
+  white-space: nowrap;
+}
+
+.setting-value {
+  white-space: nowrap;
 }
 
 #save:enabled, .blink {
@@ -77,6 +279,7 @@ button {
 .info {
   text-decoration: underline;
 }
+
 ul {
   margin-block-start: 0;
   margin-block-end: 0;
@@ -85,14 +288,6 @@ ul {
 /* Proxy log */
 #log {
   background-color: #000000;
-}
-
-.loggable {
-  overflow-x: hidden;
-  white-space: nowrap;
-}
-.loggable:hover {
-  overflow-x: auto;
 }
 
 .log {

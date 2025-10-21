@@ -5,102 +5,165 @@
   <meta charset="UTF-8">
   <title>KCCacheProxy</title>
   <link rel="stylesheet" href="index.css">
+  <script src="navSystem.js"></script>
   <script defer src="render.js"></script>
 </head>
 
 <body>
-  <div id="title">
-    <h1 id="mainTitle">KCCacheProxy</h1>
-  </div>
-  <div id="update" style="display:none">
-    You are currently using an outdated version. The latest version is <span id="newVersion"></span>.
-    <a id="openReleases">Open releases page</a>
-  </div>
-  <button id="checkVersion">Check for updates</button><br>
-  <button id="startHelp">Having troubles? Start the troubleshooter</button>
-  <a id="openFAQ">FAQ</a>
-  <br>
-  <div id="help" style="display:none;">
-    <h2>Troubleshooter</h2>
-    <div id="not-started">
-      Please refresh your game and wait a bit, game might take a bit to load.<br>
+  <header id="title">
+    <img id="titleButton" src="icon.ico" height="16" width="16" />
+    <small id="checkVersion">KCCacheProxy</small>
+    <small id="update" style="display:none">
+      <a id="openReleases">New version available: <span id="newVersion"></span></a>
+    </small>
+  </header>
+  <nav>
+    <div class="nav-item nav-item-active" tabindex="0" data-id="nav-settings" aria-role="button">
+      <img src="resources/settings.svg" height="32" width="32" />
     </div>
-
-    <div id="loading">
-      <b>Potential issues:</b>
+    <div class="nav-item" data-id="nav-mods" tabindex="0" aria-role="button">
+      <img src="resources/select.svg" height="32" width="32" />
+    </div>
+    <div class="nav-item" data-id="nav-stats" tabindex="0" aria-role="button">
+      <img src="resources/stats.svg" height="32" width="32" />
+    </div>
+    <div class="nav-item" id="startHelp" data-id="nav-help" tabindex="0" aria-role="button">
+      <img src="resources/interrogation.svg" height="32" width="32" />
+    </div>
+  </nav>
+  <main>
+    <div class="main-item main-item-active" id="nav-settings">
+      <div class="h2 settings-title">
+        <h2 style="display: inline;">Settings </h2>
+        <a id="openConfigWiki">
+          <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
+        </a>
+        <button id="save" disabled></button>
+      </div>
+      <div id="settings"></div>
+      <button id="openCache">Open cache folder</button>
+      <button id="reloadCache">Reload cache</button>
+      <button id="verifyCache">Verify cache integrity</button>
+      <button id="importCache" style="display: none;">Import built-in basic cache dump</button>
+      <div style="display: inline-block">
+        <button id="importCustomCache">Import cache dump</button>
+        <a id="openCacheDump">
+          <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
+        </a>
+      </div>
+      <div style="display:none" id="extraButtons">
+        <button id="preload">Preload</button>
+        <button id="createDiff">Create diff</button>
+      </div>
+    </div>
+    <div class="main-item" id="nav-mods">
+      <div class="h2">
+        <h2 style="display: inline;">Mods </h2>
+        <a id="openAssetsWiki">
+          <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
+        </a>
+      </div>
+      <div id="modder">
+        Mods disabled. Enable it below to see effects in-game.
+      </div>
+      <b>NOTE:</b> Use this feature at your own risk.
+      <br>
+      <label title="Whether or not the proxy should process mods.">
+        <div style="display: inline-flex; align-items: center;">
+          <input type="checkbox" id="enableModder" class="setting-value" style="margin-right: 8px;">
+          <p class="setting-key">Enable mods</p>
+        </div>
+      </label>
+      <label title="Whether to automatically check for and update installed Git mods.">
+        <div style="display: inline-flex; align-items: center;">
+          <input type="checkbox" id="autoUpdateGitMods" class="setting-value" style="margin-right: 8px;">
+          <p class="setting-key">Auto-update Git mods</p>
+        </div>
+      </label>
+      <h4>Added mods</h4>
+      <ol id="mods"></ol>
+      <button id="installGitMod">Add mod from GitHub</button>
+      <button id="addMod">Add local mod</button>
+      <button id="reloadMods">Reload mod data</button>
+      <button id="prepatch">Pre-patch all assets</button><br>
+      <div id="gitModInstall" style="display:none; margin: 10px 0;">
+        <input type="text" id="gitModUrl" placeholder="Enter GitHub repository URL" style="width: 300px; margin-right: 5px;">
+        <button id="confirmGitModInstall">Install</button>
+        <button id="cancelGitModInstall">Cancel</button>
+        <button id="getEnglishPatch">Get English Patch</button>
+      </div>
+      <h4>Advanced tools</h4>
+      <button id="extractSpritesheet">Extract a spritesheet</button>
+      <button id="outlines">Make outlines of spritesheet</button>
+      <button id="importExternalMod">Convert from poi</button>
+      
+    </div>
+    <div class="main-item" id="nav-stats">
+      <h2>Stats</h2>
+      Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
+      <span id="oldCache" class="info"
+        title="Note: This IS inaccurate since your cache was made in an old version">*</span><br>
+      Since installation (<span id="startDate"></span>):<br>
       <ul>
-        <li id="no-connection">Nothing is coming through the proxy, double check settings for your viewer.</li>
-        <li id="no-connection-with-gadget">Gadget server isn't coming through the proxy, double check settings for your viewer.</li>
-        <li id="no-cache">You don't have the minimum cache installed, click on <code>Import built-in basic cache dump</code>.</li>
-        <li id="no-index">Game in maintenance or no KC server going through proxy, double check settings for your viewer.</li>
-        <li id="no-main">Game is not being loaded from proxy, try clearing browser cache.</li>
-        <li id="no-version">It looks like the game isn't getting started, try clearing browser cache.</li>
-      </ul>
-    </div>
-    <div id="done">
-      Everything looks fine from here. If you are still having issues contact me on Discord via <a href="https://discord.gg/J7nBD6U" class="link">https://discord.gg/J7nBD6U</a>.<br><br>
-      <a id="stopHelp">Close troubleshooter</a>
-    </div>
-  </div>
-  <h2>Stats:</h2>
-  Cached: <span id="cachedFiles">?</span> files, <span id="cachedSize">?</span>
-  <span id="oldCache" class="info"
-    title="Note: This IS inaccurate since your cache was made in an old version">*</span><br>
-  Since installation (<span id="startDate"></span>):<br>
-  <ul>
-    <li style="display:none" id="passthrough"><span class="info"
-        title="These are passed through, not dropped">Ignored</span> <span id="passthroughHTTP">0</span> HTTP requests
-      and <span id="passthroughHTTPS">0</span> HTTPS requests.</li>
-    <li>Handled <span id="totalHandled">0</span> requests
-      <ul>
-        <li style="display:none" id="inCacheH"><span id="inCache">0</span> found in cache</li>
-        <li style="display:none" id="notModifiedH"><span id="notModified">0</span> changed version tag, but weren't
-          modified
-          <span class="info"
-            title="Note: These aren't included in the 'found in cache' count. These were loaded from cache, but still required to be checked if not modified from KC servers.">*</span>
+        <li style="display:none" id="passthrough"><span class="info"
+            title="These are passed through, not dropped">Ignored</span> <span id="passthroughHTTP">0</span> HTTP requests
+          and <span id="passthroughHTTPS">0</span> HTTPS requests.</li>
+        <li>Handled <span id="totalHandled">0</span> requests
+          <ul>
+            <li style="display:none" id="inCacheH"><span id="inCache">0</span> found in cache</li>
+            <li style="display:none" id="notModifiedH"><span id="notModified">0</span> changed version tag, but weren't
+              modified
+              <span class="info"
+                title="Note: These aren't included in the 'found in cache' count. These were loaded from cache, but still required to be checked if not modified from KC servers.">*</span>
+            </li>
+            <li style="display:none" id="fetchedH"><span id="fetched">0</span> had to be downloaded from KC servers</li>
+            <li style="display:none" id="blockedH"><span id="blocked">0</span> blocked by KC servers</li>
+            <li style="display:none" id="failedH"><span id="failed">0</span> failed to load</li>
+          </ul>
         </li>
-        <li style="display:none" id="fetchedH"><span id="fetched">0</span> had to be downloaded from KC servers</li>
-        <li style="display:none" id="blockedH"><span id="blocked">0</span> blocked by KC servers</li>
-        <li style="display:none" id="failedH"><span id="failed">0</span> failed to load</li>
+        <li>Saved <span id="bandwidthSaved">0 B</span> of bandwidth.</li>
       </ul>
-    </li>
-    <li>Saved <span id="bandwidthSaved">0 B</span> of bandwidth.</li>
-  </ul>
-  <div class="h2">
-    <h2 style="display: inline;">Settings: </h2><a id="openConfigWiki">More information</a>
-  </div>
-  <div id="settings"></div>
-  <button id="save" disabled>Save</button><br>
-  <button id="reloadCache">Reload cache</button>
-  <button id="verifyCache">Verify entire cache (might take a bit)</button>
-  <button id="importCache">Import built-in basic cache dump</button>
-  <button id="importCustomCache">Import cache dump</button>
-  <a id="openCacheDump">Where/how to get cache dumps</a>
-  <div style="display:none" id="extraButtons">
-    <button id="preload">Preload</button>
-    <button id="createDiff">Create diff</button>
-  </div>
-  <div style="display:none" id="modder">
-    <h2>Assets modifier</h2>
-    Stable assets modifier. More stable than replacing assets directly. See <a id="openAssetsWiki">wiki page</a> for more information.<br>
-    <b>NOTE:</b> Use this feature on your own risk.
-    <h4>Enabled mods</h4>
-    <ol id="mods"></ol>
-    <button id="addMod">Add a patcher</button>
-    <button id="reloadMods">Reload mod data</button><br>
-    <button id="prepatch">Pre-patch ALL assets (might take a while)</button>
-    <button id="extractSpritesheet">Extract a spritesheet</button>
-    <button id="outlines">Make outlines of spritesheet</button>
-    <button id="importExternalMod">Convert from poi</button>
-    <button id="installGitMod">Install mod from GitHub</button>
-    <div id="gitModInstall" style="display:none; margin: 10px 0;">
-      <input type="text" id="gitModUrl" placeholder="Enter GitHub repository URL" style="width: 300px; margin-right: 5px;">
-      <button id="confirmGitModInstall">Install</button>
-      <button id="cancelGitModInstall">Cancel</button>
     </div>
-  </div>
-  <h2>Proxy log:</h2>
-  <div id="log"></div>
+    <div class="main-item" id="nav-help">
+      <div class="h2">
+        <h2 style="display: inline;">Troubleshooter </h2>
+        <a id="openFAQ">
+          <img class="flat-icon" src="resources/interrogation.svg" height="16" width="16" />
+        </a>
+      </div>
+      <div id="help" style="display:none;">
+        <div id="not-started">
+          Please refresh your game and wait a bit, game might take a bit to load.<br>
+        </div>
+        <div id="loading">
+          <b>Potential issues:</b>
+          <ul>
+            <li id="no-connection">Nothing is coming through the proxy, double check settings for your viewer.</li>
+            <li id="no-connection-with-gadget">Gadget server isn't coming through the proxy, double check settings for your viewer.</li>
+            <li id="no-cache">You don't have the minimum cache installed, click on <code>Import built-in basic cache dump</code>.</li>
+            <li id="no-index">Game in maintenance or no KC server going through proxy, double check settings for your viewer.</li>
+            <li id="no-main">Game is not being loaded from proxy, try clearing browser cache.</li>
+            <li id="no-version">It looks like the game isn't getting started, try clearing browser cache.</li>
+          </ul>
+        </div>
+        <div id="done">
+          Everything looks fine from here. If you are still having issues contact me on Discord via <a href="https://discord.gg/J7nBD6U" class="link">https://discord.gg/J7nBD6U</a>.<br><br>
+          <a id="stopHelp">Close troubleshooter</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="pull-item" data-id="nav-logs" tabindex="0" aria-role="button">
+      <img src="resources/angle-small-up.svg" height="32" width="32" />
+      <img id="copy-button" class="flat-icon" src="resources/journal-alt.svg" height="32" width="32" />
+    </div>
+    <div id="log-footer"></div>
+    <div class="content-item" id="nav-logs">
+      <div id="log"></div>
+    </div>
+  </footer>
+  
 </body>
 
 </html>

@@ -67,8 +67,16 @@ function update(message) {
     }
 }
 
+function disableLogClicks() {
+    document.querySelectorAll("#log .loggable").forEach(log => {
+        
+    });
+}
+
 let recent = []
 const log = document.getElementById("log")
+const navLog = document.getElementById("nav-logs")
+const logFooter = document.getElementById("log-footer");
 /**
  * Add a log element to log
  * @param {"error"|"log"} messageType Type of message, affects color
@@ -77,7 +85,7 @@ const log = document.getElementById("log")
  */
 function addLog(messageType, messageDate, ...message) {
     recent.unshift(message)
-    while (recent.length >= 50) {
+    while (recent.length >= 100) {
         log.removeChild(log.children[log.children.length - 1])
         recent.pop()
     }
@@ -110,7 +118,19 @@ function addLog(messageType, messageDate, ...message) {
     }).join(" ")
     elem.appendChild(msg)
 
-    log.insertBefore(elem, log.firstChild)
+    elem.addEventListener("mouseover", () => {
+        elem.style.overflowX = "auto"
+    })
+
+    elem.addEventListener("mouseout", () => {
+        elem.style.overflowX = "hidden"
+    })
+
+    log.appendChild(elem, log.firstChild)
+    logFooter.textContent = `${date.innerText}: ${msg.innerText}`
+
+    navLog.scrollTop = navLog.scrollHeight
+    navLog.scrollLeft = navLog.scrollWidth
 }
 
 /** @typedef {"date"|"number"|"numberH"|"bytes"|"show"} Render */
@@ -207,28 +227,30 @@ let config = undefined
  * */
 /** @type {Object.<string, Settable>} */
 const settable = {
-    "port": {
-        "label": "Port",
-        "ifEmpty": "8081",
-        "title": "Port used by proxy. You'll need to save and restart to apply changes.",
-        "input": {
-            "type": "number",
-            "min": 1,
-            "max": 65536,
-        }
-    },
     "hostname": {
         "label": "Hostname",
         "ifEmpty": "127.0.0.1",
-        "title": "Hostname used by proxy. You'll need to save and restart to apply changes.",
+        "title": "Hostname used by proxy. You'll need to restart to apply changes.",
         "input": {
             "type": "text"
         }
     },
+    "port": {
+        "label": "Port",
+        "ifEmpty": "8081",
+        "title": "Port used by proxy. You'll need to restart to apply changes.",
+        "input": {
+            "type": "number",
+            "min": 1,
+            "max": 65536,
+        },
+        "verify": (v) => v < 65537 && v > 0,
+        "verifyError": "Invalid port, needs to be between 1 and 65536"
+    },
     "cacheLocation": {
         "label": "Cache location",
         "ifEmpty": "default",
-        "title": "Cache location used by proxy. You'll need to save to apply changes",
+        "title": "Cache location used by proxy.",
         "input": {
             "type": "text"
         },
@@ -237,65 +259,65 @@ const settable = {
             "properties": ["openDirectory"]
         }
     },
-    "startHidden": {
-        "label": "Start in system tray",
-        "title": "Whenever or not window should start in system tray. Don't forget to save before restarting",
-        "input": {
-            "type": "checkbox"
-        }
-    },
-    "autoStartup": {
-        "label": "Start up with system",
-        "title": "Whenever or not to start up with system. Don't forget to save",
-        "input": {
-            "type": "checkbox"
-        }
-    },
-    "verifyCache": {
-        "label": "Automatically verify cache integrity",
-        "title": "Whenever or not the proxy should automatically save cache. You'll need to save to apply changes.",
-        "input": {
-            "type": "checkbox"
-        }
-    },
-    "disableBrowserCache": {
-        "label": "Disable browser caching",
-        "title": "Whenever or not the proxy should tell the browser to cache the files or not. You'll need to save to apply changes.",
-        "input": {
-            "type": "checkbox"
-        }
-    },
-    "bypassGadgetUpdateCheck": {
-        "label": "Bypass checking for gadget updates on gadget server",
-        "title": "Whenever or not the proxy should check for updates of files on gadget server. You'll need to save to apply changes.",
-        "input": {
-            "type": "checkbox"
-        }
-    },
     "gameVersionOverwrite": {
-        "label": "Overwrite game version ('false' to disable, 'kca' to use KCA version)",
+        "label": "Overwrite game version",
         "ifEmpty": "false",
-        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag. You'll need to save to apply changes",
+        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag.",
         "input": {
             "type": "text"
         },
         "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
         "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
     },
+    "startHidden": {
+        "label": "Start in system tray",
+        "title": "Whenever or not window should start in system tray.",
+        "input": {
+            "type": "checkbox"
+        }
+    },
+    "autoStartup": {
+        "label": "Start up with system",
+        "title": "Whenever or not to start up with system.",
+        "input": {
+            "type": "checkbox"
+        }
+    },
     "enableModder": {
-        "label": "Enable assets modifier",
-        "title": "Whenever or not the proxy should process assets modifiers. You'll need to save to apply changes.",
+        "label": "Enable mods",
+        "title": "Whenever or not the proxy should process mods.",
         "input": {
             "type": "checkbox"
         }
     },
     "autoUpdateGitMods": {
         "label": "Auto-update Git mods",
-        "title": "Whether to automatically check for and update installed Git mods. You'll need to save to apply changes.",
+        "title": "Whether to automatically check for and update installed Git mods.",
         "input": {
             "type": "checkbox"
         }
-    }
+    },
+    "disableBrowserCache": {
+        "label": "Disable browser caching",
+        "title": "Whenever or not the proxy should tell the browser to cache the files or not.",
+        "input": {
+            "type": "checkbox"
+        }
+    },
+    "verifyCache": {
+        "label": "Automatically verify cache integrity",
+        "title": "Whenever or not the proxy should automatically save cache.",
+        "input": {
+            "type": "checkbox"
+        }
+    },
+    "bypassGadgetUpdateCheck": {
+        "label": "Bypass gadget server",
+        "title": "Whenever or not the proxy should check for updates of files on gadget server.",
+        "input": {
+            "type": "checkbox"
+        }
+    },
 }
 /**
  * Update config
@@ -305,20 +327,34 @@ function updateConfig(c) {
     settings.innerHTML = ""
     config = c
 
+    const enableModder = document.getElementById("enableModder")
+    enableModder.checked = config["enableModder"]
+    enableModder.onchange = checkSaveable
+
+    const autoUpdateGitMods = document.getElementById("autoUpdateGitMods")
+    autoUpdateGitMods.checked = config["autoUpdateGitMods"]
+    autoUpdateGitMods.onchange = checkSaveable
+
     // Add settings UI
     for (const [key, value] of Object.entries(settable)) {
+        if (key == "enableModder" || key == "autoUpdateGitMods") {
+            // These keys are in the Assets modifier tab and hardcoded directly in index.html
+            continue
+        }
+
         const label = document.createElement("label")
-        label.innerText = `${value.label}: `
         if (value.title)
             label.title = value.title
-        settings.appendChild(label)
-        settings.appendChild(document.createElement("br"))
+        const text = document.createElement("p")
+        text.innerText = `${value.label}`
+        text.className = "setting-key"
 
         const input = document.createElement("input")
         for (const [K, V] of Object.entries(value.input))
             input[K] = V
 
         input.id = key
+        input.className = "setting-value"
         switch (value.input.type) {
             case "checkbox":
                 input.checked = config[key]
@@ -328,22 +364,47 @@ function updateConfig(c) {
                 break
         }
         input.onchange = checkSaveable
-        label.appendChild(input)
-
+        
         if (value.dialog) {
             value.dialog.defaultPath = config[key]
             if (key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
                 value.dialog.defaultPath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+            
+            const container = document.createElement("div")
+            container.className = "cache-location"
 
             const dialogButton = document.createElement("button")
+            dialogButton.className = "setting-value"
             dialogButton.innerText = "..."
             dialogButton.onclick = () => remote.dialog.showOpenDialog(value.dialog).then((v) => {
                 if (v.canceled) return
                 input.value = v.filePaths[0]
                 checkSaveable()
             })
-            label.appendChild(dialogButton)
+            container.appendChild(input)
+            container.appendChild(dialogButton)
+            label.appendChild(text)
+            label.appendChild(container)
         }
+        else {
+            switch (value.input.type) {
+                case "checkbox":
+                    const container = document.createElement("div")
+                    container.style.display = "inline-flex"
+                    container.style.alignItems = "center"
+                    input.style.marginRight = "8px"
+                    container.appendChild(input)
+                    container.appendChild(text)
+                    label.appendChild(container)
+                    break
+                default:
+                    label.appendChild(text)
+                    label.appendChild(input)
+                    break
+            }
+        }
+
+        settings.appendChild(label)
     }
 
     updateHidden()
@@ -358,6 +419,7 @@ function checkSaveable() {
     newConfig = JSON.parse(JSON.stringify(config))
 
     let foundDifferent = false
+    let changedParameter = ""
     for (const [key, settings] of Object.entries(settable)) {
         const input = document.getElementById(key)
         let value = getValue(key, input)
@@ -370,13 +432,15 @@ function checkSaveable() {
             value = input.value = newConfig[key] = config[key]
         }
 
-        if (value != config[key])
+        if (value != config[key]) {
+            changedParameter = key
             foundDifferent = true
+        }  
 
         newConfig[key] = value
     }
-    saveButton.disabled = !foundDifferent
-    saveButton.onclick = saveConfig
+    if (foundDifferent)
+        saveConfig()
 
     function getValue(key, input) {
         switch (settable[key].input.type) {
@@ -413,7 +477,7 @@ function reload() {
 function updateHidden() {
     // Add hidden areas
     document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
-    document.getElementById("modder").style = config.enableModder ? "" : "display:none"
+    document.getElementById("modder").style = config.enableModder ? "display:none" : ""
 
     // Modder
     const list = document.getElementById("mods")
@@ -421,19 +485,37 @@ function updateHidden() {
 
     for (const mod of config.mods) {
         const elem = document.createElement("li")
+        elem.style.display = "grid"
+        elem.style.alignItems = "center"
+        elem.style.gridTemplateColumns = "auto auto 1fr 0fr";
+        elem.style.gap = "4px";
         list.appendChild(elem)
 
-        const add = function (tag, text) {
+        const add = function (tag, text, gridRow, gridColumn) {
             const child = document.createElement(tag)
             child.innerText = text
+            child.style.gridRow = gridRow
+            child.style.gridColumn = gridColumn
             elem.appendChild(child)
         }
-        const addButton = function (text, callback, disabled = false, className = "") {
+        const addButton = function (text, callback, disabled = false, className = "", gridRow, gridColumn) {
             const button = document.createElement("button")
             button.innerText = text
             button.disabled = disabled
             button.className = className
+            button.style.gridRow = gridRow
+            button.style.gridColumn = gridColumn
             button.onclick = callback
+            elem.appendChild(button)
+        }
+        const addIconButton = function (element, callback, disabled = false, className = "", gridRow, gridColumn) {
+            const button = document.createElement("button")
+            button.disabled = disabled
+            button.className = className
+            button.style.gridRow = gridRow
+            button.style.gridColumn = gridColumn
+            button.onclick = callback
+            button.appendChild(element)
             elem.appendChild(button)
         }
         const move = function (direction) {
@@ -444,25 +526,67 @@ function updateHidden() {
             reload()
             updateHidden()
         }
+        // Icons
+        const desktopIcon = document.createElement("img")
+        desktopIcon.className = "flat-icon"
+        desktopIcon.src = "resources/folder-open.svg"
+        desktopIcon.height = 16
+        desktopIcon.width = 16
+        const webIcon = document.createElement("img")
+        webIcon.className = "flat-icon"
+        webIcon.src = "resources/site-alt.svg"
+        webIcon.height = 16
+        webIcon.width = 16
+        const trashIcon = document.createElement("img")
+        trashIcon.className = "flat-icon"
+        trashIcon.src = "resources/trash-xmark.svg"
+        trashIcon.height = 16
+        trashIcon.width = 16
+        const upIcon = document.createElement("img")
+        upIcon.className = "flat-icon"
+        upIcon.src = "resources/angle-small-up.svg"
+        upIcon.height = 16
+        upIcon.width = 16
+        const downIcon = document.createElement("img")
+        downIcon.className = "flat-icon"
+        downIcon.src = "resources/angle-small-down.svg"
+        downIcon.height = 16
+        downIcon.width = 16
         if (existsSync(mod.path))
             try {
                 const modData = JSON.parse(readFileSync(mod.path))
 
-                addButton("↓", () => move(1), config.mods[config.mods.length - 1] === mod)
-                addButton("↑", () => move(-1), config.mods[0] === mod)
+                add("b", `${modData.name}`, "1", "1")
+                add("small", ` v${modData.version}`, "1", "2")
 
-                add("span", " ")
-                add("b", modData.name)
-                add("span", " v.")
-                add("b", modData.version)
-                add("span", " by ")
-                add("span", modData.authors.join(", "))
-                add("span", " ")
-
-                if (modData.url) {
-                    addButton("Open website", () => shell.openExternal(modData.url), false)
-                    add("span", " ")
+                if (mod.git) {
+                    add("small", " (Git)", "1", "3")
                 }
+                else {
+                    add("small", " (Local)", "1", "3")
+                }
+
+                addIconButton(downIcon, () => move(1), config.mods[config.mods.length - 1] === mod, "mod-controls", "1", "4")
+                addIconButton(upIcon, () => move(-1), config.mods[0] === mod, "mod-controls", "1", "5")
+
+                addIconButton(webIcon, () => {
+                    shell.openExternal(modData.url)
+                }, !modData.url, "mod-controls", "1", "6")
+
+                addIconButton(desktopIcon, () => {
+                    const i = Math.max(mod.path.lastIndexOf("/"), mod.path.lastIndexOf("\\"));
+                    if (i !== -1) shell.openExternal(mod.path.substring(0, i + 1));
+                }, false, "mod-controls", "1", "7");
+
+                addIconButton(trashIcon, () => {
+                    const ind = config.mods.indexOf(mod)
+                    config.mods.splice(ind, 1)
+                    reload()
+                    updateHidden()
+                    refreshEnglishPatchButton()
+                }, false, "mod-controls", "1", "8")
+
+                add("small", `by ${modData.authors.join(", ")} `, "2", "1/3")
 
                 if (modData.updateUrl) {
                     if (mod.latestVersion != undefined && mod.latestVersion != modData.version) {
@@ -523,14 +647,16 @@ function updateHidden() {
             elem.innerText = "Missing file (moved or deleted?): "
             const path = document.createElement("code")
             path.innerText = mod.path
+
+            addIconButton(trashIcon, () => {
+                const ind = config.mods.indexOf(mod)
+                config.mods.splice(ind, 1)
+                reload()
+                updateHidden()
+            }, false, "mod-controls")
+
             elem.appendChild(path)
         }
-        addButton("Remove", () => {
-            const ind = config.mods.indexOf(mod)
-            config.mods.splice(ind, 1)
-            reload()
-            updateHidden()
-        })
     }
 
 }
@@ -611,8 +737,16 @@ function getImgCachePath() {
     cachePath = join(cachePath, "kcs2", "img")
     return cachePath
 }
-for (const type of ["importCache", "reloadCache", "checkVersion", "prepatch"])
+for (const type of ["importCache", "reloadCache", "prepatch"])
     document.getElementById(type).onclick = () => ipcRenderer.send(type)
+
+document.getElementById("openCache").addEventListener("click", () => {
+    shell.openExternal(join(remote.app.getPath("userData"), "ProxyData", "cache"))
+})
+
+document.getElementById("checkVersion").addEventListener("click", () => {
+    ipcRenderer.send("checkVersion")
+})
 
 document.getElementById("createDiff").onclick = async () => {
     const source = await remote.dialog.showOpenDialog({
@@ -704,10 +838,25 @@ document.getElementById("reloadMods").onclick = () => {
 document.getElementById("installGitMod").onclick = () => {
     const gitModInstall = document.getElementById("gitModInstall")
     gitModInstall.style.display = gitModInstall.style.display === "none" ? "block" : "none"
+    if (gitModInstall.style.display === "none")
+        return
+    refreshEnglishPatchButton()
+}
+
+function refreshEnglishPatchButton() {
+    let englishPatchInstalled = false
+    for (const mod of config.mods) {
+        if (mod.git && mod.git == "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git") {
+            englishPatchInstalled = true
+            break;
+        }
+    }
+    const getEnglishPatchButton = document.getElementById("getEnglishPatch")
+    getEnglishPatchButton.style.display = englishPatchInstalled ? "none" : "inline-block"
 }
 
 ipcRenderer.on("gitModUpdated", (event, result) => {
-    let notification = new Notification({
+    new Notification({
         title: "KCCacheProxy: " + (result.success ? "Mod Updated" : "Mod Update Failed"),
         body: result.success
             ? `${result.modMeta.name} has been updated to version ${result.modMeta.version}.`
@@ -715,7 +864,6 @@ ipcRenderer.on("gitModUpdated", (event, result) => {
             timeoutType: "default",
             silent: false,
     })
-    notification.show()
 
     addLog("info", new Date(), result.success ? "Git mod downloaded successfully." : "Failed to download git mod.")
     if (result.success) {
@@ -731,6 +879,19 @@ document.getElementById("confirmGitModInstall").onclick = () => {
     try {
         addLog("info", new Date(), `Installing mod from ${url}...`)
         ipcRenderer.send("installGitMod", url)
+        urlInput.value = ""
+        document.getElementById("gitModInstall").style.display = "none"
+    } catch (error) {
+        addLog("error", new Date(), `Failed to install mod: ${error}`)
+    }
+}
+
+document.getElementById("getEnglishPatch").onclick = () => {
+    const urlInput = document.getElementById("gitModUrl")
+
+    try {
+        addLog("info", new Date(), `Installing mod from https://github.com/Oradimi/KanColle-English-Patch-KCCP.git...`)
+        ipcRenderer.send("installGitMod", "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git")
         urlInput.value = ""
         document.getElementById("gitModInstall").style.display = "none"
     } catch (error) {
@@ -808,7 +969,9 @@ document.getElementById("importExternalMod").onclick = async () => {
     ipcRenderer.send("importExternalMod", source.filePaths[0], target.filePaths[0])
 }
 
-document.getElementById("startHelp").onclick = () => updateHelp("startedHelp")
+document.getElementById("startHelp").addEventListener("click", () => {
+    updateHelp("startedHelp")
+})
 document.getElementById("stopHelp").onclick = () => {
     helpSequence = undefined
     document.getElementById("help").style = "display:none;"
@@ -829,4 +992,4 @@ document.getElementById("openAssetsWiki").onclick = () => shell.openExternal(`${
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
 
-document.title = document.getElementById("mainTitle").innerText = `KCCacheProxy: v${remote.app.getVersion()}`
+document.title = document.getElementById("checkVersion").innerText = `KCCacheProxy v${remote.app.getVersion()}`
