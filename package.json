@@ -35,6 +35,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
+        "executableName": "KCCacheProxy",
         "icon": "src/electron/icon.png",
         "ignore": [
           ".*\\.(sh|md|bat|gif)",
@@ -66,11 +67,15 @@
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {}
+          "config": {
+            "bin": "KCCacheProxy"
+          }
         },
         {
           "name": "@electron-forge/maker-rpm",
-          "config": {}
+          "config": {
+            "bin": "KCCacheProxy"
+          }
         }
       ]
     }
