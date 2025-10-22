@@ -41,7 +41,12 @@ header img {
   margin: 4px 8px;
 }
 
+#titleButton {
+  display: none;
+}
+
 #checkVersion {
+  display: none;
   color: #526870;
   padding: 4px 0px;
   cursor: pointer;
