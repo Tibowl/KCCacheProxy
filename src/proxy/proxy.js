@@ -164,7 +164,6 @@ class Proxy {
             Logger.addStatAndSend("passthroughHTTP")
             Logger.addStatAndSend("passthrough")
 
-            Logger.log(kccpLogSource, url.href)
             const isHttps = url.protocol === "https:"
             const client = isHttps ? https : http
             const newReq = client.request(url, { method, headers },
