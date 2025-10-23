@@ -17,7 +17,6 @@ const navSystem = {
         });
         
         this.disableLogClicks();
-        this.setupLogCopy();
     },
 
     tab(el) {
@@ -70,32 +69,6 @@ const navSystem = {
         document.querySelectorAll(".content-item").forEach(logEl => {
             logEl.addEventListener("click", (e) => e.stopPropagation());
         });
-    },
-
-    setupLogCopy() {
-        const copyBtn = document.getElementById("copy-button");
-        const logContainer = document.getElementById("log");
-        const logFooter = document.getElementById("log-footer");
-
-        copyBtn.addEventListener("mouseover", () => {
-            copyBtn.src = "resources/copy-alt.svg";
-        });
-
-        copyBtn.addEventListener("mouseout", () => {
-            copyBtn.src = "resources/journal-alt.svg";
-        });
-
-        if (copyBtn) {
-            copyBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const logs = "```\n" + Array.from(logContainer.children)
-                    .map(el => el.innerText)
-                    .join("\n") + "\n```";
-                navigator.clipboard.writeText(logs)
-                    .then(() => logFooter.textContent = "Logs copied to clipboard!")
-                    .catch(err => console.log(err));
-            });
-        }
     },
 };
 
