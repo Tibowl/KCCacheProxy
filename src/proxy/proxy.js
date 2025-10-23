@@ -116,25 +116,30 @@ class Proxy {
             })
         }
 
-        // strip the proxy address
-        const getNewUrl = function (oldUrl, config) {
-            const oldPath = oldUrl.replace(/^(https?:\/\/[^/]+)?(.*)$/, "$2")
-            // if the path contains host information, convert it to an absolute url
-            const newUrlStr = oldPath.replace(/^\/(https?)\//, "$1://")
+        // strip the proxy address and rebuild the URL
+        // shorten URLs like /https/domain.com/some/path
+        // scheme is optional, will assume https
+        // subdomains can be used for kancolle-server.com
+        // e.g. /w00g/some/path
+        const getNewUrl = function (oldUrl) {
+            const matches = oldUrl.match(/^(\/(https?)|(https?):\/)\/((w[0-2]\d\w)(?:\.kancolle-server\.com)?|[^/]+)(\/.*)?/)
+            if (!matches)
+                return oldUrl
+            const newUrlStr = `${matches[2]||matches[3]||'https'}://${matches[5]?matches[5]+'.kancolle-server.com':matches[4]}${matches[6]}`
             // if the path is relative, prepend the server address
-            const base = `https://${config.serverIP}`
-            const newUrl = new URL(newUrlStr, base)
-            return newUrl
+            return newUrlStr
         }
+        
+        const base = `https://${this.config.serverIP}`
 
-        url = getNewUrl(url, this.config)
+        url = new URL(getNewUrl(url), base)
 
         // adjust headers
         if (headers) {
             const replace = ["origin", "referer"]
             replace.forEach(r => {
                 if (headers[r])
-                    headers[r] = getNewUrl(headers[r], this.config).href
+                    headers[r] = getNewUrl(headers[r])
             })
             headers.host = url.host
 
