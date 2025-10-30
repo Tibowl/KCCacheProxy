@@ -46,7 +46,7 @@ function getCacheStats() {
  */
 function loadCached() {
     const CACHE_INFORMATION = join(getCacheLocation(), "cached.json")
-    Logger.log(logSource, `Loading cached from ${CACHE_INFORMATION}.`)
+    Logger.log(logSource, `Loading cached from ${CACHE_INFORMATION}`)
 
     try {
         if (existsSync(CACHE_INFORMATION)) {

@@ -67,10 +67,30 @@ function update(message) {
     }
 }
 
-function disableLogClicks() {
-    document.querySelectorAll("#log .loggable").forEach(log => {
-        
+function setupLogCopy() {
+    const copyBtn = document.getElementById("copy-button");
+    const logContainer = document.getElementById("log");
+    const logFooter = document.getElementById("log-footer");
+
+    copyBtn.addEventListener("mouseover", () => {
+        copyBtn.src = "resources/copy-alt.svg";
     });
+
+    copyBtn.addEventListener("mouseout", () => {
+        copyBtn.src = "resources/journal-alt.svg";
+    });
+
+    if (copyBtn) {
+        copyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const logs = "```\n" + Array.from(logContainer.children)
+                .map(el => el.innerText)
+                .join("\n") + "\n```";
+            navigator.clipboard.writeText(logs)
+                .then(() => addLog("log", new Date(), `Logs copied to clipboard.`))
+                .catch(err => console.log(err));
+        });
+    }
 }
 
 let recent = []
@@ -86,7 +106,7 @@ const logFooter = document.getElementById("log-footer");
 function addLog(messageType, messageDate, ...message) {
     recent.unshift(message)
     while (recent.length >= 100) {
-        log.removeChild(log.children[log.children.length - 1])
+        log.removeChild(log.children[0])
         recent.pop()
     }
 
@@ -96,13 +116,8 @@ function addLog(messageType, messageDate, ...message) {
     const f = (t, l = 2) => t.toString().padStart(l, "0")
     const date = document.createElement("span")
     date.className = "date"
-    date.innerText = `${f(messageDate.getHours())}:${f(messageDate.getMinutes())}:${f(messageDate.getSeconds())}.${f(messageDate.getMilliseconds(), 3)}`
+    date.innerText = `${f(messageDate.getHours())}:${f(messageDate.getMinutes())}:${f(messageDate.getSeconds())}.${f(messageDate.getMilliseconds(), 3)} `
     elem.appendChild(date)
-
-    const separator = document.createElement("span")
-    separator.className = "separator"
-    separator.innerText = ": "
-    elem.appendChild(separator)
 
     const msg = document.createElement("span")
     msg.className = "msg"
@@ -126,8 +141,13 @@ function addLog(messageType, messageDate, ...message) {
         elem.style.overflowX = "hidden"
     })
 
-    log.appendChild(elem, log.firstChild)
-    logFooter.textContent = `${date.innerText}: ${msg.innerText}`
+    log.appendChild(elem)
+
+    const elemClone = elem.cloneNode(elem)
+    elemClone.className = ""
+    elemClone.style = "padding: 1px;"
+    logFooter.textContent = ""
+    logFooter.appendChild(elemClone)
 
     navLog.scrollTop = navLog.scrollHeight
     navLog.scrollLeft = navLog.scrollWidth
@@ -991,5 +1011,6 @@ document.getElementById("openAssetsWiki").onclick = () => shell.openExternal(`${
 
 ipcRenderer.send("getRecent")
 ipcRenderer.send("getConfig")
+setupLogCopy()
 
 document.title = document.getElementById("checkVersion").innerText = `KCCacheProxy v${remote.app.getVersion()}`
