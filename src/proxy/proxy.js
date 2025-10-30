@@ -223,7 +223,7 @@ class Proxy {
         }
 
         if (this.socksServer) {
-            this.socksServer.listen(this.config.socks5Port, this.config.hostname, function () {
+            this.socksServer.listen(this.config.socks5Port, this.config.hostname, () => {
                 Logger.log(kccpLogSource, `SOCKS5 server listening on port ${this.config.socks5Port}`)
             })
         }
@@ -249,9 +249,11 @@ class Proxy {
 }
 
 if (require.main === module) {
+    (async () => {
     const proxy = new Proxy()
-    proxy.init()
-    proxy.start()
+    await proxy.init()
+    await proxy.start()
+    })()
 } else {
     module.exports = { Proxy, config, logger: Logger, kccpLogSource }
 }
