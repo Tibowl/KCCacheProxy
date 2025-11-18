@@ -243,13 +243,13 @@ class Proxy {
                 this.server.listen(this.config.port, this.config.hostname)
             } else {
                 this.server.close(err => {
-                    if (err)
+                    if (err && err.code !== "ERR_SERVER_NOT_RUNNING")
                         Logger.error(kccpLogSource, "Error closing HTTP server:", err)
                 })
             }
 
             if (this.config.mode === "https" || this.config.mode === "http-https") {
-                Logger.log(kccpLogSource, `Starting HTTPS MITM proxy on ${this.config.hostname} with port ${this.config.httpsPort}...`)
+                Logger.log(kccpLogSource, `Starting HTTPS proxy on ${this.config.hostname} with port ${this.config.httpsPort}...`)
                 if (this.config.mode === "http-https" && this.config.httpsPort == this.config.port) {
                     Logger.error(kccpLogSource, "HTTPS port cannot be the same as HTTP port when both proxies are running. HTTPS proxy will not start.")
                 }
@@ -258,13 +258,13 @@ class Proxy {
                         host: this.config.hostname,
                         port: this.config.httpsPort,
                         sslCaDir: mitmCertDir
-                    }, () => {
-                        Logger.log(kccpLogSource, `HTTPS Proxy listening on port ${this.config.httpsPort}`)
-                    })
+                    }/*, () => { Logger.log(kccpLogSource, "Started HTTPS proxy") }*/)
                 }
             }
             else {
-                this.mitm.close()
+                Object.keys(this.mitm.sslServers).forEach(key => {
+                    this.mitm.sslservers[key].server.close()
+                })
             }
         }
 
