@@ -11,6 +11,8 @@ const logSource = "kccp-config"
 const configFile = "config.json"
 const defaultConfig = {
     "port": 8081,
+    "httpsPort": 8082,
+    "mode": "http-https",
     "socks5Port": 1080,
     "socks5Enabled": false,
     "socks5Users": [

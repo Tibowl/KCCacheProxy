@@ -497,7 +497,6 @@ function reload() {
 function updateHidden() {
     // Add hidden areas
     document.getElementById("extraButtons").style = config.showExtraButtons ? "" : "display:none"
-    document.getElementById("modder").style = config.enableModder ? "display:none" : ""
 
     // Modder
     const list = document.getElementById("mods")
@@ -762,6 +761,10 @@ for (const type of ["importCache", "reloadCache", "prepatch"])
 
 document.getElementById("openCache").addEventListener("click", () => {
     shell.openExternal(join(remote.app.getPath("userData"), "ProxyData", "cache"))
+})
+
+document.getElementById("httpsMitmTrustCert").addEventListener("click", () => {
+    ipcRenderer.send("checkTrustMitmCert")
 })
 
 document.getElementById("checkVersion").addEventListener("click", () => {

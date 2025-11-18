@@ -4,6 +4,7 @@ node_modules/
 out/
 cache/
 cache_template/
+src/certificates/
 
 *.zip
 *.bak

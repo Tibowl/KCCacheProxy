@@ -5,6 +5,8 @@ const { connect } = require("net")
 const { parse } = require("url")
 const { join } = require("path")
 
+const MitmProxy = require("http-mitm-proxy")
+
 const socks = require("node-socksv5-dns-looukp")
 
 const cacher = require("./cacher")
@@ -18,6 +20,8 @@ const { Readable } = require("stream")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
+const mitmCertDir = join(__dirname, "..", "certificates")
+const mitmCaPath = join(mitmCertDir, "certs", "ca.pem")
 
 class Proxy {
     constructor() {
@@ -29,6 +33,7 @@ class Proxy {
         this.config = config.getConfig()
 
         this.proxy = createProxyServer()
+        this.mitm = new MitmProxy.Proxy()
 
         this.server = http.createServer((req, res) => {
             this.proxyRequest({
@@ -72,6 +77,30 @@ class Proxy {
             }
         })
         this.proxy.on("error", (error) => Logger.error(kccpLogSource, `Proxy error: ${error.code}: ${error.hostname}`))
+
+        // MITM HTTPS proxy
+        this.mitm.use(MitmProxy.Proxy.wildcard)
+        this.mitm.use(MitmProxy.Proxy.gunzip)
+        this.mitm.onRequest(async (ctx, callback) => {
+            let url = ctx.clientToProxyRequest.url
+            if (url.startsWith("/"))
+                url = `https://${ctx.clientToProxyRequest.headers.host}${url}`
+            this.proxyRequest({
+                method: ctx.clientToProxyRequest.method,
+                headers: ctx.clientToProxyRequest.headers,
+                url,
+                bodyStream: ctx.clientToProxyRequest
+            },
+            ({ statusCode, headers, data }) => {
+                ctx.proxyToClientResponse.writeHead(statusCode || 500, headers || {})
+                data.pipe(ctx.proxyToClientResponse, { end: true })
+            })
+            return
+        })
+        this.mitm.onError((ctx, err) => {
+            const url = ctx?.clientToProxyRequest?.url || "unknown-url"
+            Logger.error(kccpLogSource, `HTTPS Proxy error on ${url}`)
+        })
 
         // SOCKS5 support
         if (this.config.socks5Enabled) {
@@ -209,8 +238,34 @@ class Proxy {
         }
 
         const listen = () => {
-            Logger.log(kccpLogSource, `Starting proxy on ${this.config.hostname} with port ${this.config.port}...`)
-            this.server.listen(this.config.port, this.config.hostname)
+            if (this.config.mode === "http" || this.config.mode === "http-https") {
+                Logger.log(kccpLogSource, `Starting HTTP proxy on ${this.config.hostname} with port ${this.config.port}...`)
+                this.server.listen(this.config.port, this.config.hostname)
+            } else {
+                this.server.close(err => {
+                    if (err)
+                        Logger.error(kccpLogSource, "Error closing HTTP server:", err)
+                })
+            }
+
+            if (this.config.mode === "https" || this.config.mode === "http-https") {
+                Logger.log(kccpLogSource, `Starting HTTPS MITM proxy on ${this.config.hostname} with port ${this.config.httpsPort}...`)
+                if (this.config.mode === "http-https" && this.config.httpsPort == this.config.port) {
+                    Logger.error(kccpLogSource, "HTTPS port cannot be the same as HTTP port when both proxies are running. HTTPS proxy will not start.")
+                }
+                else {
+                    this.mitm.listen({
+                        host: this.config.hostname,
+                        port: this.config.httpsPort,
+                        sslCaDir: mitmCertDir
+                    }, () => {
+                        Logger.log(kccpLogSource, `HTTPS Proxy listening on port ${this.config.httpsPort}`)
+                    })
+                }
+            }
+            else {
+                this.mitm.close()
+            }
         }
 
         if (this.config.enableModder) {
@@ -255,5 +310,5 @@ if (require.main === module) {
     await proxy.start()
     })()
 } else {
-    module.exports = { Proxy, config, logger: Logger, kccpLogSource }
+    module.exports = { Proxy, config, logger: Logger, kccpLogSource, mitmCertDir, mitmCaPath }
 }

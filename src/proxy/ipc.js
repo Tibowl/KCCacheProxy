@@ -4,6 +4,10 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
+const elevate = require("windows-elevate")
+const { execFile } = require("child_process")
+const { mitmCaPath } = require("./proxy")
+
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
 
@@ -142,6 +146,34 @@ function loadStats() {
     }
 }
 /**
+ * Check and install MITM certificate
+ */
+async function checkTrustMitmCert() {
+    const issuer = 'NodeMITMProxyCA'
+
+    execFile('certutil', ['-store', 'Root'], { shell: true }, async (err, stdout, stderr) => {
+        if (err) {
+            error(logSource, 'Error listing certs:', stderr);
+            return;
+        }
+
+        // Example: check if your issuer CN appears
+        if (stdout.includes(`CN=${issuer}`)) {
+            log(logSource, `Issuer cert CN=${issuer} already installed`);
+        } else {
+            log(logSource, `Issuer cert CN=${issuer} not found`);
+
+            elevate.exec("certutil", ["-addstore", "Root", `${mitmCaPath}`], (error, stdout, stderror) => {
+                if (error) {
+                    error(logSource, 'Failed to install cert.', error, stderror);
+                } else {
+                    log(logSource, 'Cert installed.', stdout);
+                }
+            })
+        }
+    });
+}
+/**
  * Send most recent messages
  */
 function sendRecent() {
@@ -189,6 +221,7 @@ function registerElectron(ipcMain, app, al) {
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
     ipcMain.on("checkVersion", async () => mainWindow.webContents.send("version", await checkVersion(true)))
+    ipcMain.on("checkTrustMitmCert", () => checkTrustMitmCert())
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", (e, rare) => require("./preload").run(rare))
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))

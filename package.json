@@ -55,7 +55,9 @@
         {
           "name": "@electron-forge/maker-zip",
           "platforms": [
-            "win32", "linux", "darwin"
+            "win32",
+            "linux",
+            "darwin"
           ]
         },
         {
@@ -90,11 +92,13 @@
     "auto-launch": "^5.0.5",
     "electron-squirrel-startup": "^1.0.0",
     "fs-extra": "^10.0.0",
+    "http-mitm-proxy": "^1.1.0",
     "http-proxy": "^1.18.1",
     "isomorphic-git": "^1.34.0",
     "node-fetch": "^2.6.1",
     "node-socksv5-dns-looukp": "^1.0.9",
-    "node-stream-zip": "^1.15.0"
+    "node-stream-zip": "^1.15.0",
+    "windows-elevate": "^1.0.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.61",
