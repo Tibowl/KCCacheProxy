@@ -237,12 +237,17 @@ let config = undefined
  * @property {number} [max]
  * */
 /**
+ * @typedef {Object} SettableSelect
+ * @property {string[]} options
+ * */
+/**
  * @typedef {Object} Settable
  * @property {string} label
  * @property {string} title
  * @property {string} [ifEmpty]
- * @property {(value) => boolean} [verify]
- * @property {SettableInput} input
+ * @property {(value: any) => boolean} [verify]
+ * @property {SettableInput} [input]
+ * @property {SettableSelect} [select]
  * @property {Electron.OpenDialogOptions} [dialog]
  * */
 /** @type {Object.<string, Settable>} */
@@ -255,10 +260,30 @@ const settable = {
             "type": "text"
         }
     },
+    "mode": {
+        "label": "Proxy mode",
+        "ifEmpty": "http-https",
+        "title": "Operation mode of proxy. 'http' for HTTP redirect method using path/header modes, 'https' for an HTTPS MITM proxy. 'http-https' allows both to be used at once. Restart to apply changes.",
+        "select": {
+            "options": ["http-https", "http", "https"]
+        }
+    },
     "port": {
-        "label": "Port",
+        "label": "HTTP Port",
         "ifEmpty": "8081",
-        "title": "Port used by proxy. You'll need to restart to apply changes.",
+        "title": "Port used by HTTP proxy. You'll need to restart to apply changes.",
+        "input": {
+            "type": "number",
+            "min": 1,
+            "max": 65536,
+        },
+        "verify": (v) => v < 65537 && v > 0,
+        "verifyError": "Invalid port, needs to be between 1 and 65536"
+    },
+    "httpsPort": {
+        "label": "HTTPS Port",
+        "ifEmpty": "8081",
+        "title": "Port used by HTTPS proxy. You'll need to restart to apply changes.",
         "input": {
             "type": "number",
             "min": 1,
@@ -369,60 +394,85 @@ function updateConfig(c) {
         text.innerText = `${value.label}`
         text.className = "setting-key"
 
-        const input = document.createElement("input")
-        for (const [K, V] of Object.entries(value.input))
-            input[K] = V
+        if (value.input) {
+            const input = document.createElement("input")
+            for (const [K, V] of Object.entries(value.input))
+                input[K] = V
 
-        input.id = key
-        input.className = "setting-value"
-        switch (value.input.type) {
-            case "checkbox":
-                input.checked = config[key]
-                break
-            default:
-                input.value = config[key]
-                break
-        }
-        input.onchange = checkSaveable
-        
-        if (value.dialog) {
-            value.dialog.defaultPath = config[key]
-            if (key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
-                value.dialog.defaultPath = join(remote.app.getPath("userData"), "ProxyData", "cache")
-            
-            const container = document.createElement("div")
-            container.className = "cache-location"
-
-            const dialogButton = document.createElement("button")
-            dialogButton.className = "setting-value"
-            dialogButton.innerText = "..."
-            dialogButton.onclick = () => remote.dialog.showOpenDialog(value.dialog).then((v) => {
-                if (v.canceled) return
-                input.value = v.filePaths[0]
-                checkSaveable()
-            })
-            container.appendChild(input)
-            container.appendChild(dialogButton)
-            label.appendChild(text)
-            label.appendChild(container)
-        }
-        else {
+            input.id = key
+            input.className = "setting-value"
             switch (value.input.type) {
                 case "checkbox":
-                    const container = document.createElement("div")
-                    container.style.display = "inline-flex"
-                    container.style.alignItems = "center"
-                    input.style.marginRight = "8px"
-                    container.appendChild(input)
-                    container.appendChild(text)
-                    label.appendChild(container)
+                    input.checked = config[key]
                     break
                 default:
-                    label.appendChild(text)
-                    label.appendChild(input)
+                    input.value = config[key]
                     break
             }
+            input.onchange = checkSaveable
+            
+            if (value.dialog) {
+                value.dialog.defaultPath = config[key]
+                if (key == "cacheLocation" && (config[key] == undefined || config[key] == "default"))
+                    value.dialog.defaultPath = join(remote.app.getPath("userData"), "ProxyData", "cache")
+                
+                const container = document.createElement("div")
+                container.className = "cache-location"
+
+                const dialogButton = document.createElement("button")
+                dialogButton.className = "setting-value"
+                dialogButton.innerText = "..."
+                dialogButton.onclick = () => remote.dialog.showOpenDialog(value.dialog).then((v) => {
+                    if (v.canceled) return
+                    input.value = v.filePaths[0]
+                    checkSaveable()
+                })
+                container.appendChild(input)
+                container.appendChild(dialogButton)
+                label.appendChild(text)
+                label.appendChild(container)
+            }
+            else {
+                switch (value.input.type) {
+                    case "checkbox":
+                        const container = document.createElement("div")
+                        container.style.display = "inline-flex"
+                        container.style.alignItems = "center"
+                        input.style.marginRight = "8px"
+                        container.appendChild(input)
+                        container.appendChild(text)
+                        label.appendChild(container)
+                        break
+                    default:
+                        label.appendChild(text)
+                        label.appendChild(input)
+                        break
+                }
+            }
         }
+        else if (value.select) {
+            const select = document.createElement("select")
+            
+            for (const opt of value.select.options) {
+                const option = document.createElement("option")
+                option.value = opt
+                option.textContent = opt
+                select.appendChild(option)
+            }
+
+            select.id = key
+            select.className = "setting-value"
+            
+            if (config[key] !== undefined) {
+                select.value = config[key];
+            }
+
+            select.onchange = checkSaveable;
+            
+            label.appendChild(text)
+            label.appendChild(select)
+        }
+        
 
         settings.appendChild(label)
     }
@@ -463,13 +513,18 @@ function checkSaveable() {
         saveConfig()
 
     function getValue(key, input) {
-        switch (settable[key].input.type) {
-            case "number":
-                return +input.value
-            case "checkbox":
-                return input.checked
-            default:
-                return input.value
+        if (settable[key].input) {
+            switch (settable[key].input.type) {
+                case "number":
+                    return +input.value
+                case "checkbox":
+                    return input.checked
+                default:
+                    return input.value
+            }
+        }
+        else if (settable[key].select) {
+            return input.value
         }
     }
 }

@@ -227,7 +227,7 @@ li {
   line-height: 1.2;
 }
 
-input {
+input, select {
   border-radius: 3px;
   border: 1px solid #cccccc;
   color: #cccccc;
