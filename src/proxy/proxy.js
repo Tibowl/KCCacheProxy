@@ -3,7 +3,7 @@ const https = require("https")
 const { createProxyServer } = require("http-proxy")
 const { connect } = require("net")
 const { parse } = require("url")
-const { join } = require("path")
+const { join, resolve } = require("path")
 
 const MitmProxy = require("@bjowes/http-mitm-proxy")
 
@@ -17,6 +17,9 @@ const { verifyCache } = require("./cacheHandler")
 const config = require("./config")
 const { reloadModCache } = require("./mod/patcher")
 const { Readable } = require("stream")
+
+const { execFile } = require("child_process")
+const sudo = require("@expo/sudo-prompt")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
@@ -309,6 +312,34 @@ class Proxy {
     }
 }
 
+const checkTrustMitmCert = async function() {
+    const issuer = 'NodeMITMProxyCA'
+
+    // TODO: non-win32 platforms
+
+    execFile('certutil', ['-store', 'Root'], { shell: true }, async (err, stdout, stderr) => {
+        if (err) {
+            Logger.error(kccpLogSource, 'Error listing certs:', stderr);
+            return;
+        }
+
+        if (stdout.includes(`CN=${issuer}`)) {
+            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} already installed`);
+        }
+        else {
+            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} not found`);
+
+            sudo.exec(`certutil -addstore Root "${resolve(join(getMitmCertDir(), "certs", "ca.pem"))}"`, {},
+                (error, stdout, stderror) => {
+                if (error) {
+                    Logger.error(kccpLogSource, 'Failed to install cert.', error, stderror);
+                } else {
+                    Logger.log(kccpLogSource, 'Cert installed.', stdout);
+                }
+            })
+        }
+    });
+}
 
 const getMitmCertDir = function() {
     return config.getUserdataDir("certificates")
@@ -321,5 +352,5 @@ if (require.main === module) {
     await proxy.start()
     })()
 } else {
-    module.exports = { Proxy, config, logger: Logger, kccpLogSource, getMitmCertDir }
+    module.exports = { Proxy, config, logger: Logger, kccpLogSource, checkTrustMitmCert, getMitmCertDir }
 }

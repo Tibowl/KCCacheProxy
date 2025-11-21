@@ -4,9 +4,7 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
-const sudo = require("@expo/sudo-prompt")
-const { execFile } = require("child_process")
-const { getMitmCertDir } = require("./proxy")
+const { checkTrustMitmCert } = require("./proxy")
 
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
@@ -144,35 +142,6 @@ function loadStats() {
     stats = {
         "startDate": new Date().getTime()
     }
-}
-/**
- * Check and install MITM certificate
- */
-async function checkTrustMitmCert() {
-    const issuer = 'NodeMITMProxyCA'
-
-    execFile('certutil', ['-store', 'Root'], { shell: true }, async (err, stdout, stderr) => {
-        if (err) {
-            error(logSource, 'Error listing certs:', stderr);
-            return;
-        }
-
-        // Example: check if your issuer CN appears
-        if (stdout.includes(`CN=${issuer}`)) {
-            log(logSource, `Issuer cert CN=${issuer} already installed`);
-        } else {
-            log(logSource, `Issuer cert CN=${issuer} not found`);
-
-            sudo.exec(`certutil -addstore Root "${path.resolve(path.join(getMitmCertDir(), "certs", "ca.pem"))}"`, {},
-                (error, stdout, stderror) => {
-                if (error) {
-                    error(logSource, 'Failed to install cert.', error, stderror);
-                } else {
-                    log(logSource, 'Cert installed.', stdout);
-                }
-            })
-        }
-    });
 }
 /**
  * Send most recent messages
