@@ -210,7 +210,8 @@ async function createWindow() {
     setTimeout(checkGitModUpdates, 5 * 1000)
     setInterval(checkGitModUpdates, 6 * 60 * 60 * 1000)
 
-    mainWindow.webContents.send("cert-check", await checkMitmCert(), 1 * 1000)
+    if (process.platform === "win32")
+        mainWindow.webContents.send("cert-check", await checkMitmCert(), 1 * 1000)
 }
 
 // This method will be called when Electron has finished

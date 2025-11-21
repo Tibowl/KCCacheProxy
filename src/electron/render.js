@@ -44,6 +44,7 @@ ipcRenderer.on("version", (e, { manual, error, release }) => {
     document.getElementById("openReleases").onclick = () => shell.openExternal(`${BASEURL}/releases/`)
 })
 const updateCertDisplay = (installed, error) => {
+    document.getElementById("httpsMitmCertStatus").style.display = "block"
     document.getElementById("httpsMitmTrustCert").textContent = error || (installed
         ? "HTTPS certificate installed."
         : "HTTPS certificate not installed.")
