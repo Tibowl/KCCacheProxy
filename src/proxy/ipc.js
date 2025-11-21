@@ -4,7 +4,7 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
-const elevate = require("windows-elevate")
+const sudo = require("@expo/sudo-prompt")
 const { execFile } = require("child_process")
 const { getMitmCertDir } = require("./proxy")
 
@@ -163,7 +163,7 @@ async function checkTrustMitmCert() {
         } else {
             log(logSource, `Issuer cert CN=${issuer} not found`);
 
-            elevate.exec("certutil", ["-addstore", "Root", `${path.join(getMitmCertDir(), "certs", "ca.pem")}`],
+            sudo.exec(`certutil -addstore Root "${path.resolve(path.join(getMitmCertDir(), "certs", "ca.pem"))}"`, {},
                 (error, stdout, stderror) => {
                 if (error) {
                     error(logSource, 'Failed to install cert.', error, stderror);

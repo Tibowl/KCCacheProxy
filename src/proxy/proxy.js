@@ -77,9 +77,9 @@ class Proxy {
         this.proxy.on("error", (error) => Logger.error(kccpLogSource, `Proxy error: ${error.code}: ${error.hostname}`))
 
         // MITM HTTPS proxy
-        this.mitm.use(MitmProxy.Proxy.wildcard)
-        this.mitm.use(MitmProxy.Proxy.gunzip)
         this.mitm.onRequest(async (ctx, callback) => {
+            ctx.use(MitmProxy.wildcard)
+            ctx.use(MitmProxy.gunzip)
             let url = ctx.clientToProxyRequest.url
             if (url.startsWith("/"))
                 url = `https://${ctx.clientToProxyRequest.headers.host}${url}`
@@ -263,7 +263,7 @@ class Proxy {
             else {
                 this.mitm.httpServer?.close()
                 Object.keys(this.mitm.sslServers).forEach(key => {
-                    this.mitm.sslservers[key].server.close()
+                    this.mitm.sslServers[key].server.close()
                 })
             }
         }
@@ -303,7 +303,7 @@ class Proxy {
         if (this.mitm) {
             this.mitm.httpServer?.close()
             Object.keys(this.mitm.sslServers).forEach(key => {
-                this.mitm.sslServers[key]?.server.close()
+                this.mitm.sslServers[key].server.close()
             })
         }
     }

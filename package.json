@@ -83,6 +83,8 @@
     }
   },
   "dependencies": {
+    "@bjowes/http-mitm-proxy": "^0.9.6",
+    "@expo/sudo-prompt": "^9.3.2",
     "@jimp/custom": "^0.16.1",
     "@jimp/plugin-crop": "^0.16.1",
     "@jimp/plugin-mask": "^0.16.1",
@@ -92,13 +94,11 @@
     "auto-launch": "^5.0.5",
     "electron-squirrel-startup": "^1.0.0",
     "fs-extra": "^10.0.0",
-    "http-mitm-proxy": "^1.1.0",
     "http-proxy": "^1.18.1",
     "isomorphic-git": "^1.34.0",
     "node-fetch": "^2.6.1",
     "node-socksv5-dns-looukp": "^1.0.9",
-    "node-stream-zip": "^1.15.0",
-    "windows-elevate": "^1.0.1"
+    "node-stream-zip": "^1.15.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.61",
