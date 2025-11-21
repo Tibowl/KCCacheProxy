@@ -209,9 +209,19 @@ async function createWindow() {
     setInterval(checkVersion, 6 * 60 * 60 * 1000)
     setTimeout(checkGitModUpdates, 5 * 1000)
     setInterval(checkGitModUpdates, 6 * 60 * 60 * 1000)
-
-    if (process.platform === "win32")
-        mainWindow.webContents.send("cert-check", await checkMitmCert(), 1 * 1000)
+    
+    mainWindow.on("ready-to-show", async () => {
+        if (process.platform === "win32") {
+            ipc.log(logSource, "Performing initial MITM certificate check...")
+            try {
+                const mitmResult = await checkMitmCert()
+                mainWindow.webContents.send("cert-check", mitmResult, 1 * 1000)
+            } catch (error) {
+                ipc.error(logSource, "MITM certificate check failed:", error)
+                return
+            }
+        }
+    })
 }
 
 // This method will be called when Electron has finished
