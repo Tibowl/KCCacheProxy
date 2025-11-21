@@ -324,10 +324,10 @@ const checkTrustMitmCert = async function() {
         }
 
         if (stdout.includes(`CN=${issuer}`)) {
-            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} already installed`);
+            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} already installed.`);
         }
         else {
-            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} not found`);
+            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} not found.`);
 
             sudo.exec(`certutil -addstore Root "${resolve(join(getMitmCertDir(), "certs", "ca.pem"))}"`, {},
                 (error, stdout, stderror) => {
