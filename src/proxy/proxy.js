@@ -3,7 +3,7 @@ const https = require("https")
 const { createProxyServer } = require("http-proxy")
 const { connect } = require("net")
 const { parse } = require("url")
-const { join, resolve } = require("path")
+const { join } = require("path")
 
 const MitmProxy = require("@bjowes/http-mitm-proxy")
 
@@ -23,6 +23,9 @@ const sudo = require("@expo/sudo-prompt")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
+
+const certIssuer = 'NodeMITMProxyCA'
+let certExists = false
 
 class Proxy {
     constructor() {
@@ -312,33 +315,71 @@ class Proxy {
     }
 }
 
-const checkTrustMitmCert = async function() {
-    const issuer = 'NodeMITMProxyCA'
+const checkMitmCert = async function(forceReinstall = false) {
+    return new Promise((resolve, reject) => {
+        try {
+            // TODO: non-win32 platforms
+            execFile('certutil', ['-store', 'Root'], { shell: true }, async (err, stdout, stderr) => {
+                if (err) {
+                    const message = "Error listing certificates."
+                    Logger.error(kccpLogSource, msg, stderr)
+                    resolve({ success: false, message, error: err })
+                    return
+                }
 
-    // TODO: non-win32 platforms
-
-    execFile('certutil', ['-store', 'Root'], { shell: true }, async (err, stdout, stderr) => {
-        if (err) {
-            Logger.error(kccpLogSource, 'Error listing certs:', stderr);
-            return;
+                certExists = stdout.includes(`CN=${certIssuer}`)
+                resolve(certExists)
+            })
+        } catch (e) {
+            reject(e)
         }
+    })
+}
 
-        if (stdout.includes(`CN=${issuer}`)) {
-            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} already installed.`);
-        }
-        else {
-            Logger.log(kccpLogSource, `Issuer cert CN=${issuer} not found.`);
-
-            sudo.exec(`certutil -addstore Root "${resolve(join(getMitmCertDir(), "certs", "ca.pem"))}"`, {},
+const installMitmCert = async function() {
+    return new Promise((resolve, reject) => {
+        const caPath = join(getMitmCertDir(), "certs", "ca.pem")
+        try {
+            // TODO: non-win32 platforms
+            sudo.exec(`certutil -delstore Root "${certIssuer}" && certutil -addstore Root "${caPath}"`, {},
                 (error, stdout, stderror) => {
                 if (error) {
-                    Logger.error(kccpLogSource, 'Failed to install cert.', error, stderror);
+                    const message = "Failed to install cert."
+                    Logger.error(kccpLogSource, message, error, stderror)
+                    resolve({ exists: certExists, installed: certExists, message, error: error.toString() })
                 } else {
-                    Logger.log(kccpLogSource, 'Cert installed.', stdout);
+                    Logger.log(kccpLogSource, "Cert installed successfully.", stdout)
+                    resolve({ exists: certExists, installed: true, success: true })
+                    certExists = true
                 }
             })
         }
-    });
+        catch (e) {
+            reject(e)
+        }
+    })
+}
+
+const uninstallMitmCert = async function() {
+    return new Promise((resolve, reject) => {
+        try {
+            // TODO: non-win32 platforms
+            sudo.exec(`certutil -delstore Root "${certIssuer}"`, {},
+                (error, stdout, stderror) => {
+                if (error) {
+                    const message = "Failed to uninstall cert."
+                    Logger.error(kccpLogSource, message, error, stderror)
+                    resolve({ exists: certExists, installed: certExists, message, error: error.toString() })
+                } else {
+                    Logger.log(kccpLogSource, "Cert uninstalled successfully.", stdout)
+                    resolve({ exists: certExists, installed: false, success: true })
+                    certExists = false
+                }
+            })
+        } catch (e) {
+            reject(e)
+        }
+    })
 }
 
 const getMitmCertDir = function() {
@@ -352,5 +393,5 @@ if (require.main === module) {
     await proxy.start()
     })()
 } else {
-    module.exports = { Proxy, config, logger: Logger, kccpLogSource, checkTrustMitmCert, getMitmCertDir }
+    module.exports = { Proxy, config, logger: Logger, kccpLogSource, checkMitmCert, installMitmCert, uninstallMitmCert, getMitmCertDir }
 }

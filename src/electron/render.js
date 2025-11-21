@@ -43,6 +43,16 @@ ipcRenderer.on("version", (e, { manual, error, release }) => {
     document.getElementById("newVersion").innerText = release.tag_name
     document.getElementById("openReleases").onclick = () => shell.openExternal(`${BASEURL}/releases/`)
 })
+const updateCertDisplay = (installed, error) => {
+    document.getElementById("httpsMitmTrustCert").textContent = error || (installed
+        ? "HTTPS certificate installed."
+        : "HTTPS certificate not installed.")
+    document.getElementById("httpsMitmInstallCert").style.display = installed ? "none" : "inline"
+    document.getElementById("httpsMitmReinstallCert").style.display = installed ? "inline" : "none"
+    document.getElementById("httpsMitmUninstallCert").style.display = installed ? "inline" : "none"
+}
+ipcRenderer.on("cert-check", (e, installed) => updateCertDisplay(installed))
+ipcRenderer.on("cert-result", (e, result) => updateCertDisplay(result.installed, result.error))
 
 /**
  * Handle a message
@@ -818,8 +828,14 @@ document.getElementById("openCache").addEventListener("click", () => {
     shell.openExternal(join(remote.app.getPath("userData"), "ProxyData", "cache"))
 })
 
-document.getElementById("httpsMitmTrustCert").addEventListener("click", () => {
-    ipcRenderer.send("checkTrustMitmCert")
+document.getElementById("httpsMitmInstallCert").addEventListener("click", () => {
+    ipcRenderer.send("installMitmCert")
+})
+document.getElementById("httpsMitmReinstallCert").addEventListener("click", () => {
+    ipcRenderer.send("installMitmCert")
+})
+document.getElementById("httpsMitmUninstallCert").addEventListener("click", () => {
+    ipcRenderer.send("uninstallMitmCert")
 })
 
 document.getElementById("checkVersion").addEventListener("click", () => {

@@ -4,7 +4,7 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
-const { checkTrustMitmCert } = require("./proxy")
+const { checkMitmCert, installMitmCert, uninstallMitmCert } = require("./proxy")
 
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
@@ -191,7 +191,9 @@ function registerElectron(ipcMain, app, al) {
     ipcMain.on("saveConfig", () => config.saveConfig())
     ipcMain.on("verifyCache", (e, poof) => verifyCache(poof))
     ipcMain.on("checkVersion", async () => mainWindow.webContents.send("version", await checkVersion(true)))
-    ipcMain.on("checkTrustMitmCert", () => checkTrustMitmCert())
+    ipcMain.on("checkMitmCert", async () => mainWindow.webContents.send("cert-check", await checkMitmCert(true)))
+    ipcMain.on("installMitmCert", async () => mainWindow.webContents.send("cert-result", await installMitmCert(true)))
+    ipcMain.on("uninstallMitmCert", async () => mainWindow.webContents.send("cert-result", await uninstallMitmCert(true)))
     ipcMain.on("reloadCache", () => require("./cacher").loadCached())
     ipcMain.on("preload", (e, rare) => require("./preload").run(rare))
     ipcMain.on("importCache", (e, path = join(__dirname, "../../minimum-cache.zip")) => mergeCache(path))

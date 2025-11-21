@@ -16,7 +16,7 @@ ipc.registerElectron(ipcMain, app, al)
 const config = require("../proxy/config")
 config.loadConfig(app)
 
-const { Proxy } = require("../proxy/proxy")
+const { Proxy, checkMitmCert } = require("../proxy/proxy")
 const { updateMod } = require("../proxy/mod/gitModHandler")
 const { reloadModCache } = require("../proxy/mod/patcher")
 
@@ -209,6 +209,8 @@ async function createWindow() {
     setInterval(checkVersion, 6 * 60 * 60 * 1000)
     setTimeout(checkGitModUpdates, 5 * 1000)
     setInterval(checkGitModUpdates, 6 * 60 * 60 * 1000)
+
+    mainWindow.webContents.send("cert-check", await checkMitmCert(), 1 * 1000)
 }
 
 // This method will be called when Electron has finished
