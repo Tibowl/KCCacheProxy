@@ -102,8 +102,10 @@ class Proxy {
             return
         })
         this.mitm.onError((ctx, err) => {
-            const url = ctx?.clientToProxyRequest?.url || "unknown-url"
-            Logger.error(kccpLogSource, `HTTPS Proxy error on ${url}`)
+            Logger.error(kccpLogSource, `HTTPS Proxy error:`, JSON.stringify(err))
+            if (err?.code === "ERR_SSL_INVALID_LIBRARY_(0)")
+                Logger.error(kccpLogSource, "HTTPS Proxy error occurred. Have you installed the HTTPS certificate?")
+
         })
 
         // SOCKS5 support
