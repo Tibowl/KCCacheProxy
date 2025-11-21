@@ -6,7 +6,7 @@ module.exports = { log, error, trace, registerElectron, send, sendRecent, setMai
 
 const elevate = require("windows-elevate")
 const { execFile } = require("child_process")
-const { mitmCaPath } = require("./proxy")
+const { getMitmCertDir } = require("./proxy")
 
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
@@ -163,7 +163,8 @@ async function checkTrustMitmCert() {
         } else {
             log(logSource, `Issuer cert CN=${issuer} not found`);
 
-            elevate.exec("certutil", ["-addstore", "Root", `${mitmCaPath}`], (error, stdout, stderror) => {
+            elevate.exec("certutil", ["-addstore", "Root", `${path.join(getMitmCertDir(), "certs", "ca.pem")}`],
+                (error, stdout, stderror) => {
                 if (error) {
                     error(logSource, 'Failed to install cert.', error, stderror);
                 } else {

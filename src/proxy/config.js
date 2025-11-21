@@ -1,7 +1,7 @@
 const { existsSync, readFileSync, writeFileSync, ensureDirSync } = require("fs-extra")
 const { join, dirname } = require("path")
 
-module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfig, preloader }
+module.exports = { getConfig, getCacheLocation, loadConfig, saveConfig, setConfig, preloader, getUserdataDir }
 
 const Logger = require("./ipc")
 const { forceSave, loadCached } = require("./cacher")
@@ -87,6 +87,10 @@ if (process.env.DATA_DIR) {
 }
 
 let cacheLocation = config.cacheLocation
+
+function getUserdataDir(pathAppend) {
+    return pathAppend ? join(userdata, pathAppend) : userdata
+}
 
 /**
  * Load config from electron folder

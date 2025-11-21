@@ -5,7 +5,7 @@ const { connect } = require("net")
 const { parse } = require("url")
 const { join } = require("path")
 
-const MitmProxy = require("http-mitm-proxy")
+const MitmProxy = require("@bjowes/http-mitm-proxy")
 
 const socks = require("node-socksv5-dns-looukp")
 
@@ -20,8 +20,6 @@ const { Readable } = require("stream")
 
 const KC_PATHS = ["/kcs/", "/kcs2/", "/kcscontents/", "/gadget_html5/", "/html/", "/kca/"]
 
-const mitmCertDir = join(__dirname, "..", "certificates")
-const mitmCaPath = join(mitmCertDir, "certs", "ca.pem")
 
 class Proxy {
     constructor() {
@@ -254,14 +252,16 @@ class Proxy {
                     Logger.error(kccpLogSource, "HTTPS port cannot be the same as HTTP port when both proxies are running. HTTPS proxy will not start.")
                 }
                 else {
+                    Logger.log(kccpLogSource, `Using MITM certificates from ${getMitmCertDir()}`)
                     this.mitm.listen({
                         host: this.config.hostname,
                         port: this.config.httpsPort,
-                        sslCaDir: mitmCertDir
-                    }/*, () => { Logger.log(kccpLogSource, "Started HTTPS proxy") }*/)
+                        sslCaDir: getMitmCertDir()
+                    }/*, (a, b, c) => { Logger.log(kccpLogSource, "Started HTTPS proxy", a, b, c) }/* */)
                 }
             }
             else {
+                this.mitm.httpServer?.close()
                 Object.keys(this.mitm.sslServers).forEach(key => {
                     this.mitm.sslservers[key].server.close()
                 })
@@ -300,7 +300,18 @@ class Proxy {
             this.proxy.close()
         if (this.server)
             this.server.close()
+        if (this.mitm) {
+            this.mitm.httpServer?.close()
+            Object.keys(this.mitm.sslServers).forEach(key => {
+                this.mitm.sslServers[key]?.server.close()
+            })
+        }
     }
+}
+
+
+const getMitmCertDir = function() {
+    return config.getUserdataDir("certificates")
 }
 
 if (require.main === module) {
@@ -310,5 +321,5 @@ if (require.main === module) {
     await proxy.start()
     })()
 } else {
-    module.exports = { Proxy, config, logger: Logger, kccpLogSource, mitmCertDir, mitmCaPath }
+    module.exports = { Proxy, config, logger: Logger, kccpLogSource, getMitmCertDir }
 }
