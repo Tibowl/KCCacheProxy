@@ -32,11 +32,10 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=builder      /app/src/proxy ./src
 COPY --from=builder      /app/docker/config.json ./config.json
 
-EXPOSE 8080
-
 ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV CONFIG_DEFAULT_FILE=/app/config.json
+ENV HOST=0.0.0.0
 
 ENTRYPOINT [ "/sbin/tini", "--", "/bin/sh", "/docker-entrypoint.sh" ]
 

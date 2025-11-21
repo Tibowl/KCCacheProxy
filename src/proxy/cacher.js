@@ -346,7 +346,7 @@ async function handleCaching(req, res, forceCache = false) {
             || headers.host == "127.0.0.1" || headers.host == getConfig().hostname)) {
             getConfig().serverIP = headers.host
             // Logger.log(logSource, `Detected KC server IP ${getConfig().serverIP}`)
-            saveConfig({silent: true})
+            saveConfig({ silent: true })
         }
     }
 

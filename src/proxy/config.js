@@ -86,6 +86,10 @@ if (process.env.DATA_DIR) {
     }
 }
 
+config.hostname = process.env.HOST ?? config.hostname
+config.port = process.env.PORT ?? config.port
+config.httpsPort = process.env.SSL_PORT ?? config.httpsPort
+
 let cacheLocation = config.cacheLocation
 
 function getUserdataDir(pathAppend) {
