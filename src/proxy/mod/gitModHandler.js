@@ -25,7 +25,7 @@ function onProgress(progress) {
     }
 }
 
-async function handleModInstallation(modsPath, url, config, configManager) {
+async function handleModInstallation(modsPath, url, config, configManager, progressCallback) {
     // Extract repo name from URL
     const repoName = url.split("/").pop().replace(".git", "")
     const modPath = join(modsPath, repoName)
@@ -40,7 +40,10 @@ async function handleModInstallation(modsPath, url, config, configManager) {
             url,
             depth: 1,
             singleBranch: true,
-            onProgress: onProgress
+            onProgress: (p) => {
+                onProgress(p)
+                if (progressCallback) progressCallback(p)
+            }
         })
 
         // Find any .mod.json file in the repository root
@@ -73,7 +76,7 @@ async function handleModInstallation(modsPath, url, config, configManager) {
     return result
 }
 
-async function updateMod(modPath, gitRemote) {
+async function updateMod(modPath, gitRemote, progressHandler) {
     const repoPath = dirname(modPath)
     const cache = {}
     const result = { modPath }
@@ -112,7 +115,10 @@ async function updateMod(modPath, gitRemote) {
             singleBranch: true,
             ref: targetOid,
             cache,
-            onProgress: onProgress
+            onProgress: (p) => {
+                onProgress(p)
+                if (progressHandler) progressHandler(p)
+            } 
         })
 
         Logger.log(logSource, "Updating files...")
@@ -122,7 +128,10 @@ async function updateMod(modPath, gitRemote) {
             ref: targetOid,
             force: true,
             cache,
-            onProgress: onProgress
+            onProgress: (p) => {
+                onProgress(p)
+                if (progressHandler) progressHandler(p)
+            } 
         })
 
         result.success = true
