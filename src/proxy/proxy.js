@@ -269,10 +269,12 @@ class Proxy {
                 }
             }
             else {
-                this.mitm.httpServer?.close()
-                Object.keys(this.mitm.sslServers).forEach(key => {
-                    this.mitm.sslServers[key].server.close()
-                })
+                this.mitm?.httpServer?.close()
+                if (this.mitm?.sslServers) {
+                    Object.keys(this.mitm.sslServers).forEach(key => {
+                        this.mitm.sslServers[key].server.close()
+                    })
+                }
             }
         }
 
