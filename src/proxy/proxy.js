@@ -310,9 +310,11 @@ class Proxy {
             this.server.close()
         if (this.mitm) {
             this.mitm.httpServer?.close()
-            Object.keys(this.mitm.sslServers).forEach(key => {
-                this.mitm.sslServers[key].server.close()
-            })
+            if (!!this.mitm.sslServers) {
+                Object.keys(this.mitm.sslServers).forEach(key => {
+                    this.mitm.sslServers[key].server.close()
+                })
+            }
         }
     }
 }
