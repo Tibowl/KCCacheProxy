@@ -233,6 +233,12 @@ class Proxy {
         callback(res)
     }
 
+    listening() {
+        const isHttp = this.config.mode === "http" || this.config.mode === "http-https"
+        const isHttps = this.config.mode === "https" || this.config.mode === "http-https"
+        if (!(isHttp || isHttps)) return false
+        return (!isHttp || this.server?.listening || false) && (!isHttps || this.mitm?.httpServer?.listening || false)
+    }
 
     async start() {
         cacher.loadCached()
