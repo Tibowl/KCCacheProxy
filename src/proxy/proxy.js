@@ -31,6 +31,8 @@ class Proxy {
     constructor() {
     }
 
+    lastStartError = null
+
     async init() {
         this.closing = false
 
@@ -72,15 +74,13 @@ class Proxy {
             srvSocket.on("error", (...a) => Logger.error(kccpLogSource, "Server socket error", ...a))
         })
         this.server.on("error", async (...a) => {
+            this.lastStartError = a
             Logger.error(kccpLogSource, "Proxy server error", ...a)
-            if (a[0].code === "EADDRINUSE") {
-                if (this.closing) return
-                setTimeout(() => {
-                    this.server.listen(this.config.port, this.config.hostname)
-                }, 5000)
-            }
         })
-        this.proxy.on("error", (error) => Logger.error(kccpLogSource, `Proxy error: ${error.code}: ${error.hostname}`))
+        this.proxy.on("error", (error) => {
+            this.lastStartError = error
+            Logger.error(kccpLogSource, `Proxy error: ${error.code}: ${error.hostname}`)
+        })
 
         // MITM HTTPS proxy
         this.mitm.onRequest(async (ctx, callback) => {
@@ -102,6 +102,7 @@ class Proxy {
             return
         })
         this.mitm.onError((ctx, err) => {
+            this.lastStartError = err
             Logger.error(kccpLogSource, `HTTPS Proxy error:`, JSON.stringify(err))
             if (err?.code === "ERR_SSL_INVALID_LIBRARY_(0)")
                 Logger.error(kccpLogSource, "HTTPS Proxy error occurred. Have you installed the HTTPS certificate?")
@@ -241,6 +242,7 @@ class Proxy {
     }
 
     async start() {
+        this.lastStartError = null
         cacher.loadCached()
 
         if (Logger.getStatsPath() == undefined) {
