@@ -103,13 +103,19 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
         return rep
     }
 
-    const options = { method: "GET", headers }
+    const timeoutMs = Number(getConfig().httpTimeoutMs) || 60e3
+    const options = {
+        method: "GET",
+        headers,
+        signal: AbortSignal.timeout(timeoutMs),
+    }
 
     // Request to only send full file if it has changed since last request
-    if (lastmodified)
+    if (lastmodified) {
         options.headers["If-Modified-Since"] = lastmodified
-    else
+    } else {
         delete options.headers["If-Modified-Since"]
+    }
 
 
     // Fetch data

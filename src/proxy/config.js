@@ -12,6 +12,7 @@ const configFile = "config.json"
 const defaultConfig = {
     "port": 8081,
     "httpsPort": 8082,
+    "httpTimeoutMs": 60000,
     "mode": "http-https",
     "socks5Port": 1080,
     "socks5Enabled": false,
