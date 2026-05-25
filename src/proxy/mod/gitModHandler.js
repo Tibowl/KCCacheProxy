@@ -1,15 +1,17 @@
 const git = require("isomorphic-git")
-const fs = require("fs")
 const { join, dirname } = require("path")
 const { existsSync } = require("fs-extra")
 const Logger = require("../ipc")
 const { reloadModCache } = require("./patcher")
 const http = require("isomorphic-git/http/node")
 const { readFile } = require("fs/promises")
+const fs = require("fs")
 
 const logSource = "kccp-git"
 let lastLogTime = 0
 let lastPhase = ""
+
+const gitBatchSize = 1000
 
 function onProgress(progress) {
     const percent = ((progress.loaded / progress.total) * 100).toFixed(2)
@@ -19,7 +21,10 @@ function onProgress(progress) {
         now - lastLogTime >= 1000 // Log if more than 1 second since last log
 
     if (shouldLog) {
-        Logger.log(logSource, `${progress.phase}: ${percent}% [${progress.loaded}/${progress.total}]`)
+        if (progress.total > 0)
+            Logger.log(logSource, `${progress.phase}: ${percent}% [${progress.loaded}/${progress.total}]`)
+        else
+            Logger.log(logSource, `${progress.phase}: ${progress.loaded} items processed`)
         lastLogTime = now
         lastPhase = progress.phase
     }
@@ -35,6 +40,8 @@ async function handleModInstallation(modsPath, url, config, configManager, progr
         // Clone repository with depth=1 (shallow clone)
         await git.clone({
             fs,
+            nonBlocking: true,
+            batchSize: gitBatchSize,
             http,
             dir: modPath,
             url,
@@ -109,6 +116,8 @@ async function updateMod(modPath, gitRemote, progressHandler) {
         // Fetch latest changes
         await git.fetch({
             fs,
+            nonBlocking: true,
+            batchSize: gitBatchSize,
             http,
             dir: repoPath,
             url: gitRemote,
@@ -124,6 +133,8 @@ async function updateMod(modPath, gitRemote, progressHandler) {
         Logger.log(logSource, "Updating files...")
         await git.checkout({
             fs,
+            nonBlocking: true,
+            batchSize: gitBatchSize,
             dir: repoPath,
             ref: targetOid,
             force: true,
