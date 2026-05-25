@@ -36,6 +36,13 @@ async function handleModInstallation(modsPath, url, config, configManager, progr
     const modPath = join(modsPath, repoName)
     const result = { modPath }
 
+    if (existsSync(modPath)) {
+        Logger.error(logSource, `Mod directory already exists: ${modPath}`)
+        result.success = false
+        result.error = new Error("Mod directory already exists")
+        return result
+    }
+
     try {
         // Clone repository with depth=1 (shallow clone)
         await git.clone({
@@ -116,8 +123,6 @@ async function updateMod(modPath, gitRemote, progressHandler) {
         // Fetch latest changes
         await git.fetch({
             fs,
-            nonBlocking: true,
-            batchSize: gitBatchSize,
             http,
             dir: repoPath,
             url: gitRemote,

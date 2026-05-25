@@ -34,11 +34,16 @@ async function reloadModCache() {
     for (const { path, allowScripts } of getConfig().mods) {
         const modDir = path.replace(/\.mod\.json$/, "")
 
-        const meta = JSON.parse(await readFile(path))
-        if (meta.requireScripts && !allowScripts) continue
+        try {
+            const meta = JSON.parse(await readFile(path))
+            if (meta.requireScripts && !allowScripts) continue
 
-        Logger.log(logSource, "Preparing", modDir)
-        await prepareDir(modDir, meta, allowScripts && meta.requireScripts)
+            Logger.log(logSource, "Preparing", modDir)
+            await prepareDir(modDir, meta, allowScripts && meta.requireScripts)
+        }
+        catch (e) {
+            Logger.error(logSource, `Failed to load mod ${modDir}, skipping...`, e)
+        }
     }
 
     Logger.log(logSource, "Preparing mod images took", Date.now() - startTime, "ms")
