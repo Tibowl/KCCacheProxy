@@ -722,7 +722,7 @@ function updateHidden() {
                 }
 
             } catch (error) {
-                addLog("error", error)
+                addLog("error", new Date(), error)
                 elem.innerText = "Failed to load metadata: "
                 const path = document.createElement("code")
                 path.innerText = mod.path
