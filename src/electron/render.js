@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 const { remote, ipcRenderer, shell } = require("electron")
 const { join } = require("path")
-const { readFileSync, existsSync } = require("fs-extra")
+const { rmSync, readFileSync, existsSync } = require("fs-extra")
 const fetch = require("node-fetch")
 
 const BASEURL = "https://github.com/Tibowl/KCCacheProxy"
@@ -722,11 +722,34 @@ function updateHidden() {
                 }
 
             } catch (error) {
-                addLog("error", new Date(), error)
+                addLog("error", new Date(), "Error reading mod:", error)                
+
                 elem.innerText = "Failed to load metadata: "
+
+                const modPath = mod.path
                 const path = document.createElement("code")
-                path.innerText = mod.path
+                // provide the mod folder (only the last folder in the path) and file name
+                const parts = modPath.split("\\");
+                path.innerText = parts?.slice(-2)?.join("\\") || modPath
                 elem.appendChild(path)
+                
+                addIconButton(downIcon, () => move(1), config.mods[config.mods.length - 1] === mod, "mod-controls", "1", "4")
+                addIconButton(upIcon, () => move(-1), config.mods[0] === mod, "mod-controls", "1", "5")
+
+                addIconButton(desktopIcon, () => {
+                    const i = Math.max(modPath.lastIndexOf("/"), modPath.lastIndexOf("\\"));
+                    if (i !== -1) shell.openExternal(modPath.substring(0, i + 1));
+                }, false, "mod-controls", "1", "7");
+
+                addIconButton(trashIcon, () => {
+                    const ind = config.mods.indexOf(mod)
+                    config.mods.splice(ind, 1)
+                    reload()
+                    updateHidden()
+                    refreshEnglishPatchButton()
+                }, false, "mod-controls", "1", "8")
+                
+                alert(`Failed to load metadata for mod.\nlocation: ${modPath}\nerror:${error}\n\nRecommended action: Remove and re-add the mod. If the problem persists, report to mod author.`)
             }
         else {
             elem.innerText = "Missing file (moved or deleted?): "
@@ -966,32 +989,51 @@ ipcRenderer.on("gitModUpdated", (event, result) => {
     }
 })
 
-document.getElementById("confirmGitModInstall").onclick = () => {
-    const urlInput = document.getElementById("gitModUrl")
-    const url = urlInput.value.trim()
+function installGitMod(url) {
     if (!url) return
+
+    const repoName = url.split('/').pop().replace('.git', '')
+    const modsPath = join(remote.app.getPath("userData"), "ProxyData", "mods")
+    const modPath = join(modsPath, repoName)
+
+    if (existsSync(modPath)) {
+        const shouldDelete = confirm(
+            `A directory for this git mod already exists at ${modPath}.\n\nThis was most likely from a previous installation and can be safely removed.\nDo you want to delete the existing folder and continue with the installation?`
+        )
+
+        if (!shouldDelete) {
+            addLog("log", new Date(), "User cancelled mod installation due to existing mod directory.")
+            return { success: false, error: new Error("User cancelled installation") }
+        }
+
+        try {
+            rmSync(modPath, { recursive: true, force: true })
+            addLog("log", new Date(), `Deleted existing mod directory at ${modPath}.`)
+        } catch (error) {
+            addLog("error", new Date(), `Failed to delete existing mod directory at ${modPath}:`, error)
+            alert(`Failed to delete existing mod directory at ${modPath}. Please check the logs for more details and try again.`)
+            return { success: false, error }
+        }
+    }
 
     try {
         addLog("info", new Date(), `Installing mod from ${url}...`)
         ipcRenderer.send("installGitMod", url)
-        urlInput.value = ""
         document.getElementById("gitModInstall").style.display = "none"
     } catch (error) {
         addLog("error", new Date(), `Failed to install mod: ${error}`)
     }
 }
 
-document.getElementById("getEnglishPatch").onclick = () => {
+document.getElementById("confirmGitModInstall").onclick = () => {
     const urlInput = document.getElementById("gitModUrl")
+    const url = urlInput.value.trim()
+    installGitMod(url)
+    urlInput.value = ""
+}
 
-    try {
-        addLog("info", new Date(), `Installing mod from https://github.com/Oradimi/KanColle-English-Patch-KCCP.git...`)
-        ipcRenderer.send("installGitMod", "https://github.com/Oradimi/KanColle-English-Patch-KCCP.git")
-        urlInput.value = ""
-        document.getElementById("gitModInstall").style.display = "none"
-    } catch (error) {
-        addLog("error", new Date(), `Failed to install mod: ${error}`)
-    }
+document.getElementById("getEnglishPatch").onclick = () => {
+    installGitMod("https://github.com/Oradimi/KanColle-English-Patch-KCCP.git")
 }
 
 document.getElementById("cancelGitModInstall").onclick = () => {
