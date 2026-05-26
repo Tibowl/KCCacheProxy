@@ -107,7 +107,7 @@ async function cache(cacheFile, file, url, version, lastmodified, headers = {}) 
     const options = {
         method: "GET",
         headers,
-        signal: AbortSignal.timeout(timeoutMs),
+        timeout: timeoutMs,
     }
 
     // Request to only send full file if it has changed since last request
