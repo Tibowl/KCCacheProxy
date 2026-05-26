@@ -303,6 +303,28 @@ const settable = {
         "verify": (v) => v < 65537 && v > 0,
         "verifyError": "Invalid port, needs to be between 1 and 65536"
     },
+    "httpTimeoutMs": {
+        "label": "Request timeout (ms)",
+        "ifEmpty": "60000",
+        "title": "How many milliseconds to wait before considering a request 'stalled' and aborting the request. Increase if you have slow internet.",
+        "input": {
+            "type": "number",
+            "min": 100,
+            "max": 600000,
+        },
+        "verify": (v) => v < 600000 && v > 0,
+        "verifyError": "Keep this value between 100 and 600000 (10 minutes)"
+    },
+    "gameVersionOverwrite": {
+        "label": "Overwrite game version",
+        "ifEmpty": "false",
+        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag.",
+        "input": {
+            "type": "text"
+        },
+        "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
+        "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
+    },
     "cacheLocation": {
         "label": "Cache location",
         "ifEmpty": "default",
@@ -314,16 +336,6 @@ const settable = {
             "title": "Select Cache folder",
             "properties": ["openDirectory"]
         }
-    },
-    "gameVersionOverwrite": {
-        "label": "Overwrite game version",
-        "ifEmpty": "false",
-        "title": "Overwrite game version. Entering 'false' will use cached game version. 'kca' will use KC android version tag.",
-        "input": {
-            "type": "text"
-        },
-        "verify": (v) => v == "false" || v == "kca" || v.match(/^\d\.\d\.\d\.\d$/),
-        "verifyError": "Invalid version, needs to be 'false' or X.Y.Z.A with letter being a digit"
     },
     "startHidden": {
         "label": "Start in system tray",
