@@ -4,7 +4,9 @@ const fetch = require("node-fetch")
 
 module.exports = { log, error, trace, registerElectron, send, sendRecent, setMainWindow, checkVersion, addStatAndSend, saveStats, getStatsPath: () => statsPath, setStatsPath: (path) => statsPath = path }
 
-const { checkMitmCert, installMitmCert, uninstallMitmCert } = require("./proxy")
+// NOTE: don't require ./proxy (or anything else that leads back here) at module
+// scope: it makes ipc.js re-enter its own log() before the bindings below are
+// initialized. Cert helpers are required inside registerElectron() instead.
 
 // Log source for internally-generated messages
 const logSource = "kccp-logger"
@@ -180,6 +182,7 @@ function registerElectron(ipcMain, app, al) {
     send(logSource, "stats", stats)
 
     const config = require("./config")
+    const { checkMitmCert, installMitmCert, uninstallMitmCert } = require("./proxy")
     const { verifyCache, mergeCache, createDiff, clearMain } = require("./cacheHandler")
     const { extractSplit, importExternalMod, outlines } = require("./mod/modderUtils")
     const { reloadModCache, prepatch } = require("./mod/patcher")
